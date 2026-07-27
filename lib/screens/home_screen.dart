@@ -797,7 +797,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    // 5. EIOP CITY EXPRESS PARCEL BANNER WITH FULL IMAGE BACKGROUND
+                    // 5. EIOP CITY EXPRESS PARCEL BANNER (HOLLOW / RECESSED BORDERED DESIGN)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: GestureDetector(
@@ -810,56 +810,45 @@ class _HomeScreenState extends State<HomeScreen> {
                           );
                         },
                         child: Container(
-                          height: 100,
+                          height: 88,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(22),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.15),
-                                blurRadius: 14,
-                                offset: const Offset(0, 5),
-                              ),
-                            ],
-                            image: const DecorationImage(
-                              image:
-                                  AssetImage('assets/images/cat_parcel.png'),
-                              fit: BoxFit.cover,
+                            color: Colors.transparent,
+                            border: Border.all(
+                              color: const Color(0xFFFF5216),
+                              width: 1.5,
                             ),
                           ),
-                          child: Container(
+                          child: Padding(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 12),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(22),
-                              gradient: LinearGradient(
-                                colors: [
-                                  Colors.black.withValues(alpha: 0.90),
-                                  Colors.black.withValues(alpha: 0.45),
-                                  Colors.transparent,
-                                ],
-                                begin: Alignment.centerLeft,
-                                end: Alignment.centerRight,
-                              ),
-                            ),
                             child: Row(
                               children: [
                                 Expanded(
                                   child: Row(
                                     children: [
                                       Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: const BoxDecoration(
-                                          color: Color(0xFFFF5216),
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFFF5216),
                                           shape: BoxShape.circle,
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: const Color(0xFFFF5216)
+                                                  .withValues(alpha: 0.35),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 3),
+                                            ),
+                                          ],
                                         ),
                                         child: const Icon(
                                           Icons.two_wheeler_rounded,
                                           color: Colors.white,
-                                          size: 20,
+                                          size: 22,
                                         ),
                                       ),
-                                      const SizedBox(width: 10),
-                                      const Expanded(
+                                      const SizedBox(width: 12),
+                                      Expanded(
                                         child: Column(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
@@ -871,19 +860,19 @@ class _HomeScreenState extends State<HomeScreen> {
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
                                               style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 14,
+                                                color: AppColors.textPrimary,
+                                                fontSize: 15,
                                                 fontWeight: FontWeight.w900,
                                               ),
                                             ),
-                                            SizedBox(height: 2),
+                                            const SizedBox(height: 3),
                                             Text(
                                               'نقل طرود ومفاتيح بالمدينة',
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
                                               style: TextStyle(
-                                                color: Colors.white70,
-                                                fontSize: 10,
+                                                color: AppColors.textSecondary,
+                                                fontSize: 11,
                                                 fontWeight: FontWeight.w500,
                                               ),
                                             ),
@@ -893,7 +882,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ],
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: 10),
                                 ElevatedButton(
                                   onPressed: () {
                                     Navigator.push(
@@ -905,14 +894,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                     );
                                   },
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.white,
-                                    foregroundColor: const Color(0xFFFF5216),
+                                    backgroundColor: const Color(0xFFFF5216),
+                                    foregroundColor: Colors.white,
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(18),
+                                      borderRadius: BorderRadius.circular(20),
                                     ),
                                     elevation: 2,
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 14, vertical: 8),
+                                        horizontal: 16, vertical: 10),
                                   ),
                                   child: const Text(
                                     'اطلب الآن',
