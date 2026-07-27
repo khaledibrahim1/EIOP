@@ -38,31 +38,40 @@ class _PromoBannerState extends State<PromoBanner> {
 
   final List<PromoOfferData> _offers = const [
     PromoOfferData(
-      badgeText: 'لفترة محدودة!',
-      title: 'احصل على خصم خاص',
-      subtitleText: 'خصم تصل إلى',
+      badgeText: 'عرض ترحيبي!',
+      title: 'خصم أول طلب مطاعم وسوبرماركت',
+      subtitleText: 'خصم يصل إلى',
       discountNum: '40',
-      footerNote: 'متاح بجميع المطاعم | تطبق الشروط',
+      footerNote: 'على جميع الأقسام | كود: EIOP40',
       buttonText: 'احصل عليه',
       bgImagePath: 'assets/images/hadramout_cover.png',
     ),
     PromoOfferData(
-      badgeText: 'عرض اليوم!',
-      title: 'خصومات البيتزا والكريب',
-      subtitleText: 'خصم تصل إلى',
-      discountNum: '25',
-      footerNote: 'على جميع الطلبات | مطاعم جرجا',
-      buttonText: 'اطلب الآن',
-      bgImagePath: 'assets/images/sultan_pizza_cover.png',
+      badgeText: 'توصيل سريع!',
+      title: 'مرسول EIOP Express للطرود',
+      subtitleText: 'أجرة التوصيل تبدأ من',
+      discountNum: '15',
+      footerNote: 'نقل أمانات وطرود | في 20 دقيقة',
+      buttonText: 'ارسل طردك',
+      bgImagePath: 'assets/images/delivery_rider.png',
     ),
     PromoOfferData(
-      badgeText: 'توصيل مجاني!',
-      title: 'عروض الوجبات السريعة',
-      subtitleText: 'خصم تصل إلى',
-      discountNum: '30',
-      footerNote: 'لفترة محدودة | برجر هاوس',
-      buttonText: 'استمتع الآن',
-      bgImagePath: 'assets/images/double_cheese_burger.png',
+      badgeText: 'صيدليتك ببيتك!',
+      title: 'صور الروشتة ودواك يوصلك',
+      subtitleText: 'خصم على المستلزمات',
+      discountNum: '20',
+      footerNote: 'من أقرب صيدلية | رعاية متكاملة',
+      buttonText: 'ارفع روشتتك',
+      bgImagePath: 'assets/images/cat_coffee.png',
+    ),
+    PromoOfferData(
+      badgeText: 'بدون وسيط!',
+      title: 'أفضل عقارات وشقق المدينة',
+      subtitleText: 'وفر عمولات حتى',
+      discountNum: '100',
+      footerNote: 'تواصل مباشر مع المالك فوراً',
+      buttonText: 'استكشف العقارات',
+      bgImagePath: 'assets/images/sultan_pizza_cover.png',
     ),
   ];
 
@@ -97,7 +106,7 @@ class _PromoBannerState extends State<PromoBanner> {
       children: [
         // Main Offer Banner Card Carousel
         SizedBox(
-          height: 165,
+          height: 175,
           child: PageView.builder(
             controller: _pageController,
             onPageChanged: (index) {
@@ -186,7 +195,7 @@ class _PromoBannerState extends State<PromoBanner> {
 
             // Card Content Layer
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -196,7 +205,7 @@ class _PromoBannerState extends State<PromoBanner> {
                     alignment: Alignment.topRight,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 5),
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(20),
@@ -211,7 +220,7 @@ class _PromoBannerState extends State<PromoBanner> {
                         offer.badgeText,
                         style: const TextStyle(
                           color: Colors.black,
-                          fontSize: 11,
+                          fontSize: 10,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -224,9 +233,11 @@ class _PromoBannerState extends State<PromoBanner> {
                     children: [
                       Text(
                         offer.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 19,
+                          fontSize: 17,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -239,7 +250,7 @@ class _PromoBannerState extends State<PromoBanner> {
                             '${offer.subtitleText} ',
                             style: const TextStyle(
                               color: Colors.white70,
-                              fontSize: 13,
+                              fontSize: 12,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -247,7 +258,7 @@ class _PromoBannerState extends State<PromoBanner> {
                             offer.discountNum,
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 34,
+                              fontSize: 28,
                               fontWeight: FontWeight.w900,
                               height: 1.0,
                             ),

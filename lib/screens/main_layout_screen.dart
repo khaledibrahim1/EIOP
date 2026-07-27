@@ -3,10 +3,8 @@ import '../models/cart_state.dart';
 import '../theme/app_colors.dart';
 import '../widgets/animated_bottom_nav.dart';
 import 'cart_screen.dart';
-import 'favorites_screen.dart';
 import 'home_screen.dart';
 import 'order_tracking_screen.dart';
-import 'restaurants_screen.dart';
 
 class MainLayoutScreen extends StatefulWidget {
   const MainLayoutScreen({super.key});
@@ -35,8 +33,8 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
             index: _currentTabIndex,
             children: [
               HomeScreen(onNavigateTab: _onTabSelect),
-              const RestaurantsScreen(),
-              const FavoritesScreen(),
+              const OrderTrackingScreen(),
+              _buildWalletScreen(),
               _buildProfileScreen(),
             ],
           ),
@@ -368,6 +366,87 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
                     ),
                   ],
                 ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWalletScreen() {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: AppColors.surface,
+        elevation: 0,
+        centerTitle: true,
+        title: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.account_balance_wallet_rounded, color: AppColors.primary),
+            SizedBox(width: 8),
+            Text(
+              'محفظة EIOP Pay والنقاط',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.primary,
+              ),
+            ),
+          ],
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: AppColors.primaryGradient,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.3),
+                    blurRadius: 14,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'رصيد المحفظة المتاح',
+                    style: TextStyle(color: Colors.white70, fontSize: 13),
+                  ),
+                  SizedBox(height: 6),
+                  Text(
+                    '250.00 ج.م',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Icon(Icons.stars_rounded, color: Colors.amber, size: 18),
+                      SizedBox(width: 6),
+                      Text(
+                        '1,420 نقطة مكافآت مسجلة',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ],

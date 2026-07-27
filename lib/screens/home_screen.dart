@@ -1,15 +1,14 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/cart_state.dart';
-import '../models/category_item.dart';
 import '../models/food_item.dart';
 import '../models/restaurant.dart';
 import '../models/service_type.dart';
 import '../theme/app_colors.dart';
-import '../widgets/category_chip.dart';
+import '../widgets/custom_clipper.dart';
 import '../widgets/dark_mode_switch.dart';
 import '../widgets/food_card.dart';
 import '../widgets/promo_banner.dart';
-import '../widgets/what_do_you_need_grid.dart';
 import 'cart_screen.dart';
 import 'electronics_screen.dart';
 import 'fashion_screen.dart';
@@ -33,6 +32,35 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String _selectedCatId = '';
   String _searchQuery = '';
+
+  late Timer _headerColorTimer;
+  int _headerColorIndex = 0;
+
+  final List<Color> _headerColors = const [
+    Color(0xFFFF5216), // 🧡 البرتقالي المميز (Talabat Signature Orange)
+    Color(0xFF7C3AED), // 💜 الموف الملكي الفاخر (Royal Violet Purple)
+    Color(0xFF0D9488), // 💚 الزمردي التايلاندي (Emerald Teal)
+    Color(0xFF2563EB), // 💙 الأزرق الياقوتي (Sapphire Electric Blue)
+    Color(0xFFE11D48), // ❤️ الكورال الوردي الفاخر (Crimson Coral Rose)
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _headerColorTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      if (mounted) {
+        setState(() {
+          _headerColorIndex = (_headerColorIndex + 1) % _headerColors.length;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _headerColorTimer.cancel();
+    super.dispose();
+  }
 
   void _onSelectServiceCategory(ServiceCategory cat) {
     switch (cat) {
@@ -69,45 +97,6 @@ class _HomeScreenState extends State<HomeScreen> {
         break;
     }
   }
-
-  // Realistic Categories with Photo Assets
-  final List<CategoryItem> _categories = [
-    CategoryItem(
-      id: 'dessert',
-      title: 'حلويات',
-      imagePath: 'assets/images/cat_dessert.png',
-      bgColor: AppColors.catBurgerBg,
-      activeColor: AppColors.primary,
-    ),
-    CategoryItem(
-      id: 'icecream',
-      title: 'آيس كريم',
-      imagePath: 'assets/images/cat_icecream.png',
-      bgColor: AppColors.catPizzaBg,
-      activeColor: AppColors.primary,
-    ),
-    CategoryItem(
-      id: 'pizza',
-      title: 'بيتزا',
-      imagePath: 'assets/images/cat_pizza.png',
-      bgColor: AppColors.catPizzaBg,
-      activeColor: AppColors.primary,
-    ),
-    CategoryItem(
-      id: 'coffee',
-      title: 'مشروبات',
-      imagePath: 'assets/images/cat_coffee.png',
-      bgColor: AppColors.catSoupBg,
-      activeColor: AppColors.primary,
-    ),
-    CategoryItem(
-      id: 'burger',
-      title: 'برجر',
-      imagePath: 'assets/images/cat_burger.png',
-      bgColor: AppColors.catBurgerBg,
-      activeColor: AppColors.primary,
-    ),
-  ];
 
   // Girga Local Restaurants Directory
   final List<Restaurant> _girgaRestaurants = const [
@@ -332,6 +321,66 @@ class _HomeScreenState extends State<HomeScreen> {
       categoryId: 'salad',
       isPopular: true,
     ),
+    FoodItem(
+      id: '5',
+      title: 'سلة الخضروات والأغذية الطازجة',
+      restaurantId: 'rest_super',
+      restaurant: 'سوبرماركت جرجا',
+      price: 140.0,
+      rating: 4.9,
+      deliveryTime: '15 دقيقة',
+      description: 'سلة متكاملة من المنتجات الغذائية الفازجة والألبان وزيت الزيتون.',
+      imagePath: 'assets/images/fried_rice.png',
+      images: ['assets/images/fried_rice.png'],
+      options: [],
+      categoryId: 'supermarket',
+      isPopular: true,
+    ),
+    FoodItem(
+      id: '6',
+      title: 'فيتامين C ومستلزمات العناية',
+      restaurantId: 'rest_pharmacy',
+      restaurant: 'صيدلية الشفاء',
+      price: 65.0,
+      rating: 4.8,
+      deliveryTime: '20 دقيقة',
+      description: 'عبوة فوار فيتامين C ومستلزمات الوقاية والتوصيل الفوري.',
+      imagePath: 'assets/images/cat_coffee.png',
+      images: ['assets/images/cat_coffee.png'],
+      options: [],
+      categoryId: 'pharmacy',
+      isPopular: true,
+    ),
+    FoodItem(
+      id: '7',
+      title: 'سماعة بلوتوث لاسلكية',
+      restaurantId: 'rest_elec',
+      restaurant: 'إلكترونيات جرجا',
+      price: 240.0,
+      rating: 4.7,
+      deliveryTime: '25 دقيقة',
+      description: 'سماعة بلوتوث أصلية بصوت مجسم وعزل الضوضاء وعمر بطارية طويل.',
+      imagePath: 'assets/images/cat_dessert.png',
+      images: ['assets/images/cat_dessert.png'],
+      options: [],
+      categoryId: 'electronics',
+      isPopular: true,
+    ),
+    FoodItem(
+      id: '8',
+      title: 'قميص قطني كاجوال رجالي',
+      restaurantId: 'rest_fashion',
+      restaurant: 'أزياء الموضة',
+      price: 195.0,
+      rating: 4.8,
+      deliveryTime: '30 دقيقة',
+      description: 'قميص كاجوال رجالي قطن 100% بتصميم صيفي مريح.',
+      imagePath: 'assets/images/cat_icecream.png',
+      images: ['assets/images/cat_icecream.png'],
+      options: [],
+      categoryId: 'fashion',
+      isPopular: true,
+    ),
   ];
 
   List<FoodItem> get _filteredDishes {
@@ -351,350 +400,760 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (context, _) {
         return Scaffold(
           backgroundColor: AppColors.background,
-          body: SafeArea(
-            top: false,
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 1. TOP HEADER WITH SMOOTH FADING GRADIENT
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      gradient: AppColors.headerFadeGradient,
-                    ),
-                    child: SafeArea(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                             // Row 1: App Title & Animated Dark Mode Switch
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          body: Stack(
+            children: [
+              SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 1. TALABAT-STYLE BRIGHT ORANGE HEADER WITH WAVE CURVE
+                    ClipPath(
+                      clipper: TalabatHeaderWaveClipper(),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 1200),
+                        curve: Curves.easeInOutCubic,
+                        width: double.infinity,
+                        color: _headerColors[_headerColorIndex],
+                        child: SafeArea(
+                          bottom: false,
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 10, 20, 26),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                // Row 1: Deliver To Location Dropdown & Dark/Cart Icons
                                 Row(
-                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(6),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.primary,
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: const Icon(
-                                        Icons.all_inclusive_rounded,
-                                        color: Colors.white,
-                                        size: 22,
+                                    GestureDetector(
+                                      onTap: () {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                                'العنوان المحدد: شارع المحطة - مار جرجس، جرجا'),
+                                            duration: Duration(seconds: 1),
+                                          ),
+                                        );
+                                      },
+                                      child: const Row(
+                                        children: [
+                                          Text(
+                                            'التوصيل إلى: ',
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w400,
+                                              color: Colors.white70,
+                                            ),
+                                          ),
+                                          Text(
+                                            'مار جرجس (جرجا)',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w900,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          SizedBox(width: 4),
+                                          Icon(
+                                            Icons.keyboard_arrow_down_rounded,
+                                            color: Colors.white,
+                                            size: 20,
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                    const SizedBox(width: 10),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      mainAxisSize: MainAxisSize.min,
+
+                                    // Dark Mode Switch & Shopping Bag
+                                    Row(
                                       children: [
-                                        Text(
-                                          'EIOP Super App',
-                                          style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w900,
-                                            color: AppColors.primary,
-                                          ),
+                                        DarkModeSwitch(
+                                          headerColor: _headerColors[_headerColorIndex],
                                         ),
-                                        const Text(
-                                          'كل خدمات المدينة في مكان واحد 📍',
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.grey,
+                                        if (appState.totalItemCount > 0) ...[
+                                          const SizedBox(width: 8),
+                                          GestureDetector(
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      const CartScreen(),
+                                                ),
+                                              );
+                                            },
+                                            child: Stack(
+                                              clipBehavior: Clip.none,
+                                              children: [
+                                                Container(
+                                                  height: 38,
+                                                  width: 38,
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white
+                                                        .withValues(alpha: 0.2),
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                  child: const Icon(
+                                                    Icons.shopping_bag_outlined,
+                                                    color: Colors.white,
+                                                    size: 19,
+                                                  ),
+                                                ),
+                                                Positioned(
+                                                  right: -2,
+                                                  top: -2,
+                                                  child: Container(
+                                                    padding:
+                                                        const EdgeInsets.all(4),
+                                                    decoration:
+                                                        const BoxDecoration(
+                                                      color: Colors.white,
+                                                      shape: BoxShape.circle,
+                                                    ),
+                                                    constraints:
+                                                        const BoxConstraints(
+                                                      minWidth: 16,
+                                                      minHeight: 16,
+                                                    ),
+                                                    child: Text(
+                                                      '${appState.totalItemCount}',
+                                                      style: const TextStyle(
+                                                        color: Color(0xFFFF5216),
+                                                        fontSize: 10,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
                                           ),
-                                        ),
+                                        ],
                                       ],
                                     ),
                                   ],
                                 ),
+                                const SizedBox(height: 14),
 
-                                // Animated Dark Mode Switch Button
-                                const DarkModeSwitch(),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-
-                            // Row 2: Search Input Field & Cart Shortcut Button
-                            Row(
-                              children: [
-                                // Search Box Container
-                                Expanded(
-                                  child: Container(
-                                    height: 48,
-                                    padding:
-                                        const EdgeInsets.symmetric(horizontal: 16),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.surface,
-                                      borderRadius: BorderRadius.circular(24),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color:
-                                              Colors.black.withValues(alpha: 0.04),
-                                          blurRadius: 12,
-                                          offset: const Offset(0, 4),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.search_rounded,
-                                          color: AppColors.textLight,
-                                          size: 22,
-                                        ),
-                                        const SizedBox(width: 10),
-                                        Expanded(
-                                          child: TextField(
-                                            onChanged: (val) =>
-                                                setState(() => _searchQuery = val),
-                                            decoration: InputDecoration(
-                                              hintText: 'ابحث عن أي خدمة، منتج، أو محل...',
-                                              hintStyle: TextStyle(
-                                                color: AppColors.textLight,
-                                                fontSize: 12,
-                                              ),
-                                              border: InputBorder.none,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                // Row 2: Stadium Pill-Shaped White Search Input
+                                Container(
+                                  height: 46,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(30),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black
+                                            .withValues(alpha: 0.08),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                                const SizedBox(width: 12),
-
-                                // Cart Shortcut Button with Badge Count
-                                GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => const CartScreen(),
-                                      ),
-                                    );
-                                  },
-                                  child: Stack(
-                                    clipBehavior: Clip.none,
+                                  child: Row(
                                     children: [
-                                      Container(
-                                        height: 48,
-                                        width: 48,
-                                        decoration: BoxDecoration(
-                                          color: AppColors.surface,
-                                          shape: BoxShape.circle,
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black
-                                                  .withValues(alpha: 0.06),
-                                              blurRadius: 10,
-                                              offset: const Offset(0, 3),
-                                            ),
-                                          ],
-                                        ),
-                                        child: const Icon(
-                                          Icons.shopping_bag_outlined,
-                                          color: AppColors.primary,
-                                          size: 22,
-                                        ),
+                                      const Icon(
+                                        Icons.search_rounded,
+                                        color: Colors.grey,
+                                        size: 20,
                                       ),
-                                      if (appState.totalItemCount > 0)
-                                        Positioned(
-                                          right: -2,
-                                          top: -2,
-                                          child: Container(
-                                            padding: const EdgeInsets.all(4),
-                                            decoration: const BoxDecoration(
-                                              color: AppColors.primary,
-                                              shape: BoxShape.circle,
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: TextField(
+                                          onChanged: (val) => setState(
+                                              () => _searchQuery = val),
+                                          decoration: const InputDecoration(
+                                            hintText:
+                                                'ابحث عن وجبات، سوبرماركت، صيدلية، عقارات...',
+                                            hintStyle: TextStyle(
+                                              color: Colors.grey,
+                                              fontSize: 12,
                                             ),
-                                            constraints: const BoxConstraints(
-                                              minWidth: 18,
-                                              minHeight: 18,
-                                            ),
-                                            child: Text(
-                                              '${appState.totalItemCount}',
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                              textAlign: TextAlign.center,
-                                            ),
+                                            border: InputBorder.none,
                                           ),
                                         ),
+                                      ),
                                     ],
                                   ),
                                 ),
                               ],
                             ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // 2. CITY SERVICES CAROUSEL ("ماذا تريد الآن؟" - TALABAT SQUIRCLE CARDS)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: SizedBox(
+                        height: 100,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          physics: const BouncingScrollPhysics(),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          children: [
+                            _buildTalabatCategoryCard(
+                              title: 'مطاعم',
+                              imagePath: 'assets/images/cat_burger.png',
+                              category: ServiceCategory.food,
+                            ),
+                            _buildTalabatCategoryCard(
+                              title: 'سوبر ماركت',
+                              imagePath: 'assets/images/cat_supermarket.png',
+                              category: ServiceCategory.supermarket,
+                            ),
+                            _buildTalabatCategoryCard(
+                              title: 'صيدليات',
+                              imagePath: 'assets/images/cat_pharmacy.png',
+                              category: ServiceCategory.pharmacy,
+                            ),
+                            _buildTalabatCategoryCard(
+                              title: 'مرسول طرود',
+                              imagePath: 'assets/images/cat_parcel.png',
+                              category: ServiceCategory.parcelDelivery,
+                            ),
+                            _buildTalabatCategoryCard(
+                              title: 'إلكترونيات',
+                              imagePath: 'assets/images/cat_electronics.png',
+                              category: ServiceCategory.electronics,
+                            ),
+                            _buildTalabatCategoryCard(
+                              title: 'أزياء وموضة',
+                              imagePath: 'assets/images/cat_fashion.png',
+                              badgeText: 'خصم 15%',
+                              category: ServiceCategory.fashion,
+                            ),
+                            _buildTalabatCategoryCard(
+                              title: 'عقارات',
+                              imagePath: 'assets/images/cat_realestate.png',
+                              category: ServiceCategory.realEstate,
+                            ),
+                            _buildTalabatCategoryCard(
+                              title: 'وظائف اليوم',
+                              imagePath: 'assets/images/cat_jobs.png',
+                              category: ServiceCategory.jobs,
+                            ),
                           ],
                         ),
                       ),
                     ),
-                  ),
 
-              // 2. MAIN CONTENT AREA
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // FEATURED HUB: "ماذا تريد الآن؟"
-                    WhatDoYouNeedGrid(
-                      onSelectCategory: _onSelectServiceCategory,
-                    ),
-                    const SizedBox(height: 28),
-
-                    // ORDER 1: ONGOING PROMO OFFERS BANNER
-                    Text(
-                      'العروض المتاحة',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    PromoBanner(
-                      onTasteNow: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => RestaurantDetailsScreen(
-                              restaurant: _girgaRestaurants[1],
+                    // 3. HERO PROMO BANNER CAROUSEL
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: PromoBanner(
+                        onTasteNow: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => RestaurantDetailsScreen(
+                                restaurant: _girgaRestaurants[1],
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 24),
-
-                    // ORDER 2: CATEGORIES SLIDER SECOND
-                    Text(
-                      'الأقسام',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    SizedBox(
-                      height: 124,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: _categories.length,
-                        separatorBuilder: (context, index) =>
-                            const SizedBox(width: 14),
-                        itemBuilder: (context, index) {
-                          final cat = _categories[index];
-                          return CategoryChip(
-                            category: cat,
-                            isSelected: _selectedCatId == cat.id,
-                            onTap: () {
-                              setState(() {
-                                if (_selectedCatId == cat.id) {
-                                  _selectedCatId = '';
-                                } else {
-                                  _selectedCatId = cat.id;
-                                }
-                              });
-                            },
                           );
                         },
                       ),
                     ),
                     const SizedBox(height: 24),
 
-                    // ORDER 3: SECTION LISTINGS (Dishes Grid)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'الأكلات الشائعة',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
+                    // 4. CITY FAST ACTIONS HUB ("خدمات سريعة بنقرة واحدة بالمدينة ⚡")
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'خدمات سريعة بنقرة واحدة',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFF5216)
+                                      .withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Text(
+                                  'توصيل فوري بالمدينة',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFFFF5216),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _selectedCatId = '';
-                              _searchQuery = '';
-                            });
-                          },
-                          child: const Text(
-                            'عرض الكل',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primary,
+                          const SizedBox(height: 12),
+
+                          Row(
+                            children: [
+                              // Action 1: Upload Prescription
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const PharmacyScreen(),
+                                      ),
+                                    );
+                                  },
+                                  child: _buildCityFeatureCard(
+                                    imagePath: 'assets/images/cat_pharmacy.png',
+                                    title: 'رفع روشتة دواء',
+                                    subtitle: 'صيدلية وتوصيل 20 د',
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+
+                              // Action 2: Parcel Courier Express
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            const ParcelDeliveryScreen(),
+                                      ),
+                                    );
+                                  },
+                                  child: _buildCityFeatureCard(
+                                    imagePath: 'assets/images/cat_parcel.png',
+                                    title: 'طلب مرسول طرد',
+                                    subtitle: 'إرسال واستلام أي شيء',
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+
+                          Row(
+                            children: [
+                              // Action 3: Real Estate Deals
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            const RealEstateScreen(),
+                                      ),
+                                    );
+                                  },
+                                  child: _buildCityFeatureCard(
+                                    imagePath:
+                                        'assets/images/cat_realestate.png',
+                                    title: 'عقارات بدون وسيط',
+                                    subtitle: '12 شقة ومحل جديد',
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+
+                              // Action 4: Jobs & Opportunities
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const JobsScreen(),
+                                      ),
+                                    );
+                                  },
+                                  child: _buildCityFeatureCard(
+                                    imagePath:
+                                        'assets/images/double_cheese_burger.png',
+                                    title: 'وظائف اليوم',
+                                    subtitle: 'تقديم مباشر فوراً',
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // 5. EIOP CITY EXPRESS PARCEL BANNER (HOLLOW / RECESSED BORDERED DESIGN)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const ParcelDeliveryScreen(),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          height: 88,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(22),
+                            color: Colors.transparent,
+                            border: Border.all(
+                              color: const Color(0xFFFF5216),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFFF5216),
+                                          shape: BoxShape.circle,
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: const Color(0xFFFF5216)
+                                                  .withValues(alpha: 0.35),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 3),
+                                            ),
+                                          ],
+                                        ),
+                                        child: const Icon(
+                                          Icons.two_wheeler_rounded,
+                                          color: Colors.white,
+                                          size: 22,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              'مرسول جرجا الشامل',
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                color: AppColors.textPrimary,
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w900,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 3),
+                                            Text(
+                                              'نقل طرود ومفاتيح بالمدينة',
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                color: AppColors.textSecondary,
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            const ParcelDeliveryScreen(),
+                                      ),
+                                    );
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFFFF5216),
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    elevation: 2,
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 10),
+                                  ),
+                                  child: const Text(
+                                    'اطلب الآن',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio: 0.60,
-                        crossAxisSpacing: 14,
-                        mainAxisSpacing: 14,
                       ),
-                      itemCount: _filteredDishes.length,
-                      itemBuilder: (context, index) {
-                        final food = _filteredDishes[index];
-                        return FoodCard(
-                          food: food,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    FoodDetailsScreen(food: food),
-                              ),
-                            );
-                          },
-                          onPlaceOrder: () {
-                            appState.addToCart(food, quantity: 1);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('تم إضافة ${food.title} لطلبك!'),
-                                backgroundColor: AppColors.primary,
-                                duration: const Duration(seconds: 1),
-                              ),
-                            );
-                          },
-                        );
-                      },
                     ),
-
                     const SizedBox(height: 24),
+
+                    // 6. POPULAR DISHES GRID
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'أبرز خدمات ومنتجات المدينة',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _selectedCatId = '';
+                                    _searchQuery = '';
+                                  });
+                                },
+                                child: const Text(
+                                  'See all',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFFFF5216),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+
+                          GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              childAspectRatio: 0.60,
+                              crossAxisSpacing: 14,
+                              mainAxisSpacing: 14,
+                            ),
+                            itemCount: _filteredDishes.length,
+                            itemBuilder: (context, index) {
+                              final food = _filteredDishes[index];
+                              return FoodCard(
+                                food: food,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          FoodDetailsScreen(food: food),
+                                    ),
+                                  );
+                                },
+                                onPlaceOrder: () {
+                                  appState.addToCart(food, quantity: 1);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content:
+                                          Text('Added ${food.title} to cart!'),
+                                      backgroundColor: const Color(0xFFFF5216),
+                                      duration: const Duration(seconds: 1),
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 20),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
             ],
           ),
+        );
+      },
+    );
+  }
+
+  Widget _buildTalabatCategoryCard({
+    required String title,
+    required String imagePath,
+    required ServiceCategory category,
+    String? badgeText,
+  }) {
+    return GestureDetector(
+      onTap: () => _onSelectServiceCategory(category),
+      child: Container(
+        margin: const EdgeInsets.only(right: 12),
+        width: 76,
+        child: Column(
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  height: 64,
+                  width: 64,
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(18),
+                    child: Image.asset(
+                      imagePath,
+                      fit: BoxFit.cover,
+                      width: 64,
+                      height: 64,
+                    ),
+                  ),
+                ),
+                if (badgeText != null)
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.88),
+                        borderRadius: const BorderRadius.only(
+                          topRight: Radius.circular(18),
+                          bottomLeft: Radius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        badgeText,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ],
         ),
       ),
     );
-  },
-);
+  }
+
+  Widget _buildCityFeatureCard({
+    required String imagePath,
+    required String title,
+    required String subtitle,
+  }) {
+    return Container(
+      height: 115,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        image: DecorationImage(
+          image: AssetImage(imagePath),
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            colors: [
+              Colors.black.withValues(alpha: 0.88),
+              Colors.black.withValues(alpha: 0.35),
+              Colors.transparent,
+            ],
+            begin: Alignment.bottomCenter,
+            end: Alignment.topCenter,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              subtitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: Colors.white70,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

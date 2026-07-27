@@ -18,8 +18,7 @@ class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen> {
   final _notesController = TextEditingController();
 
   String _selectedCategory = 'طرد شخصي / أمانة';
-  String _selectedPayment = 'نقداً عند التسليم';
-  double _calculatedDeliveryFee = 25.0;
+  final double _calculatedDeliveryFee = 25.0;
 
   final List<String> _categories = [
     'طرد شخصي / أمانة',
