@@ -441,7 +441,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       child: const Row(
                                         children: [
                                           Text(
-                                            'التوصيل إلى: ',
+                                            'اللوكيشن: ',
                                             style: TextStyle(
                                               fontSize: 13,
                                               fontWeight: FontWeight.w400,
