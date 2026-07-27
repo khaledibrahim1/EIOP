@@ -38,20 +38,22 @@ class AnimatedBottomNav extends StatelessWidget {
             children: [
               _buildNavItem(
                 index: 0,
-                icon: Icons.home_rounded,
+                icon: Icons.home_outlined,
+                activeIcon: Icons.home_rounded,
                 label: 'الرئيسية',
               ),
               _buildNavItem(
                 index: 1,
-                icon: Icons.storefront_outlined,
-                activeIcon: Icons.storefront_rounded,
-                label: 'المطاعم',
+                icon: Icons.local_shipping_outlined,
+                activeIcon: Icons.local_shipping_rounded,
+                label: 'طلباتي والمرسول',
+                badgeCount: appState.activeOrder != null ? 1 : 0,
               ),
               _buildNavItem(
                 index: 2,
-                icon: Icons.favorite_border_rounded,
-                activeIcon: Icons.favorite_rounded,
-                label: 'المفضلة',
+                icon: Icons.account_balance_wallet_outlined,
+                activeIcon: Icons.account_balance_wallet_rounded,
+                label: 'المحفظة',
               ),
               _buildNavItem(
                 index: 3,
@@ -94,8 +96,9 @@ class AnimatedBottomNav extends StatelessWidget {
                   child: Icon(
                     displayIcon,
                     size: 24,
-                    color:
-                        isSelected ? AppColors.primary : AppColors.textSecondary,
+                    color: isSelected
+                        ? const Color(0xFFFF5216)
+                        : AppColors.textSecondary,
                   ),
                 ),
                 if (badgeCount > 0)
@@ -108,7 +111,7 @@ class AnimatedBottomNav extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: const BoxDecoration(
-                          color: AppColors.primary,
+                          color: Color(0xFFFF5216),
                           shape: BoxShape.circle,
                         ),
                         constraints: const BoxConstraints(
@@ -135,7 +138,9 @@ class AnimatedBottomNav extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                color: isSelected
+                    ? const Color(0xFFFF5216)
+                    : AppColors.textSecondary,
               ),
             ),
           ],
