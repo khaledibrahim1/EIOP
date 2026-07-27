@@ -607,38 +607,38 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             _buildTalabatCategoryCard(
                               title: 'سوبر ماركت',
-                              imagePath: 'assets/images/fried_rice.png',
+                              imagePath: 'assets/images/cat_supermarket.png',
                               category: ServiceCategory.supermarket,
                             ),
                             _buildTalabatCategoryCard(
                               title: 'صيدليات',
-                              imagePath: 'assets/images/cat_coffee.png',
+                              imagePath: 'assets/images/cat_pharmacy.png',
                               category: ServiceCategory.pharmacy,
                             ),
                             _buildTalabatCategoryCard(
                               title: 'مرسول طرود',
-                              imagePath: 'assets/images/cat_pizza.png',
+                              imagePath: 'assets/images/cat_parcel.png',
                               category: ServiceCategory.parcelDelivery,
                             ),
                             _buildTalabatCategoryCard(
                               title: 'إلكترونيات',
-                              imagePath: 'assets/images/cat_dessert.png',
+                              imagePath: 'assets/images/cat_electronics.png',
                               category: ServiceCategory.electronics,
                             ),
                             _buildTalabatCategoryCard(
                               title: 'أزياء وموضة',
-                              imagePath: 'assets/images/cat_icecream.png',
+                              imagePath: 'assets/images/cat_fashion.png',
                               badgeText: 'خصم 15%',
                               category: ServiceCategory.fashion,
                             ),
                             _buildTalabatCategoryCard(
                               title: 'عقارات',
-                              imagePath: 'assets/images/hadramout_cover.png',
+                              imagePath: 'assets/images/cat_realestate.png',
                               category: ServiceCategory.realEstate,
                             ),
                             _buildTalabatCategoryCard(
                               title: 'وظائف اليوم',
-                              imagePath: 'assets/images/double_cheese_burger.png',
+                              imagePath: 'assets/images/cat_jobs.png',
                               category: ServiceCategory.jobs,
                             ),
                           ],
@@ -716,7 +716,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     );
                                   },
                                   child: _buildCityFeatureCard(
-                                    imagePath: 'assets/images/cat_coffee.png',
+                                    imagePath: 'assets/images/cat_pharmacy.png',
                                     title: 'رفع روشتة دواء',
                                     subtitle: 'صيدلية وتوصيل 20 د',
                                   ),
@@ -737,7 +737,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     );
                                   },
                                   child: _buildCityFeatureCard(
-                                    imagePath: 'assets/images/cat_pizza.png',
+                                    imagePath: 'assets/images/cat_parcel.png',
                                     title: 'طلب مرسول طرد',
                                     subtitle: 'إرسال واستلام أي شيء',
                                   ),
@@ -763,7 +763,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   },
                                   child: _buildCityFeatureCard(
                                     imagePath:
-                                        'assets/images/hadramout_cover.png',
+                                        'assets/images/cat_realestate.png',
                                     title: 'عقارات بدون وسيط',
                                     subtitle: '12 شقة ومحل جديد',
                                   ),
@@ -822,7 +822,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ],
                             image: const DecorationImage(
                               image:
-                                  AssetImage('assets/images/hadramout_cover.png'),
+                                  AssetImage('assets/images/cat_parcel.png'),
                               fit: BoxFit.cover,
                             ),
                           ),
