@@ -64,6 +64,35 @@ class FoodCard extends StatelessWidget {
                   ),
                 ),
 
+                // Top-Right Category Badge Tag
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: _getCategoryColor(food.categoryId),
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      _getCategoryTag(food.categoryId),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+
                 // Top-Left Floating Heart Circle (Red/Grey Heart)
                 Positioned(
                   top: 8,
@@ -264,5 +293,59 @@ class FoodCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _getCategoryTag(String categoryId) {
+    switch (categoryId) {
+      case 'food':
+      case 'pizza':
+      case 'burger':
+      case 'dessert':
+      case 'salad':
+        return '🍕 مطاعم';
+      case 'supermarket':
+        return '🛒 سوبر ماركت';
+      case 'pharmacy':
+        return '💊 صيدلية';
+      case 'electronics':
+        return '📱 إلكترونيات';
+      case 'fashion':
+        return '👔 أزياء';
+      case 'realEstate':
+        return '🏠 عقارات';
+      case 'jobs':
+        return '💼 وظائف';
+      case 'parcelDelivery':
+        return '🛵 مرسول';
+      default:
+        return '✨ مميز';
+    }
+  }
+
+  Color _getCategoryColor(String categoryId) {
+    switch (categoryId) {
+      case 'food':
+      case 'pizza':
+      case 'burger':
+      case 'dessert':
+      case 'salad':
+        return const Color(0xFFFF5216);
+      case 'supermarket':
+        return const Color(0xFF10B981);
+      case 'pharmacy':
+        return const Color(0xFF06B6D4);
+      case 'electronics':
+        return const Color(0xFF6366F1);
+      case 'fashion':
+        return const Color(0xFFEC4899);
+      case 'realEstate':
+        return const Color(0xFF8B5CF6);
+      case 'jobs':
+        return const Color(0xFFF59E0B);
+      case 'parcelDelivery':
+        return const Color(0xFF0EA5E9);
+      default:
+        return const Color(0xFFFF5216);
+    }
   }
 }

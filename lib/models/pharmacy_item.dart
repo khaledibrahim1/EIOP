@@ -28,7 +28,7 @@ final List<PharmacyItem> samplePharmacyItems = [
     price: 65.0,
     pharmacyName: 'صيدلية د. أحمد علي',
     description: 'أقراص فوارة لتعزيز المناعة اليومية بنكهة البرتقال الطبيعية.',
-    imagePath: 'assets/images/cat_coffee.png',
+    imagePath: 'assets/images/pharmacy_vitamins.png',
     requiresPrescription: false,
   ),
   const PharmacyItem(
@@ -38,7 +38,7 @@ final List<PharmacyItem> samplePharmacyItems = [
     price: 52.0,
     pharmacyName: 'صيدلية الشفاء',
     description: 'حماية متكاملة للأسنان الحساسة وتبييض طبيعي وآمن.',
-    imagePath: 'assets/images/cat_icecream.png',
+    imagePath: 'assets/images/cat_pharmacy.png',
     requiresPrescription: false,
   ),
   const PharmacyItem(
@@ -48,7 +48,7 @@ final List<PharmacyItem> samplePharmacyItems = [
     price: 640.0,
     pharmacyName: 'صيدلية د. أحمد علي',
     description: 'شاشة LCD كبيرة مع ذاكرة لتسجيل 90 قراءة سابقة.',
-    imagePath: 'assets/images/cat_pizza.png',
+    imagePath: 'assets/images/pharmacy_vitamins.png',
     requiresPrescription: false,
   ),
 ];

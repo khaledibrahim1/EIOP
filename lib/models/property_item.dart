@@ -43,7 +43,7 @@ final List<PropertyItem> sampleProperties = [
     bathrooms: 2,
     contactPhone: '01012345678',
     contactWhatsApp: '201012345678',
-    imagePath: 'assets/images/hadramout_cover.png',
+    imagePath: 'assets/images/realestate_apartment.png',
     isFeatured: true,
   ),
   const PropertyItem(
@@ -58,7 +58,7 @@ final List<PropertyItem> sampleProperties = [
     bathrooms: 1,
     contactPhone: '01123456789',
     contactWhatsApp: '201123456789',
-    imagePath: 'assets/images/sultan_pizza_cover.png',
+    imagePath: 'assets/images/cat_realestate.png',
     isFeatured: true,
   ),
   const PropertyItem(
@@ -73,6 +73,6 @@ final List<PropertyItem> sampleProperties = [
     bathrooms: 1,
     contactPhone: '01234567890',
     contactWhatsApp: '201234567890',
-    imagePath: 'assets/images/double_cheese_burger.png',
+    imagePath: 'assets/images/realestate_apartment.png',
   ),
 ];

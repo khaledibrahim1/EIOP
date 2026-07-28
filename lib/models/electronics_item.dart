@@ -33,7 +33,7 @@ final List<ElectronicsItem> sampleElectronicsItems = [
     oldPrice: 1050.0,
     specs: 'عزل ضوضاء • بطارية 30 ساعة • مقاومة للماء',
     storeName: 'تكنو ستور جرجا',
-    imagePath: 'assets/images/cat_coffee.png',
+    imagePath: 'assets/images/electronics_earbuds.png',
     rating: 4.9,
   ),
   const ElectronicsItem(
@@ -44,7 +44,7 @@ final List<ElectronicsItem> sampleElectronicsItems = [
     oldPrice: 1650.0,
     specs: 'قياس نبضات القلب • تتبع النوم • شاشة AMOLED',
     storeName: 'العالمية للإلكترونيات',
-    imagePath: 'assets/images/cat_burger.png',
+    imagePath: 'assets/images/cat_electronics.png',
     rating: 4.8,
   ),
   const ElectronicsItem(
@@ -54,7 +54,7 @@ final List<ElectronicsItem> sampleElectronicsItems = [
     price: 320.0,
     specs: 'شحن 3 أجهزة بوقت واحد • تقنية GaN الفائقة',
     storeName: 'تكنو ستور جرجا',
-    imagePath: 'assets/images/cat_pizza.png',
+    imagePath: 'assets/images/electronics_earbuds.png',
     rating: 4.7,
   ),
 ];
