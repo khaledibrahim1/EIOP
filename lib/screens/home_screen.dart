@@ -318,35 +318,35 @@ class _HomeScreenState extends State<HomeScreen> {
           imagePath: 'assets/images/special_steak.png',
         ),
       ],
-      categoryId: 'salad',
+      categoryId: 'food',
       isPopular: true,
     ),
     FoodItem(
       id: '5',
       title: 'سلة الخضروات والأغذية الطازجة',
       restaurantId: 'rest_super',
-      restaurant: 'سوبرماركت جرجا',
+      restaurant: 'سوبرماركت الخير',
       price: 140.0,
       rating: 4.9,
       deliveryTime: '15 دقيقة',
       description: 'سلة متكاملة من المنتجات الغذائية الفازجة والألبان وزيت الزيتون.',
-      imagePath: 'assets/images/fried_rice.png',
-      images: ['assets/images/fried_rice.png'],
+      imagePath: 'assets/images/supermarket_basket.png',
+      images: ['assets/images/supermarket_basket.png'],
       options: [],
       categoryId: 'supermarket',
       isPopular: true,
     ),
     FoodItem(
       id: '6',
-      title: 'فيتامين C ومستلزمات العناية',
+      title: 'فيتامين C ومستلزمات الوقاية',
       restaurantId: 'rest_pharmacy',
       restaurant: 'صيدلية الشفاء',
       price: 65.0,
       rating: 4.8,
       deliveryTime: '20 دقيقة',
       description: 'عبوة فوار فيتامين C ومستلزمات الوقاية والتوصيل الفوري.',
-      imagePath: 'assets/images/cat_coffee.png',
-      images: ['assets/images/cat_coffee.png'],
+      imagePath: 'assets/images/pharmacy_vitamins.png',
+      images: ['assets/images/pharmacy_vitamins.png'],
       options: [],
       categoryId: 'pharmacy',
       isPopular: true,
@@ -355,13 +355,13 @@ class _HomeScreenState extends State<HomeScreen> {
       id: '7',
       title: 'سماعة بلوتوث لاسلكية',
       restaurantId: 'rest_elec',
-      restaurant: 'إلكترونيات جرجا',
-      price: 240.0,
-      rating: 4.7,
+      restaurant: 'تكنو ستور جرجا',
+      price: 850.0,
+      rating: 4.9,
       deliveryTime: '25 دقيقة',
       description: 'سماعة بلوتوث أصلية بصوت مجسم وعزل الضوضاء وعمر بطارية طويل.',
-      imagePath: 'assets/images/cat_dessert.png',
-      images: ['assets/images/cat_dessert.png'],
+      imagePath: 'assets/images/electronics_earbuds.png',
+      images: ['assets/images/electronics_earbuds.png'],
       options: [],
       categoryId: 'electronics',
       isPopular: true,
@@ -370,15 +370,45 @@ class _HomeScreenState extends State<HomeScreen> {
       id: '8',
       title: 'قميص قطني كاجوال رجالي',
       restaurantId: 'rest_fashion',
-      restaurant: 'أزياء الموضة',
-      price: 195.0,
+      restaurant: 'بوتيك الأناقة جرجا',
+      price: 490.0,
       rating: 4.8,
       deliveryTime: '30 دقيقة',
       description: 'قميص كاجوال رجالي قطن 100% بتصميم صيفي مريح.',
-      imagePath: 'assets/images/cat_icecream.png',
-      images: ['assets/images/cat_icecream.png'],
+      imagePath: 'assets/images/fashion_shirt.png',
+      images: ['assets/images/fashion_shirt.png'],
       options: [],
       categoryId: 'fashion',
+      isPopular: true,
+    ),
+    FoodItem(
+      id: '9',
+      title: 'شقة فاخرة سوبر لوكس للإيجار',
+      restaurantId: 'rest_realestate',
+      restaurant: 'عقارات شارع المحطة',
+      price: 3500.0,
+      rating: 4.9,
+      deliveryTime: 'معاينة فورية',
+      description: 'شقة سكنية 140م تشطيب سوبر لوكس بوسط مدينة جرجا بدون وسيط.',
+      imagePath: 'assets/images/realestate_apartment.png',
+      images: ['assets/images/realestate_apartment.png'],
+      options: [],
+      categoryId: 'realEstate',
+      isPopular: true,
+    ),
+    FoodItem(
+      id: '10',
+      title: 'وظيفة محاسب مالي ومبيعات',
+      restaurantId: 'rest_jobs',
+      restaurant: 'مجموعة المروة التجارية',
+      price: 5000.0,
+      rating: 4.8,
+      deliveryTime: 'تقديم مباشر',
+      description: 'فرصة عمل ممتازة بدوام كامل للمحاسبين بمدينة جرجا.',
+      imagePath: 'assets/images/job_opportunity.png',
+      images: ['assets/images/job_opportunity.png'],
+      options: [],
+      categoryId: 'jobs',
       isPopular: true,
     ),
   ];
@@ -387,8 +417,14 @@ class _HomeScreenState extends State<HomeScreen> {
     return _allDishes.where((dish) {
       final matchesSearch = dish.title.contains(_searchQuery) ||
           dish.restaurant.contains(_searchQuery);
-      final matchesCat =
-          _selectedCatId.isEmpty || dish.categoryId == _selectedCatId;
+      final matchesCat = _selectedCatId.isEmpty ||
+          dish.categoryId == _selectedCatId ||
+          (_selectedCatId == 'food' &&
+              (dish.categoryId == 'pizza' ||
+                  dish.categoryId == 'burger' ||
+                  dish.categoryId == 'dessert' ||
+                  dish.categoryId == 'salad' ||
+                  dish.categoryId == 'food'));
       return matchesSearch && matchesCat;
     }).toList();
   }
@@ -716,7 +752,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     );
                                   },
                                   child: _buildCityFeatureCard(
-                                    imagePath: 'assets/images/cat_pharmacy.png',
+                                    imagePath: 'assets/images/pharmacy_vitamins.png',
                                     title: 'رفع روشتة دواء',
                                     subtitle: 'صيدلية وتوصيل 20 د',
                                   ),
@@ -763,7 +799,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   },
                                   child: _buildCityFeatureCard(
                                     imagePath:
-                                        'assets/images/cat_realestate.png',
+                                        'assets/images/realestate_apartment.png',
                                     title: 'عقارات بدون وسيط',
                                     subtitle: '12 شقة ومحل جديد',
                                   ),
@@ -784,7 +820,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   },
                                   child: _buildCityFeatureCard(
                                     imagePath:
-                                        'assets/images/double_cheese_burger.png',
+                                        'assets/images/job_opportunity.png',
                                     title: 'وظائف اليوم',
                                     subtitle: 'تقديم مباشر فوراً',
                                   ),
@@ -944,7 +980,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   });
                                 },
                                 child: const Text(
-                                  'See all',
+                                  'عرض الكل',
                                   style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,
@@ -953,6 +989,26 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                             ],
+                          ),
+                          const SizedBox(height: 10),
+
+                          // Horizontal Category Filter Pills
+                          SizedBox(
+                            height: 38,
+                            child: ListView(
+                              scrollDirection: Axis.horizontal,
+                              physics: const BouncingScrollPhysics(),
+                              children: [
+                                _buildFilterChip('الكل ✨', ''),
+                                _buildFilterChip('🍕 مطاعم', 'food'),
+                                _buildFilterChip('🛒 سوبر ماركت', 'supermarket'),
+                                _buildFilterChip('💊 صيدليات', 'pharmacy'),
+                                _buildFilterChip('📱 إلكترونيات', 'electronics'),
+                                _buildFilterChip('👔 أزياء', 'fashion'),
+                                _buildFilterChip('🏠 عقارات', 'realEstate'),
+                                _buildFilterChip('💼 وظائف', 'jobs'),
+                              ],
+                            ),
                           ),
                           const SizedBox(height: 14),
 
@@ -972,20 +1028,79 @@ class _HomeScreenState extends State<HomeScreen> {
                               return FoodCard(
                                 food: food,
                                 onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          FoodDetailsScreen(food: food),
-                                    ),
-                                  );
+                                  switch (food.categoryId) {
+                                    case 'realEstate':
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (_) =>
+                                                const RealEstateScreen()),
+                                      );
+                                      break;
+                                    case 'jobs':
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (_) => const JobsScreen()),
+                                      );
+                                      break;
+                                    case 'parcelDelivery':
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (_) =>
+                                                const ParcelDeliveryScreen()),
+                                      );
+                                      break;
+                                    case 'supermarket':
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (_) =>
+                                                const SupermarketScreen()),
+                                      );
+                                      break;
+                                    case 'pharmacy':
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (_) =>
+                                                const PharmacyScreen()),
+                                      );
+                                      break;
+                                    case 'electronics':
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (_) =>
+                                                const ElectronicsScreen()),
+                                      );
+                                      break;
+                                    case 'fashion':
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (_) =>
+                                                const FashionScreen()),
+                                      );
+                                      break;
+                                    default:
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              FoodDetailsScreen(food: food),
+                                        ),
+                                      );
+                                      break;
+                                  }
                                 },
                                 onPlaceOrder: () {
                                   appState.addToCart(food, quantity: 1);
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content:
-                                          Text('Added ${food.title} to cart!'),
+                                          Text('تم إضافة "${food.title}" إلى السلة!'),
                                       backgroundColor: const Color(0xFFFF5216),
                                       duration: const Duration(seconds: 1),
                                     ),
@@ -1152,6 +1267,47 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(String label, String categoryId) {
+    final isSelected = _selectedCatId == categoryId;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedCatId = categoryId;
+        });
+      },
+      child: Container(
+        margin: const EdgeInsets.only(left: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFFFF5216) : AppColors.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected
+                ? const Color(0xFFFF5216)
+                : Colors.grey.withValues(alpha: 0.2),
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFFFF5216).withValues(alpha: 0.3),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+            color: isSelected ? Colors.white : AppColors.textPrimary,
+          ),
         ),
       ),
     );

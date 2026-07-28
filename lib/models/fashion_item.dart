@@ -31,7 +31,7 @@ final List<FashionItem> sampleFashionItems = [
     oldPrice: 590.0,
     availableSizes: ['M', 'L', 'XL', 'XXL'],
     storeName: 'بوتيك الأناقة جرجا',
-    imagePath: 'assets/images/cat_burger.png',
+    imagePath: 'assets/images/fashion_shirt.png',
     rating: 4.8,
   ),
   const FashionItem(
@@ -42,7 +42,7 @@ final List<FashionItem> sampleFashionItems = [
     oldPrice: 1100.0,
     availableSizes: ['41', '42', '43', '44'],
     storeName: 'سنتر المدينة للأحذية',
-    imagePath: 'assets/images/cat_pizza.png',
+    imagePath: 'assets/images/cat_fashion.png',
     rating: 4.9,
   ),
   const FashionItem(
@@ -52,7 +52,7 @@ final List<FashionItem> sampleFashionItems = [
     price: 550.0,
     availableSizes: ['30', '32', '34', '36'],
     storeName: 'بوتيك الأناقة جرجا',
-    imagePath: 'assets/images/cat_dessert.png',
+    imagePath: 'assets/images/fashion_shirt.png',
     rating: 4.7,
   ),
 ];
