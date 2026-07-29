@@ -18,6 +18,7 @@ import 'parcel_delivery_screen.dart';
 import 'pharmacy_screen.dart';
 import 'real_estate_screen.dart';
 import 'restaurant_details_screen.dart';
+import 'restaurants_screen.dart';
 import 'supermarket_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -65,7 +66,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onSelectServiceCategory(ServiceCategory cat) {
     switch (cat) {
       case ServiceCategory.food:
-        setState(() => _selectedCatId = '');
+        Navigator.push(
+            context, MaterialPageRoute(builder: (_) => const RestaurantsScreen()));
         break;
       case ServiceCategory.supermarket:
         Navigator.push(
