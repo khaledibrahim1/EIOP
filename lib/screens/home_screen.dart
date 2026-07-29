@@ -14,6 +14,7 @@ import 'electronics_screen.dart';
 import 'fashion_screen.dart';
 import 'food_details_screen.dart';
 import 'jobs_screen.dart';
+import 'location_picker_screen.dart';
 import 'parcel_delivery_screen.dart';
 import 'pharmacy_screen.dart';
 import 'real_estate_screen.dart';
@@ -30,8 +31,107 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  String _selectedLocationName = 'مار جرجس (جرجا)';
   String _selectedCatId = '';
   String _searchQuery = '';
+
+  void _showLocationConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.location_on_rounded,
+                  color: AppColors.primary,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 10),
+              const Text(
+                'تغيير موقع التوصيل',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            'الموقع المحدد حالياً:\n$_selectedLocationName\n\nهل تريد اختيار مكان آخر لتوصيل طلباتك؟',
+            style: TextStyle(
+              fontSize: 13,
+              color: AppColors.textSecondary,
+              height: 1.4,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'إلغاء',
+                style: TextStyle(
+                  color: AppColors.textLight,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () async {
+                final messenger = ScaffoldMessenger.of(context);
+                Navigator.pop(context);
+                final newLocation = await Navigator.push<String>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => LocationPickerScreen(
+                      currentLocation: _selectedLocationName,
+                    ),
+                  ),
+                );
+
+                if (newLocation != null) {
+                  setState(() {
+                    _selectedLocationName = newLocation;
+                  });
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content:
+                          Text('تم تحديث موقع التوصيل إلى: $newLocation 📍'),
+                      backgroundColor: AppColors.primary,
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                }
+              },
+              child: const Text(
+                'اختيار مكان آخر 🗺️',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   late Timer _headerColorTimer;
   int _headerColorIndex = 0;
@@ -464,19 +564,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     GestureDetector(
-                                      onTap: () {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                                'العنوان المحدد: شارع المحطة - مار جرجس، جرجا'),
-                                            duration: Duration(seconds: 1),
-                                          ),
-                                        );
-                                      },
-                                      child: const Row(
+                                      onTap: _showLocationConfirmationDialog,
+                                      child: Row(
                                         children: [
-                                          Text(
+                                          const Text(
                                             'اللوكيشن: ',
                                             style: TextStyle(
                                               fontSize: 13,
@@ -485,15 +576,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                             ),
                                           ),
                                           Text(
-                                            'مار جرجس (جرجا)',
-                                            style: TextStyle(
+                                            _selectedLocationName,
+                                            style: const TextStyle(
                                               fontSize: 14,
                                               fontWeight: FontWeight.w900,
                                               color: Colors.white,
                                             ),
                                           ),
-                                          SizedBox(width: 4),
-                                          Icon(
+                                          const SizedBox(width: 4),
+                                          const Icon(
                                             Icons.keyboard_arrow_down_rounded,
                                             color: Colors.white,
                                             size: 20,
