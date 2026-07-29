@@ -17,7 +17,7 @@ class RestaurantsScreen extends StatefulWidget {
 }
 
 class _RestaurantsScreenState extends State<RestaurantsScreen> {
-  int _selectedViewIndex = 0; // 0 = المطاعم, 1 = جميع الأكلات والوجبات
+  int _selectedViewIndex = 0; // 0 = جميع الوجبات والأكلات, 1 = جميع المطاعم
   String _selectedCategory = 'all';
   String _searchQuery = '';
 
@@ -430,7 +430,7 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
                           ),
                           const SizedBox(height: 14),
 
-                          // VIEW SWITCHER TABS (المطاعم VS كل الأكلات والوجبات)
+                          // VIEW SWITCHER TABS (جميع الوجبات والأكلات VS جميع المطاعم)
                           Container(
                             padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
@@ -472,7 +472,7 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
                                               MainAxisAlignment.center,
                                           children: [
                                             Icon(
-                                              Icons.storefront_rounded,
+                                              Icons.restaurant_menu_rounded,
                                               size: 16,
                                               color: _selectedViewIndex == 0
                                                   ? Colors.white
@@ -480,7 +480,7 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
                                             ),
                                             const SizedBox(width: 6),
                                             Text(
-                                              'جميع المطاعم',
+                                              'جميع الوجبات والأكلات',
                                               style: TextStyle(
                                                 fontSize: 13,
                                                 fontWeight: FontWeight.bold,
@@ -528,7 +528,7 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
                                               MainAxisAlignment.center,
                                           children: [
                                             Icon(
-                                              Icons.restaurant_menu_rounded,
+                                              Icons.storefront_rounded,
                                               size: 16,
                                               color: _selectedViewIndex == 1
                                                   ? Colors.white
@@ -536,7 +536,7 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
                                             ),
                                             const SizedBox(width: 6),
                                             Text(
-                                              'جميع الوجبات والأكلات',
+                                              'جميع المطاعم',
                                               style: TextStyle(
                                                 fontSize: 13,
                                                 fontWeight: FontWeight.bold,
@@ -560,11 +560,11 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
                   ),
                 ),
 
-                // 2. MAIN BODY CONTENT (RESTAURANTS LIST OR DISHES GRID)
+                // 2. MAIN BODY CONTENT (DISHES GRID OR RESTAURANTS LIST)
                 Expanded(
                   child: _selectedViewIndex == 0
-                      ? _buildRestaurantsListView(restaurants)
-                      : _buildDishesGridView(dishes),
+                      ? _buildDishesGridView(dishes)
+                      : _buildRestaurantsListView(restaurants),
                 ),
               ],
             ),
