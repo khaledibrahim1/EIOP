@@ -5,6 +5,7 @@ import '../models/pharmacy_item.dart';
 import '../models/pharmacy_store.dart';
 import '../theme/app_colors.dart';
 import '../widgets/promo_banner.dart';
+import 'location_picker_screen.dart';
 
 class PharmacyScreen extends StatefulWidget {
   const PharmacyScreen({super.key});
@@ -17,6 +18,7 @@ class _PharmacyScreenState extends State<PharmacyScreen> {
   int _selectedViewIndex = 0; // 0 = اطلب دواؤك (روشتة), 1 = دليل الأدوية, 2 = صيدليات جرجا
   String _selectedCategory = 'all';
   String _searchQuery = '';
+  String _deliveryAddress = 'شارع المحطة - مار جرجس (جرجا)';
 
   // Order Request Mode: 'writing', 'image', 'ai'
   String _requestMode = 'writing';
@@ -995,6 +997,76 @@ class _PharmacyScreenState extends State<PharmacyScreen> {
               ),
             ),
           ],
+          const SizedBox(height: 18),
+
+          // MAP DELIVERY LOCATION SELECTOR
+          Text(
+            'عنوان وموقع توصيل الدواء على الخريطة:',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          GestureDetector(
+            onTap: () async {
+              final newLocation = await Navigator.push<String>(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => LocationPickerScreen(
+                    currentLocation: _deliveryAddress,
+                  ),
+                ),
+              );
+              if (newLocation != null && mounted) {
+                setState(() {
+                  _deliveryAddress = newLocation;
+                });
+              }
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: const Color(0xFF06B6D4).withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.map_rounded,
+                      color: Color(0xFF06B6D4), size: 22),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _deliveryAddress,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        const Text(
+                          'اضغط لتحديد وتحديد موقعك بدقة على الخريطة 🗺️',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.arrow_forward_ios_rounded,
+                      size: 14, color: Color(0xFF06B6D4)),
+                ],
+              ),
+            ),
+          ),
           const SizedBox(height: 18),
 
           // DELIVERY NOTES
