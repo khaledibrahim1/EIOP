@@ -256,53 +256,62 @@ class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            children: [
-                              if (Navigator.canPop(context))
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 8),
-                                  child: GestureDetector(
-                                    onTap: () => Navigator.pop(context),
-                                    child: Container(
-                                      padding: const EdgeInsets.all(6),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFF0EA5E9)
-                                            .withValues(alpha: 0.12),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(
-                                        Icons.arrow_back_rounded,
-                                        color: Color(0xFF0EA5E9),
-                                        size: 20,
+                          Expanded(
+                            child: Row(
+                              children: [
+                                if (Navigator.canPop(context))
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 8),
+                                    child: GestureDetector(
+                                      onTap: () => Navigator.pop(context),
+                                      child: Container(
+                                        padding: const EdgeInsets.all(6),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF0EA5E9)
+                                              .withValues(alpha: 0.12),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.arrow_back_rounded,
+                                          color: Color(0xFF0EA5E9),
+                                          size: 20,
+                                        ),
                                       ),
                                     ),
+                                  ),
+                                const Icon(Icons.two_wheeler_rounded,
+                                    color: Color(0xFF0EA5E9), size: 24),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'EIOP Express - مرسول وطرد',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w900,
+                                          color: Color(0xFF0EA5E9),
+                                        ),
+                                      ),
+                                      Text(
+                                        'توصيل سريع ونقل أمانات بجرجا',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: AppColors.textSecondary,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              const Icon(Icons.two_wheeler_rounded,
-                                  color: Color(0xFF0EA5E9), size: 26),
-                              const SizedBox(width: 8),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'EIOP Express - مرسول وطرد',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w900,
-                                      color: Color(0xFF0EA5E9),
-                                    ),
-                                  ),
-                                  Text(
-                                    'توصيل سريع ونقل أمانات في جرجا',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.textSecondary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
+                          const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 10, vertical: 5),
@@ -505,32 +514,39 @@ class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Row(
-                                children: [
-                                  const Icon(Icons.camera_alt_outlined,
-                                      color: Color(0xFF0EA5E9), size: 20),
-                                  const SizedBox(width: 8),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        'إرفاق صورة الشحنة',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 13,
-                                        ),
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.camera_alt_outlined,
+                                        color: Color(0xFF0EA5E9), size: 20),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const Text(
+                                            'إرفاق صورة الشحنة',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                          Text(
+                                            'توثيق ومساعدة الكابتن في التعرف على الطرد',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: AppColors.textSecondary,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                      Text(
-                                        'توثيق ومساعدة الكابتن في التعرف على الطرد',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          color: AppColors.textSecondary,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                                    ),
+                                  ],
+                                ),
                               ),
+                              const SizedBox(width: 8),
                               if (_isUploadingPhoto)
                                 const SizedBox(
                                   width: 20,
@@ -763,14 +779,19 @@ class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                'رسوم المرسول والتوصيل التقديرية:',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textSecondary,
+                              Expanded(
+                                child: Text(
+                                  'رسوم التوصيل التقديرية:',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textSecondary,
+                                  ),
                                 ),
                               ),
+                              const SizedBox(width: 8),
                               Row(
                                 children: [
                                   if (_discount > 0)
