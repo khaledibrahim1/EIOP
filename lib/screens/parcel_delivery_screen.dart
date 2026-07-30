@@ -10,7 +10,8 @@ class ParcelDeliveryScreen extends StatefulWidget {
   State<ParcelDeliveryScreen> createState() => _ParcelDeliveryScreenState();
 }
 
-class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen> {
+class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen>
+    with SingleTickerProviderStateMixin {
   // Service Type: 0 = ارسل طرد, 1 = اشترِ لي (مرسول), 2 = مستندات وأوراق
   int _selectedServiceType = 0;
 
@@ -27,6 +28,14 @@ class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen> {
   final TextEditingController _notesController = TextEditingController();
   final TextEditingController _couponController = TextEditingController();
 
+  // Interactive Map Animation & Pan/Zoom Controls
+  late AnimationController _driverAnimController;
+  final DraggableScrollableController _sheetController =
+      DraggableScrollableController();
+  Offset _mapPanOffset = Offset.zero;
+  double _mapZoomScale = 1.0;
+  bool _isLocatingMap = false;
+
   // Options & Flags
   bool _isFragile = false;
   bool _payOnDelivery = false;
@@ -34,6 +43,47 @@ class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen> {
   String? _attachedPhotoName;
   bool _isUploadingPhoto = false;
   double _discount = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _driverAnimController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 7),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _driverAnimController.dispose();
+    _sheetController.dispose();
+    _pickupController.dispose();
+    _dropoffController.dispose();
+    _errandDetailsController.dispose();
+    _recipientNameController.dispose();
+    _recipientPhoneController.dispose();
+    _notesController.dispose();
+    _couponController.dispose();
+    super.dispose();
+  }
+
+  void _recenterMap() {
+    setState(() => _isLocatingMap = true);
+    Future.delayed(const Duration(milliseconds: 600), () {
+      if (!mounted) return;
+      setState(() {
+        _isLocatingMap = false;
+        _mapPanOffset = Offset.zero;
+        _mapZoomScale = 1.0;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('تم ضبط التمركز على موقعك في جرجا 🎯'),
+          duration: Duration(seconds: 1),
+        ),
+      );
+    });
+  }
 
   // Option Specifications
   final List<Map<String, dynamic>> _rideOptions = const [
@@ -409,36 +459,144 @@ class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen> {
         top: false,
         child: Stack(
           children: [
-            // 1. TOP INTERACTIVE VECTOR MAP CANVAS (HEADER)
+            // 1. FULL-SCREEN INTERACTIVE VECTOR MAP CANVAS (BACKGROUND)
             Positioned(
               top: 0,
               left: 0,
               right: 0,
-              height: MediaQuery.of(context).size.height * 0.45,
-              child: Stack(
-                children: [
-                  // Vector Map Canvas Painter
-                  CustomPaint(
-                    size: Size.infinite,
-                    painter: _ParcelRouteMapPainter(),
-                  ),
+              bottom: 65,
+              child: GestureDetector(
+                onScaleUpdate: (details) {
+                  setState(() {
+                    _mapPanOffset += details.focalPointDelta;
+                    if (details.scale != 1.0) {
+                      _mapZoomScale =
+                          (_mapZoomScale * details.scale).clamp(0.7, 2.8);
+                    }
+                  });
+                },
+                child: Stack(
+                  children: [
+                    // Animated Interactive Vector Map Canvas Painter
+                    AnimatedBuilder(
+                      animation: _driverAnimController,
+                      builder: (context, child) {
+                        return CustomPaint(
+                          size: Size.infinite,
+                          painter: _ParcelRouteMapPainter(
+                            driverProgress: _driverAnimController.value,
+                            panOffset: _mapPanOffset,
+                            zoomScale: _mapZoomScale,
+                          ),
+                        );
+                      },
+                    ),
 
-                  // Map Dark Overlay Gradient
-                  Positioned.fill(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.black.withValues(alpha: 0.5),
-                            Colors.transparent,
-                            Colors.black.withValues(alpha: 0.3),
-                          ],
+                    // Map Dark Overlay Gradient
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.black.withValues(alpha: 0.5),
+                              Colors.transparent,
+                              Colors.black.withValues(alpha: 0.25),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
+
+                    // FLOATING MAP ZOOM & GPS CONTROLS (RIGHT SIDE)
+                    Positioned(
+                      left: 14,
+                      bottom: 85,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Zoom In (+) Button
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _mapZoomScale =
+                                    (_mapZoomScale + 0.25).clamp(0.7, 2.8);
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF0F172A),
+                                shape: BoxShape.circle,
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Colors.black26,
+                                    blurRadius: 6,
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(Icons.add_rounded,
+                                  color: Color(0xFFD4FF00), size: 18),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          // Zoom Out (-) Button
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _mapZoomScale =
+                                    (_mapZoomScale - 0.25).clamp(0.7, 2.8);
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF0F172A),
+                                shape: BoxShape.circle,
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Colors.black26,
+                                    blurRadius: 6,
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(Icons.remove_rounded,
+                                  color: Color(0xFFD4FF00), size: 18),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          // GPS Recenter Button
+                          GestureDetector(
+                            onTap: _recenterMap,
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF0F172A),
+                                shape: BoxShape.circle,
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Colors.black26,
+                                    blurRadius: 6,
+                                  ),
+                                ],
+                              ),
+                              child: _isLocatingMap
+                                  ? const SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Color(0xFFD4FF00),
+                                      ),
+                                    )
+                                  : const Icon(Icons.my_location_rounded,
+                                      color: Color(0xFFD4FF00), size: 18),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
 
                   // TOP FLOATING BAR (BACK BUTTON & STATUS)
                   SafeArea(
@@ -626,45 +784,75 @@ class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen> {
                 ],
               ),
             ),
+          ),
 
-            // 2. SLIDING BOTTOM SHEET CONTAINER WITH STICKY CTA BUTTON
-            Positioned.fill(
-              top: MediaQuery.of(context).size.height * 0.36,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(28)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.15),
-                      blurRadius: 20,
-                      offset: const Offset(0, -6),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    // A. SCROLLABLE CONTENT
-                    Expanded(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-                        physics: const BouncingScrollPhysics(),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Top Sheet Handle Indicator Bar
-                            Center(
-                              child: Container(
-                                width: 40,
-                                height: 4,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.withValues(alpha: 0.3),
-                                  borderRadius: BorderRadius.circular(10),
+            // 2. DRAGGABLE & PULLABLE SLIDING BOTTOM SHEET
+            DraggableScrollableSheet(
+              controller: _sheetController,
+              initialChildSize: 0.64,
+              minChildSize: 0.14,
+              maxChildSize: 0.92,
+              snap: true,
+              snapSizes: const [0.14, 0.64, 0.92],
+              builder: (context, scrollController) {
+                return Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(28)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.18),
+                        blurRadius: 20,
+                        offset: const Offset(0, -6),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      // A. SCROLLABLE CONTENT WITH CONTROLLER
+                      Expanded(
+                        child: SingleChildScrollView(
+                          controller: scrollController,
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
+                          physics: const BouncingScrollPhysics(),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Top Sheet Handle Indicator Bar (Tap to toggle pull-down)
+                              GestureDetector(
+                                onTap: () {
+                                  if (_sheetController.isAttached) {
+                                    final target = _sheetController.size > 0.3
+                                        ? 0.14
+                                        : 0.64;
+                                    _sheetController.animateTo(
+                                      target,
+                                      duration:
+                                          const Duration(milliseconds: 300),
+                                      curve: Curves.easeOut,
+                                    );
+                                  }
+                                },
+                                child: Container(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8),
+                                  color: Colors.transparent,
+                                  width: double.infinity,
+                                  child: Center(
+                                    child: Container(
+                                      width: 48,
+                                      height: 5,
+                                      decoration: BoxDecoration(
+                                        color:
+                                            Colors.grey.withValues(alpha: 0.4),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 14),
+                              const SizedBox(height: 8),
 
                             // SERVICE TYPE SWITCHER TABS
                             Container(
@@ -1167,8 +1355,9 @@ class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen> {
                     ),
                   ],
                 ),
-              ),
-            ),
+              );
+            },
+          ),
           ],
         ),
       ),
@@ -1240,12 +1429,32 @@ class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen> {
 }
 
 // Custom Map Canvas Painter for Parcel Delivery Screen Header
+// Custom Map Canvas Painter for Parcel Delivery Screen Header
 class _ParcelRouteMapPainter extends CustomPainter {
+  final double driverProgress;
+  final Offset panOffset;
+  final double zoomScale;
+
+  _ParcelRouteMapPainter({
+    required this.driverProgress,
+    required this.panOffset,
+    required this.zoomScale,
+  });
+
   @override
   void paint(Canvas canvas, Size size) {
+    canvas.save();
+    // Apply pan & zoom relative to center
+    canvas.translate(size.width / 2 + panOffset.dx, size.height / 2 + panOffset.dy);
+    canvas.scale(zoomScale);
+    canvas.translate(-size.width / 2, -size.height / 2);
+
     // Light Map Ground
     final bgPaint = Paint()..color = const Color(0xFFE2E8F0);
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), bgPaint);
+    canvas.drawRect(
+        Rect.fromLTWH(
+            -size.width * 0.5, -size.height * 0.5, size.width * 2, size.height * 2),
+        bgPaint);
 
     // Minor Streets
     final roadPaint = Paint()
@@ -1262,38 +1471,47 @@ class _ParcelRouteMapPainter extends CustomPainter {
     // Nile River Curve
     final riverPaint = Paint()
       ..color = const Color(0xFFBFDBFE)
-      ..strokeWidth = 36
+      ..strokeWidth = 38
       ..style = PaintingStyle.stroke;
 
-    // Draw Nile River on the right edge
     final riverPath = Path()
-      ..moveTo(size.width * 0.88, 0)
+      ..moveTo(size.width * 0.88, -50)
       ..cubicTo(
         size.width * 0.95,
         size.height * 0.4,
         size.width * 0.82,
         size.height * 0.7,
         size.width * 0.9,
-        size.height,
+        size.height + 50,
       );
     canvas.drawPath(riverPath, riverPaint);
 
     // Draw Girga Street Network
     final path1 = Path()
-      ..moveTo(0, size.height * 0.35)
-      ..lineTo(size.width, size.height * 0.42);
+      ..moveTo(-50, size.height * 0.35)
+      ..lineTo(size.width + 50, size.height * 0.42);
 
     final path2 = Path()
-      ..moveTo(size.width * 0.45, 0)
-      ..lineTo(size.width * 0.52, size.height);
+      ..moveTo(size.width * 0.45, -50)
+      ..lineTo(size.width * 0.52, size.height + 50);
 
     final path3 = Path()
-      ..moveTo(0, size.height * 0.7)
-      ..lineTo(size.width, size.height * 0.65);
+      ..moveTo(-50, size.height * 0.7)
+      ..lineTo(size.width + 50, size.height * 0.65);
 
     canvas.drawPath(path1, mainRoadPaint);
     canvas.drawPath(path2, roadPaint);
     canvas.drawPath(path3, roadPaint);
+
+    // DRAW STREET NAMES & LANDMARKS
+    _drawText(canvas, 'شارع المحطة', Offset(size.width * 0.12, size.height * 0.30),
+        Colors.black54, 10, true);
+    _drawText(canvas, 'ميدان النهضة', Offset(size.width * 0.60, size.height * 0.68),
+        Colors.black54, 10, true);
+    _drawText(canvas, 'شارع الأهرام', Offset(size.width * 0.48, size.height * 0.15),
+        Colors.black45, 9, false);
+    _drawText(canvas, 'طريق الكورنيش', Offset(size.width * 0.78, size.height * 0.45),
+        Colors.blue.shade700, 9, true);
 
     // DRAW ROUTE POLYLINE (From Pickup to Dropoff)
     final routePath = Path()
@@ -1304,35 +1522,116 @@ class _ParcelRouteMapPainter extends CustomPainter {
 
     final routeLinePaint = Paint()
       ..color = const Color(0xFF0F172A)
-      ..strokeWidth = 5
+      ..strokeWidth = 6
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
     canvas.drawPath(routePath, routeLinePaint);
 
-    // DRAW PICKUP GREEN DOT 🟢
+    // PICKUP GREEN DOT 🟢 & BADGE
     final startOffset = Offset(size.width * 0.25, size.height * 0.38);
-    final startCirclePaint = Paint()
-      ..color = const Color(0xFFD4FF00)
-      ..style = PaintingStyle.fill;
+    final startCirclePaint = Paint()..color = const Color(0xFFD4FF00);
     final startBorderPaint = Paint()
       ..color = const Color(0xFF0F172A)
       ..strokeWidth = 3
       ..style = PaintingStyle.stroke;
 
-    canvas.drawCircle(startOffset, 9, startCirclePaint);
-    canvas.drawCircle(startOffset, 9, startBorderPaint);
+    canvas.drawCircle(startOffset, 10, startCirclePaint);
+    canvas.drawCircle(startOffset, 10, startBorderPaint);
+    _drawBadge(canvas, 'الاستلام 🟢', Offset(startOffset.dx, startOffset.dy - 22),
+        const Color(0xFF0F172A), Colors.white);
 
-    // DRAW DROPOFF RED DOT 🔴
+    // DROPOFF RED DOT 🔴 & BADGE
     final endOffset = Offset(size.width * 0.72, size.height * 0.62);
-    final endCirclePaint = Paint()
-      ..color = const Color(0xFFEF4444)
-      ..style = PaintingStyle.fill;
+    final endCirclePaint = Paint()..color = const Color(0xFFEF4444);
 
-    canvas.drawCircle(endOffset, 9, endCirclePaint);
-    canvas.drawCircle(endOffset, 9, startBorderPaint);
+    canvas.drawCircle(endOffset, 10, endCirclePaint);
+    canvas.drawCircle(endOffset, 10, startBorderPaint);
+    _drawBadge(canvas, 'التسليم 🔴', Offset(endOffset.dx, endOffset.dy - 22),
+        const Color(0xFFEF4444), Colors.white);
+
+    // LIVE MOVING COURIER MOTORCYCLE MARKER 🛵
+    final pathMetrics = routePath.computeMetrics().first;
+    final currentDistance = pathMetrics.length * driverProgress;
+    final tangent = pathMetrics.getTangentForOffset(currentDistance);
+    if (tangent != null) {
+      final currentPos = tangent.position;
+
+      // Pulse ring around driver position
+      final pulsePaint = Paint()
+        ..color = const Color(0xFF0EA5E9).withValues(alpha: 0.25)
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(currentPos, 22, pulsePaint);
+
+      // Driver icon circle background
+      final driverBgPaint = Paint()..color = const Color(0xFF0F172A);
+      canvas.drawCircle(currentPos, 14, driverBgPaint);
+      final driverBorderPaint = Paint()
+        ..color = const Color(0xFFD4FF00)
+        ..strokeWidth = 2.5
+        ..style = PaintingStyle.stroke;
+      canvas.drawCircle(currentPos, 14, driverBorderPaint);
+
+      // Draw Driver Badge
+      _drawBadge(canvas, 'كابتن مرسول 🛵',
+          Offset(currentPos.dx, currentPos.dy + 24), const Color(0xFF0EA5E9), Colors.white);
+    }
+
+    canvas.restore();
+  }
+
+  void _drawBadge(
+      Canvas canvas, String text, Offset center, Color bg, Color textColor) {
+    final textSpan = TextSpan(
+      text: text,
+      style: TextStyle(
+        color: textColor,
+        fontSize: 9,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+    final textPainter = TextPainter(
+      text: textSpan,
+      textDirection: TextDirection.rtl,
+    );
+    textPainter.layout();
+
+    final bgRect = Rect.fromCenter(
+      center: center,
+      width: textPainter.width + 12,
+      height: textPainter.height + 6,
+    );
+    final bgPaint = Paint()..color = bg;
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(bgRect, const Radius.circular(8)), bgPaint);
+    textPainter.paint(
+        canvas,
+        Offset(
+            center.dx - textPainter.width / 2, center.dy - textPainter.height / 2));
+  }
+
+  void _drawText(Canvas canvas, String text, Offset offset, Color color,
+      double fontSize, bool bold) {
+    final textSpan = TextSpan(
+      text: text,
+      style: TextStyle(
+        color: color,
+        fontSize: fontSize,
+        fontWeight: bold ? FontWeight.bold : FontWeight.normal,
+      ),
+    );
+    final textPainter = TextPainter(
+      text: textSpan,
+      textDirection: TextDirection.rtl,
+    );
+    textPainter.layout();
+    textPainter.paint(canvas, offset);
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _ParcelRouteMapPainter oldDelegate) {
+    return oldDelegate.driverProgress != driverProgress ||
+        oldDelegate.panOffset != panOffset ||
+        oldDelegate.zoomScale != zoomScale;
+  }
 }
