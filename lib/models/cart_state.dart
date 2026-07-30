@@ -145,6 +145,8 @@ class AppStateNotifier extends ChangeNotifier {
     required String dropoff,
     required String category,
     required double fee,
+    String? captainName,
+    String? captainPhone,
   }) {
     _activeOrder = ActiveOrderModel(
       orderId: 'EXP-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
@@ -153,6 +155,8 @@ class AppStateNotifier extends ChangeNotifier {
       phoneNumber: 'طلب خاص',
       totalAmount: fee,
       items: [],
+      captainName: captainName ?? 'كابتن محمود السوهاجي (جرجا)',
+      captainPhone: captainPhone ?? '01098765432',
       orderTime: DateTime.now(),
     );
     notifyListeners();
