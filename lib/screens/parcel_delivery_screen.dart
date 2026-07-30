@@ -140,6 +140,37 @@ class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen> {
     }
   }
 
+  final List<Map<String, String>> _availableCaptains = const [
+    {
+      'name': 'كابتن محمود السوهاجي',
+      'phone': '01098765432',
+      'vehicle': 'دراجة نارية هوائية سريعة',
+      'rating': '4.9 ★ (140 رحلة)',
+      'eta': 'خلال 5 دقائق',
+    },
+    {
+      'name': 'كابتن أحمد علي عبد الرحيم',
+      'phone': '01123456789',
+      'vehicle': 'سكوتير مرسول اكسبريس',
+      'rating': '4.95 ★ (230 رحلة)',
+      'eta': 'خلال 4 دقائق',
+    },
+    {
+      'name': 'كابتن مصطفى طه الفولي',
+      'phone': '01234567890',
+      'vehicle': 'دراجة نارية سوداء',
+      'rating': '4.85 ★ (95 رحلة)',
+      'eta': 'خلال 7 دقائق',
+    },
+    {
+      'name': 'كابتن كريم حسن (جرجا)',
+      'phone': '01512345678',
+      'vehicle': 'تروسيكل شحنات أمانات',
+      'rating': '4.9 ★ (310 رحلة)',
+      'eta': 'خلال 8 دقائق',
+    },
+  ];
+
   void _submitParcelOrder() {
     if (_dropoffController.text.trim().isEmpty && _selectedServiceType != 1) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -155,82 +186,218 @@ class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen> {
         ? 'مرسول: ${_errandDetailsController.text.isNotEmpty ? _errandDetailsController.text : "طلب شراء خاص"}'
         : _rideOptions[_selectedOptionIndex]['title'];
 
-    appState.placeParcelOrder(
-      pickup: _pickupController.text,
-      dropoff: _dropoffController.text.isNotEmpty
-          ? _dropoffController.text
-          : 'حسب توجيه العميل',
-      category: categoryDesc,
-      fee: _calculatedFee,
-    );
+    final randomCaptain = _availableCaptains[
+        DateTime.now().millisecondsSinceEpoch % _availableCaptains.length];
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        backgroundColor: AppColors.surface,
-        title: const Row(
-          children: [
-            Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 26),
-            SizedBox(width: 10),
-            Text(
-              'تم تأكيد وحجز المرسول!',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'تم توجيه الكابتن الموصى به بمدينة جرجا واستلام الأمانة والتوصيل.',
-              style: TextStyle(fontSize: 13),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFF0EA5E9).withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('تكلفة التوصيل:',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                  Text(
-                    '${_calculatedFee.toStringAsFixed(0)} ج.م',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 16,
-                      color: Color(0xFF0EA5E9),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFD4FF00),
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return Dialog(
+              backgroundColor: const Color(0xFF0F172A),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(24),
               ),
-            ),
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context);
-            },
-            child: const Text(
-              'متابعة التتبع المباشر',
-              style: TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-      ),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: FutureBuilder(
+                  future: Future.delayed(const Duration(milliseconds: 1400)),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState != ConnectionState.done) {
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(height: 10),
+                          const SizedBox(
+                            width: 46,
+                            height: 46,
+                            child: CircularProgressIndicator(
+                              color: Color(0xFFD4FF00),
+                              strokeWidth: 3,
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          const Text(
+                            'جاري البحث عن أقرب كابتن مرسول...',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          const Text(
+                            'إرسال الطلب لكافة الكباتن القريبين بمدينة جرجا',
+                            style:
+                                TextStyle(color: Colors.white60, fontSize: 11),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 10),
+                        ],
+                      );
+                    }
+
+                    // MATCHED & ACCEPTED BY CAPTAIN
+                    appState.placeParcelOrder(
+                      pickup: _pickupController.text,
+                      dropoff: _dropoffController.text.isNotEmpty
+                          ? _dropoffController.text
+                          : 'حسب توجيه العميل',
+                      category: categoryDesc,
+                      fee: _calculatedFee,
+                      captainName: randomCaptain['name'],
+                      captainPhone: randomCaptain['phone'],
+                    );
+
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF10B981),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.check_rounded,
+                              color: Colors.white, size: 26),
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'تم قبول طلبك وتأكيد الكابتن!',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+
+                        // ACCEPTED CAPTAIN DETAILS CARD
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(
+                              color: const Color(0xFFD4FF00)
+                                  .withValues(alpha: 0.3),
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 42,
+                                    height: 42,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFD4FF00)
+                                          .withValues(alpha: 0.2),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.person_rounded,
+                                      color: Color(0xFFD4FF00),
+                                      size: 22,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          randomCaptain['name']!,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          '${randomCaptain['vehicle']} • ${randomCaptain['rating']}',
+                                          style: const TextStyle(
+                                            color: Colors.white70,
+                                            fontSize: 11,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const Divider(color: Colors.white12, height: 18),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.access_time_rounded,
+                                          color: Color(0xFFD4FF00), size: 14),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        'وصول للاستلام ${randomCaptain['eta']}',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Text(
+                                    '${_calculatedFee.toStringAsFixed(0)} ج.م',
+                                    style: const TextStyle(
+                                      color: Color(0xFFD4FF00),
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+
+                        SizedBox(
+                          width: double.infinity,
+                          height: 48,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFD4FF00),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            onPressed: () {
+                              Navigator.pop(context);
+                              Navigator.pop(context);
+                            },
+                            child: const Text(
+                              'متابعة وتتبع الكابتن مباشرة',
+                              style: TextStyle(
+                                color: Color(0xFF0F172A),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -694,11 +861,11 @@ class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen> {
                                         height: 42,
                                         decoration: BoxDecoration(
                                           color: const Color(0xFFD4FF00)
-                                              .withValues(alpha: 0.2),
+                                              .withValues(alpha: 0.15),
                                           shape: BoxShape.circle,
                                         ),
                                         child: const Icon(
-                                          Icons.person_rounded,
+                                          Icons.radar_rounded,
                                           color: Color(0xFFD4FF00),
                                           size: 22,
                                         ),
@@ -710,7 +877,7 @@ class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen> {
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              'الكابتن الموصى به: أحمد علي',
+                                              '12 كابتن مرسول متوفرون بجرجا ⚡',
                                               style: TextStyle(
                                                 fontSize: 13,
                                                 fontWeight: FontWeight.bold,
@@ -718,19 +885,12 @@ class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen> {
                                               ),
                                             ),
                                             SizedBox(height: 2),
-                                            Row(
-                                              children: [
-                                                Icon(Icons.star_rounded,
-                                                    color: Colors.amber, size: 14),
-                                                SizedBox(width: 4),
-                                                Text(
-                                                  '4.9 • 140 رحلة ناجحة',
-                                                  style: TextStyle(
-                                                    fontSize: 11,
-                                                    color: Colors.white70,
-                                                  ),
-                                                ),
-                                              ],
+                                            Text(
+                                              'يتم تأكيد وتحديد السائق فور طلبك مباشرة',
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                color: Colors.white70,
+                                              ),
                                             ),
                                           ],
                                         ),
