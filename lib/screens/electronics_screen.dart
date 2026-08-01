@@ -121,7 +121,8 @@ class _ElectronicsScreenState extends State<ElectronicsScreen> {
                         child: Image.asset(
                           item.imagePath,
                           fit: BoxFit.contain,
-                          errorBuilder: (_, __, ___) => const Icon(
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(
                             Icons.devices_other_rounded,
                             color: Color(0xFF6366F1),
                             size: 40,
@@ -443,7 +444,7 @@ class _ElectronicsScreenState extends State<ElectronicsScreen> {
                 alignment: Alignment.center,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.shopping_cart_outlined,
+                    icon: Icon(Icons.shopping_cart_outlined,
                         color: AppColors.textPrimary),
                     onPressed: () {
                       // Navigate to cart or open order screen
@@ -822,7 +823,7 @@ class _ElectronicsScreenState extends State<ElectronicsScreen> {
                 child: Center(
                   child: Column(
                     children: [
-                      const Icon(Icons.devices_off_rounded,
+                      const Icon(Icons.phonelink_off_rounded,
                           size: 48, color: Colors.grey),
                       const SizedBox(height: 12),
                       const Text(
