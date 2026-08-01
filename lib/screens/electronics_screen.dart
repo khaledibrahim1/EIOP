@@ -501,91 +501,10 @@ class _ElectronicsScreenState extends State<ElectronicsScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. TOP HERO TECH DEALS BANNER (ANIMATED GLOW)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-              child: AnimatedBuilder(
-                animation: _glowAnimation,
-                builder: (context, child) {
-                  return Container(
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF0F172A), Color(0xFF1E1B4B)],
-                        begin: Alignment.topRight,
-                        end: Alignment.bottomLeft,
-                      ),
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF6366F1)
-                              .withValues(alpha: _glowAnimation.value),
-                          blurRadius: 16,
-                          spreadRadius: 1,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: child,
-                  );
-                },
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF6366F1)
-                                .withValues(alpha: 0.2),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.local_offer_rounded,
-                            color: Color(0xFF818CF8),
-                            size: 24,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'أقوى عروض وخصومات الإلكترونيات ⚡',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              SizedBox(height: 2),
-                              Text(
-                                'تخفيضات تصل لـ 35% على الهواتف والسماعات مع التقسيط والضمان',
-                                style: TextStyle(
-                                  color: Colors.white60,
-                                  fontSize: 11,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 6,
-                      children: [
-                        _buildHeroFeatureBadge('خصومات تصل 35%', Icons.discount_rounded),
-                        _buildHeroFeatureBadge('تقسيط 12 شهر', Icons.credit_card_rounded),
-                        _buildHeroFeatureBadge('ضمان معتمد', Icons.security_rounded),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+            // 1. TOP CAROUSEL PROMO BANNER (MATCHING HOME SCREEN DESIGN)
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: ElectronicsPromoBanner(),
             ),
 
             // 2. SEARCH INPUT BOX
