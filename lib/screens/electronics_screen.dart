@@ -542,7 +542,7 @@ class _ElectronicsScreenState extends State<ElectronicsScreen>
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
-                            Icons.bolt_rounded,
+                            Icons.local_offer_rounded,
                             color: Color(0xFF818CF8),
                             size: 24,
                           ),
@@ -553,7 +553,7 @@ class _ElectronicsScreenState extends State<ElectronicsScreen>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'أحدث الأجهزة والإكسسوارات بجرجا ⚡',
+                                'أقوى عروض وخصومات الإلكترونيات ⚡',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 14,
@@ -562,7 +562,7 @@ class _ElectronicsScreenState extends State<ElectronicsScreen>
                               ),
                               SizedBox(height: 2),
                               Text(
-                                'ضمان رسمي 24 شهر مع إمكانية المعاينة قبل الدفع',
+                                'تخفيضات تصل لـ 35% على الهواتف والسماعات مع التقسيط والضمان',
                                 style: TextStyle(
                                   color: Colors.white60,
                                   fontSize: 11,
@@ -578,9 +578,9 @@ class _ElectronicsScreenState extends State<ElectronicsScreen>
                       spacing: 8,
                       runSpacing: 6,
                       children: [
+                        _buildHeroFeatureBadge('خصومات تصل 35%', Icons.discount_rounded),
+                        _buildHeroFeatureBadge('تقسيط 12 شهر', Icons.credit_card_rounded),
                         _buildHeroFeatureBadge('ضمان معتمد', Icons.security_rounded),
-                        _buildHeroFeatureBadge('معاينة مجانية', Icons.search_rounded),
-                        _buildHeroFeatureBadge('توصيل فوري', Icons.electric_bolt_rounded),
                       ],
                     ),
                   ],
