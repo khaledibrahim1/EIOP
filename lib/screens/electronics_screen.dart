@@ -12,11 +12,8 @@ class ElectronicsScreen extends StatefulWidget {
   State<ElectronicsScreen> createState() => _ElectronicsScreenState();
 }
 
-class _ElectronicsScreenState extends State<ElectronicsScreen>
-    with SingleTickerProviderStateMixin {
+class _ElectronicsScreenState extends State<ElectronicsScreen> {
   final TextEditingController _searchController = TextEditingController();
-  late AnimationController _glowController;
-  late Animation<double> _glowAnimation;
 
   String _selectedCategory = 'الكل';
   String _selectedBrand = 'الكل';
@@ -42,20 +39,7 @@ class _ElectronicsScreenState extends State<ElectronicsScreen>
   ];
 
   @override
-  void initState() {
-    super.initState();
-    _glowController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 3),
-    )..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.15, end: 0.45).animate(
-      CurvedAnimation(parent: _glowController, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
   void dispose() {
-    _glowController.dispose();
     _searchController.dispose();
     super.dispose();
   }
