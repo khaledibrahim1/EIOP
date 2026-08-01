@@ -545,12 +545,12 @@ class _ElectronicsScreenState extends State<ElectronicsScreen> {
                       ],
                     ),
                     const SizedBox(height: 14),
-                    Row(
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
                       children: [
                         _buildHeroFeatureBadge('ضمان معتمد', Icons.security_rounded),
-                        const SizedBox(width: 8),
                         _buildHeroFeatureBadge('معاينة مجانية', Icons.search_rounded),
-                        const SizedBox(width: 8),
                         _buildHeroFeatureBadge('توصيل فوري', Icons.electric_bolt_rounded),
                       ],
                     ),
