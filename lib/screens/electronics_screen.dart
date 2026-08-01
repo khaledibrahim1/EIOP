@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/cart_state.dart';
 import '../models/electronics_item.dart';
@@ -953,6 +954,309 @@ class _ElectronicsScreenState extends State<ElectronicsScreen>
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class ElectronicsPromoData {
+  final String badgeText;
+  final String title;
+  final String subtitleText;
+  final String discountNum;
+  final String footerNote;
+  final String buttonText;
+  final String bgImagePath;
+
+  const ElectronicsPromoData({
+    required this.badgeText,
+    required this.title,
+    required this.subtitleText,
+    required this.discountNum,
+    required this.footerNote,
+    required this.buttonText,
+    required this.bgImagePath,
+  });
+}
+
+class ElectronicsPromoBanner extends StatefulWidget {
+  const ElectronicsPromoBanner({super.key});
+
+  @override
+  State<ElectronicsPromoBanner> createState() => _ElectronicsPromoBannerState();
+}
+
+class _ElectronicsPromoBannerState extends State<ElectronicsPromoBanner> {
+  late PageController _pageController;
+  late Timer _timer;
+  int _currentPage = 0;
+
+  final List<ElectronicsPromoData> _offers = const [
+    ElectronicsPromoData(
+      badgeText: 'عروض التكنولوجيا!',
+      title: 'أقوى تخفيضات الهواتف والسماعات',
+      subtitleText: 'خصم يصل حتى',
+      discountNum: '35',
+      footerNote: 'من متاجر جرجا المعتمدة | كود: TECH35',
+      buttonText: 'تسوق الآن',
+      bgImagePath: 'assets/images/cat_electronics.png',
+    ),
+    ElectronicsPromoData(
+      badgeText: 'تقسيط بدون فوائد!',
+      title: 'اشتري الموبايل وقسط على 12 شهر',
+      subtitleText: 'فائدة منخفضة تصل',
+      discountNum: '0',
+      footerNote: 'ضمان معتمد 24 شهر مع المعاينة',
+      buttonText: 'احسب القسط',
+      bgImagePath: 'assets/images/electronics_earbuds.png',
+    ),
+    ElectronicsPromoData(
+      badgeText: 'إكسسوارات وايرلس!',
+      title: 'خصم الشواحن والسماعات اللاسلكية',
+      subtitleText: 'تخفيضات فورية',
+      discountNum: '25',
+      footerNote: 'Anker • Joyroom • Baseus',
+      buttonText: 'استكشف العروض',
+      bgImagePath: 'assets/images/cat_electronics.png',
+    ),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+    _timer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      if (_pageController.hasClients) {
+        _currentPage = (_currentPage + 1) % _offers.length;
+        _pageController.animateToPage(
+          _currentPage,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOutCubic,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(
+          height: 175,
+          child: PageView.builder(
+            controller: _pageController,
+            onPageChanged: (index) {
+              setState(() => _currentPage = index);
+            },
+            itemCount: _offers.length,
+            itemBuilder: (context, index) {
+              final offer = _offers[index];
+              return _buildOfferCard(offer);
+            },
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(_offers.length, (index) {
+            final isSelected = _currentPage == index;
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOutCubic,
+              margin: const EdgeInsets.symmetric(horizontal: 3),
+              width: isSelected ? 18 : 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? const Color(0xFF6366F1)
+                    : Colors.grey.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(10),
+              ),
+            );
+          }),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOfferCard(ElectronicsPromoData offer) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 2),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.15),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(22),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: Image.asset(
+                offer.bgImagePath,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  color: const Color(0xFF0F172A),
+                ),
+              ),
+            ),
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFF0F172A).withValues(alpha: 0.92),
+                      const Color(0xFF1E1B4B).withValues(alpha: 0.70),
+                      Colors.black.withValues(alpha: 0.25),
+                    ],
+                    begin: Alignment.centerRight,
+                    end: Alignment.centerLeft,
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 4,
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        offer.badgeText,
+                        style: const TextStyle(
+                          color: Color(0xFF0F172A),
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        offer.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          Text(
+                            '${offer.subtitleText} ',
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Text(
+                            offer.discountNum,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 26,
+                              fontWeight: FontWeight.w900,
+                              height: 1.0,
+                            ),
+                          ),
+                          const SizedBox(width: 3),
+                          Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF6366F1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Text(
+                              '%',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        offer.footerNote,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.8),
+                          fontSize: 9,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {},
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF6366F1),
+                          foregroundColor: Colors.white,
+                          elevation: 4,
+                          shadowColor: Colors.black26,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 6,
+                          ),
+                          minimumSize: const Size(0, 32),
+                        ),
+                        child: Text(
+                          offer.buttonText,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
