@@ -11,8 +11,12 @@ class ElectronicsScreen extends StatefulWidget {
   State<ElectronicsScreen> createState() => _ElectronicsScreenState();
 }
 
-class _ElectronicsScreenState extends State<ElectronicsScreen> {
+class _ElectronicsScreenState extends State<ElectronicsScreen>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
+  late AnimationController _glowController;
+  late Animation<double> _glowAnimation;
+
   String _selectedCategory = 'الكل';
   String _selectedBrand = 'الكل';
   String? _selectedStoreFilter;
@@ -37,7 +41,20 @@ class _ElectronicsScreenState extends State<ElectronicsScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _glowController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    )..repeat(reverse: true);
+    _glowAnimation = Tween<double>(begin: 0.15, end: 0.45).animate(
+      CurvedAnimation(parent: _glowController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
   void dispose() {
+    _glowController.dispose();
     _searchController.dispose();
     super.dispose();
   }
@@ -480,26 +497,34 @@ class _ElectronicsScreenState extends State<ElectronicsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. TOP HERO TECH DEALS BANNER
+            // 1. TOP HERO TECH DEALS BANNER (ANIMATED GLOW)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-              child: Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF0F172A), Color(0xFF1E1B4B)],
-                    begin: Alignment.topRight,
-                    end: Alignment.bottomLeft,
-                  ),
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 12,
-                      offset: Offset(0, 4),
+              child: AnimatedBuilder(
+                animation: _glowAnimation,
+                builder: (context, child) {
+                  return Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF0F172A), Color(0xFF1E1B4B)],
+                        begin: Alignment.topRight,
+                        end: Alignment.bottomLeft,
+                      ),
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF6366F1)
+                              .withValues(alpha: _glowAnimation.value),
+                          blurRadius: 16,
+                          spreadRadius: 1,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                    child: child,
+                  );
+                },
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -883,6 +908,102 @@ class _ElectronicsScreenState extends State<ElectronicsScreen> {
             const SizedBox(height: 30),
           ],
         ),
+      ),
+      bottomNavigationBar: AnimatedBuilder(
+        animation: appState,
+        builder: (context, _) {
+          final count = appState.totalItemCount;
+          final total = appState.grandTotal;
+          if (count == 0) return const SizedBox.shrink();
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0F172A),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.25),
+                  blurRadius: 16,
+                  offset: const Offset(0, -4),
+                ),
+              ],
+            ),
+            child: SafeArea(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF6366F1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          '$count',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'السلة الحالية',
+                            style: TextStyle(
+                                color: Colors.white54, fontSize: 11),
+                          ),
+                          Text(
+                            '${total.toStringAsFixed(0)} ج.م',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF6366F1),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 12),
+                    ),
+                    onPressed: () {
+                      // Navigate or open cart checkout
+                    },
+                    child: const Row(
+                      children: [
+                        Text(
+                          'إتمام الطلب',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(width: 6),
+                        Icon(Icons.arrow_forward_rounded,
+                            color: Colors.white, size: 16),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
