@@ -437,17 +437,21 @@ class _ElectronicsScreenState extends State<ElectronicsScreen>
         backgroundColor: AppColors.surface,
         elevation: 0,
         centerTitle: true,
-        title: const Row(
+        title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.devices_other_rounded, color: Color(0xFF6366F1)),
-            SizedBox(width: 8),
-            Text(
-              'مول الإلكترونيات والهواتف',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF6366F1),
+            const Icon(Icons.devices_other_rounded, color: Color(0xFF6366F1)),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                'إلكترونيات وهواتف',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF6366F1),
+                ),
               ),
             ),
           ],
