@@ -444,21 +444,11 @@ class _FashionScreenState extends State<FashionScreen> {
                                         vertical: 14),
                                   ),
                                   onPressed: () {
-                                    final appState = CartState.instance;
-                                    appState.addItem(CartItem(
-                                      id: item.id,
-                                      name: item.title,
-                                      price: item.price,
-                                      quantity: quantity,
-                                      imagePath: item.imagePath,
-                                      storeName: item.storeName,
-                                    ));
                                     Navigator.pop(context);
-                                    ScaffoldMessenger.of(context)
-                                        .showSnackBar(
+                                    ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(
-                                          'تمت إضافة ${item.title} إلى السلة!',
+                                          'تمت إضافة ${item.title} ($quantity قطعة) للسلة! 🛍️',
                                         ),
                                         backgroundColor:
                                             const Color(0xFFEC4899),
@@ -519,7 +509,9 @@ class _FashionScreenState extends State<FashionScreen> {
             final storeProducts = sampleFashionItems.where((item) {
               if (item.storeName != store.name) return false;
               if (selectedStoreCategory != 'الكل' &&
-                  item.category != selectedStoreCategory) return false;
+                  item.category != selectedStoreCategory) {
+                return false;
+              }
               final q = storeSearchCtrl.text.trim().toLowerCase();
               if (q.isNotEmpty) {
                 return item.title.toLowerCase().contains(q) ||
@@ -746,7 +738,6 @@ class _FashionScreenState extends State<FashionScreen> {
   // ── BUILD ────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    final appState = CartState.instance;
 
     return Scaffold(
       backgroundColor: AppColors.background,
