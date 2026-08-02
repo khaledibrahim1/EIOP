@@ -131,7 +131,7 @@ class _FashionScreenState extends State<FashionScreen> {
                                       height: 200,
                                       width: double.infinity,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => const Icon(
+                                      errorBuilder: (ctx, e, st) => const Icon(
                                         Icons.checkroom_rounded,
                                         size: 80,
                                         color: Color(0xFFEC4899),
