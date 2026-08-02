@@ -1465,40 +1465,39 @@ class _FashionScreenState extends State<FashionScreen> {
                           Text(
                             'تصفح تشكيلة المحل 👗',
                             style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-      ],
-    );
-  }
-}
-
-// ── Fashion Promo Banner ─────────────────────────────────────────
-class _FashionPromoOffer {
-  final String badgeText;
-  final String title;
-  final String subtitleText;
-  final String discountNum;
-  final String footerNote;
-  final String buttonText;
-
-  const _FashionPromoOffer({
-    required this.badgeText,
-    required this.title,
-    required this.subtitleText,
-    required this.discountNum,
-    required this.footerNote,
+                           final List<_FashionPromoOffer> _offers = const [
+    _FashionPromoOffer(
+      badgeText: 'عروض الموسم! 🌟',
+      title: 'تشكيلة الخريف الجديدة من أرقى الماركات',
+      subtitleText: 'خصم يصل حتى',
+      discountNum: '40',
+      footerNote: 'بوتيك الأناقة جرجا • كود: STYLE40',
+      buttonText: 'تسوقي الآن',
+      imagePath: 'assets/images/fashion_banner_1.png',
+      overlayColors: [Color(0xCC831843), Color(0x88BE185D)],
+    ),
+    _FashionPromoOffer(
+      badgeText: 'أحذية بأسعار مذهلة! 💟',
+      title: 'Nike • Adidas • Clarks – تخفيضات حصرية',
+      subtitleText: 'خصم يبدأ من',
+      discountNum: '30',
+      footerNote: 'سنتر المدينة للأحذية • ضمان 6 أشهر',
+      buttonText: 'اكتشف العروض',
+      imagePath: 'assets/images/fashion_banner_2.png',
+      overlayColors: [Color(0xCC1E3A5F), Color(0x882563EB)],
+    ),
+    _FashionPromoOffer(
+      badgeText: 'الملابس المحتشمة الأنيقة! 👗',
+      title: 'عباءات وأزياء محتشمة بتصاميم عصرية',
+      subtitleText: 'وفر حتى',
+      discountNum: '35',
+      footerNote: 'نيو ستايل جرجا • تسليم بالبيت',
+      buttonText: 'استعرض التشكيلة',
+      imagePath: 'assets/images/fashion_banner_3.png',
+      overlayColors: [Color(0xCC3B1F5F), Color(0x887C3AED)],
+    ),
+  ];
+required this.footerNote,
     required this.buttonText,
   });
 }
@@ -1542,7 +1541,7 @@ class _FashionPromoBannerState extends State<FashionPromoBanner> {
     ),
   ];
 
-  // Gradient pairs per slide
+  // Gradient pairs per slide – kept as fallback tint
   final List<List<Color>> _gradients = const [
     [Color(0xFF831843), Color(0xFFBE185D), Color(0xFFEC4899)],
     [Color(0xFF1E3A5F), Color(0xFF2563EB), Color(0xFF60A5FA)],
@@ -1619,19 +1618,22 @@ class _FashionPromoBannerState extends State<FashionPromoBanner> {
         borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: gradientColors[0].withValues(alpha: 0.4),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
+            color: gradientColors[0].withValues(alpha: 0.5),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(22),
         child: Stack(
+          fit: StackFit.expand,
           children: [
-            // Background gradient
-            Positioned.fill(
-              child: Container(
+            // 1. Real photo background
+            Image.asset(
+              offer.imagePath,
+              fit: BoxFit.cover,
+              errorBuilder: (ctx, e, st) => Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: gradientColors,
@@ -1641,32 +1643,38 @@ class _FashionPromoBannerState extends State<FashionPromoBanner> {
                 ),
               ),
             ),
-            // Decorative circles
-            Positioned(
-              right: -30,
-              top: -30,
+            // 2. Dark gradient overlay for legibility
+            Positioned.fill(
               child: Container(
-                width: 120,
-                height: 120,
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.06),
+                  gradient: LinearGradient(
+                    colors: [
+                      offer.overlayColors[0],
+                      offer.overlayColors[1],
+                      Colors.transparent,
+                    ],
+                    begin: Alignment.bottomLeft,
+                    end: Alignment.topRight,
+                  ),
                 ),
               ),
             ),
-            Positioned(
-              left: -20,
-              bottom: -20,
+            // 3. Subtle vignette top
+            Positioned.fill(
               child: Container(
-                width: 90,
-                height: 90,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.06),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Color(0x66000000),
+                      Colors.transparent,
+                    ],
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                  ),
                 ),
               ),
             ),
-            // Content
+            // 4. Content
             Padding(
               padding: const EdgeInsets.symmetric(
                   horizontal: 14, vertical: 12),
@@ -1674,15 +1682,21 @@ class _FashionPromoBannerState extends State<FashionPromoBanner> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Badge
+                  // Badge top-right
                   Align(
                     alignment: Alignment.topRight,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Colors.white.withValues(alpha: 0.92),
                         borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.2),
+                            blurRadius: 6,
+                          ),
+                        ],
                       ),
                       child: Text(
                         offer.badgeText,
@@ -1698,44 +1712,58 @@ class _FashionPromoBannerState extends State<FashionPromoBanner> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        offer.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
+                      // Soft frosted backdrop behind text
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.35),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          offer.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            height: 1.3,
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 6),
                       Row(
-                        crossAxisAlignment:
-                            CrossAxisAlignment.baseline,
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
                         textBaseline: TextBaseline.alphabetic,
                         children: [
                           Text(
                             '${offer.subtitleText} ',
                             style: const TextStyle(
-                              color: Colors.white70,
+                              color: Colors.white,
                               fontSize: 11,
+                              shadows: [
+                                Shadow(color: Colors.black54, blurRadius: 4),
+                              ],
                             ),
                           ),
                           Text(
                             offer.discountNum,
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 26,
+                              fontSize: 30,
                               fontWeight: FontWeight.w900,
                               height: 1.0,
+                              shadows: [
+                                Shadow(color: Colors.black45, blurRadius: 8),
+                              ],
                             ),
                           ),
                           const SizedBox(width: 3),
                           Container(
-                            padding: const EdgeInsets.all(3),
+                            padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
-                              color: Colors.white
-                                  .withValues(alpha: 0.25),
+                              color: Colors.white.withValues(alpha: 0.3),
                               shape: BoxShape.circle,
                             ),
                             child: const Text('%',
@@ -1748,18 +1776,19 @@ class _FashionPromoBannerState extends State<FashionPromoBanner> {
                       ),
                     ],
                   ),
-                  // Footer
+                  // Footer row
                   Row(
-                    mainAxisAlignment:
-                        MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Flexible(
                         child: Text(
                           offer.footerNote,
-                          style: TextStyle(
-                            color: Colors.white
-                                .withValues(alpha: 0.75),
+                          style: const TextStyle(
+                            color: Colors.white70,
                             fontSize: 9,
+                            shadows: [
+                              Shadow(color: Colors.black54, blurRadius: 4),
+                            ],
                           ),
                         ),
                       ),
@@ -1767,9 +1796,12 @@ class _FashionPromoBannerState extends State<FashionPromoBanner> {
                       ElevatedButton(
                         onPressed: () {},
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
+                          backgroundColor:
+                              Colors.white.withValues(alpha: 0.92),
                           foregroundColor: gradientColors[0],
-                          elevation: 4,
+                          elevation: 6,
+                          shadowColor:
+                              Colors.black.withValues(alpha: 0.3),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                           ),
