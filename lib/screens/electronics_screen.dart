@@ -18,6 +18,7 @@ class _ElectronicsScreenState extends State<ElectronicsScreen> {
   String _selectedCategory = 'الكل';
   String _selectedBrand = 'الكل';
   String? _selectedStoreFilter;
+  int _selectedViewTab = 0; // 0 = Products Grid, 1 = Stores Directory & Menus
 
   final List<String> _categories = const [
     'الكل',
@@ -414,6 +415,252 @@ class _ElectronicsScreenState extends State<ElectronicsScreen> {
     );
   }
 
+  void _openStoreMenuModal(ElectronicsStoreModel store) {
+    String selectedStoreCategory = 'الكل';
+    final TextEditingController storeSearchCtrl = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final storeProducts = sampleElectronicsItems.where((item) {
+              if (item.storeName != store.name) return false;
+              if (selectedStoreCategory != 'الكل' &&
+                  !item.category.contains(selectedStoreCategory)) {
+                return false;
+              }
+              final q = storeSearchCtrl.text.trim().toLowerCase();
+              if (q.isNotEmpty) {
+                return item.title.toLowerCase().contains(q) ||
+                    item.specs.toLowerCase().contains(q) ||
+                    item.brand.toLowerCase().contains(q);
+              }
+              return true;
+            }).toList();
+
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.88,
+              decoration: const BoxDecoration(
+                color: Color(0xFF0F172A),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              child: Column(
+                children: [
+                  const SizedBox(height: 12),
+                  // Handle Bar
+                  Center(
+                    child: Container(
+                      width: 44,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: Colors.white24,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Store Header Details Card
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E293B),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.white12),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 54,
+                            height: 54,
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF6366F1)
+                                  .withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: const Icon(
+                              Icons.storefront_rounded,
+                              color: Color(0xFF818CF8),
+                              size: 28,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      store.name,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    const Icon(
+                                      Icons.verified_rounded,
+                                      color: Color(0xFF10B981),
+                                      size: 16,
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  store.location,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Colors.white60,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.star_rounded,
+                                        color: Colors.amber, size: 14),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      '${store.rating} • ${store.deliveryTime}',
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Search Field inside Store Menu
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E293B),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: TextField(
+                        controller: storeSearchCtrl,
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 13),
+                        onChanged: (_) => setModalState(() {}),
+                        decoration: const InputDecoration(
+                          hintText: 'ابحث في منيو وأجهزة المحل...',
+                          hintStyle: TextStyle(
+                              color: Colors.white38, fontSize: 12),
+                          prefixIcon: Icon(Icons.search_rounded,
+                              color: Color(0xFF818CF8), size: 18),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 12),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Store Category Choice Chips
+                  SizedBox(
+                    height: 34,
+                    child: ListView.separated(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      scrollDirection: Axis.horizontal,
+                      itemCount: ['الكل', ...store.categories].length,
+                      separatorBuilder: (context, index) => const SizedBox(width: 6),
+                      itemBuilder: (context, index) {
+                        final cat = ['الكل', ...store.categories][index];
+                        final isSel = selectedStoreCategory == cat;
+                        return FilterChip(
+                          label: Text(cat),
+                          selected: isSel,
+                          selectedColor: const Color(0xFF6366F1),
+                          backgroundColor: const Color(0xFF1E293B),
+                          labelStyle: TextStyle(
+                            color: isSel ? Colors.white : Colors.white70,
+                            fontSize: 11,
+                            fontWeight:
+                                isSel ? FontWeight.bold : FontWeight.normal,
+                          ),
+                          onSelected: (val) {
+                            setModalState(() {
+                              selectedStoreCategory = val ? cat : 'الكل';
+                            });
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Menu Items Grid
+                  Expanded(
+                    child: storeProducts.isEmpty
+                        ? const Center(
+                            child: Text(
+                              'لا توجد منتجات مطابقة في منيو المحل حالياً',
+                              style: TextStyle(
+                                  color: Colors.white54, fontSize: 13),
+                            ),
+                          )
+                        : GridView.builder(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                            itemCount: storeProducts.length,
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              childAspectRatio: 0.64,
+                              crossAxisSpacing: 12,
+                              mainAxisSpacing: 12,
+                            ),
+                            itemBuilder: (context, index) {
+                              final item = storeProducts[index];
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  _showProductDetailsModal(item);
+                                },
+                                child: MultiServiceProductCard(
+                                  id: item.id,
+                                  title: item.title,
+                                  subtitle:
+                                      '${item.brand} • ${item.storeName}',
+                                  price: item.price,
+                                  oldPrice: item.oldPrice,
+                                  imagePath: item.imagePath,
+                                  accentColor: const Color(0xFF6366F1),
+                                  categoryTag: item.brand,
+                                  rating: item.rating,
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -532,288 +779,106 @@ class _ElectronicsScreenState extends State<ElectronicsScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-
-            // 3. CATEGORIES CHOICE CHIPS
-            SizedBox(
-              height: 38,
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                scrollDirection: Axis.horizontal,
-                itemCount: _categories.length,
-                separatorBuilder: (context, index) => const SizedBox(width: 8),
-                itemBuilder: (context, index) {
-                  final cat = _categories[index];
-                  final isSelected = _selectedCategory == cat;
-                  return ChoiceChip(
-                    label: Text(cat),
-                    selected: isSelected,
-                    selectedColor: const Color(0xFF6366F1),
-                    backgroundColor: AppColors.cardBg,
-                    labelStyle: TextStyle(
-                      color: isSelected ? Colors.white : AppColors.textPrimary,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    onSelected: (val) {
-                      if (val) {
-                        setState(() => _selectedCategory = cat);
-                      }
-                    },
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 10),
-
-            // 4. BRANDS HORIZONTAL FILTER CHIPS
-            SizedBox(
-              height: 34,
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                scrollDirection: Axis.horizontal,
-                itemCount: _brands.length,
-                separatorBuilder: (context, index) => const SizedBox(width: 6),
-                itemBuilder: (context, index) {
-                  final brand = _brands[index];
-                  final isSelected = _selectedBrand == brand;
-                  return FilterChip(
-                    label: Text(brand),
-                    selected: isSelected,
-                    selectedColor:
-                        const Color(0xFF6366F1).withValues(alpha: 0.2),
-                    checkmarkColor: const Color(0xFF6366F1),
-                    backgroundColor: AppColors.cardBg,
-                    labelStyle: TextStyle(
-                      color: isSelected
-                          ? const Color(0xFF6366F1)
-                          : AppColors.textSecondary,
-                      fontSize: 10,
-                      fontWeight:
-                          isSelected ? FontWeight.bold : FontWeight.normal,
-                    ),
-                    onSelected: (val) {
-                      setState(() => _selectedBrand = val ? brand : 'الكل');
-                    },
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // 5. GIRGA VERIFIED ELECTRONICS STORES DIRECTORY
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'متاجر الإلكترونيات المعتمدة بجرجا',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
+            // 3. VIEW MODE TAB SWITCHER: [كافة المنتجات | دليل المحلات والمنيو]
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: AppColors.cardBg,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 6,
+                    offset: Offset(0, 2),
                   ),
-                  if (_selectedStoreFilter != null)
-                    GestureDetector(
-                      onTap: () => setState(() => _selectedStoreFilter = null),
-                      child: const Text(
-                        'عرض الكل',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Color(0xFF6366F1),
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
                 ],
               ),
-            ),
-            const SizedBox(height: 10),
-            SizedBox(
-              height: 72,
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                scrollDirection: Axis.horizontal,
-                itemCount: girgaElectronicsStores.length,
-                separatorBuilder: (context, index) => const SizedBox(width: 10),
-                itemBuilder: (context, index) {
-                  final store = girgaElectronicsStores[index];
-                  final isSelected = _selectedStoreFilter == store.name;
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedStoreFilter =
-                            isSelected ? null : store.name;
-                      });
-                    },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? const Color(0xFF0F172A)
-                            : AppColors.cardBg,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: isSelected
+              child: Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _selectedViewTab = 0),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        decoration: BoxDecoration(
+                          color: _selectedViewTab == 0
                               ? const Color(0xFF6366F1)
                               : Colors.transparent,
-                          width: 1.5,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.devices_other_rounded,
+                              size: 16,
+                              color: _selectedViewTab == 0
+                                  ? Colors.white
+                                  : AppColors.textSecondary,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'كافة المنتجات',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: _selectedViewTab == 0
+                                    ? Colors.white
+                                    : AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF6366F1)
-                                  .withValues(alpha: 0.15),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.storefront_rounded,
-                              color: Color(0xFF6366F1),
-                              size: 18,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                store.name,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: isSelected
-                                      ? Colors.white
-                                      : AppColors.textPrimary,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Row(
-                                children: [
-                                  const Icon(Icons.star_rounded,
-                                      color: Colors.amber, size: 12),
-                                  const SizedBox(width: 3),
-                                  Text(
-                                    '${store.rating} • ${store.deliveryTime}',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      color: isSelected
-                                          ? Colors.white70
-                                          : AppColors.textSecondary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // 6. PRODUCTS CATALOG GRID
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    _selectedStoreFilter != null
-                      ? 'منتجات ${_selectedStoreFilter!}:'
-                      : 'أحدث المنتجات المتوفرة (${_filteredItems.length}):',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
                     ),
                   ),
-                  const Text(
-                    'تسليم فوري',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Color(0xFF10B981),
-                      fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _selectedViewTab = 1),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        decoration: BoxDecoration(
+                          color: _selectedViewTab == 1
+                              ? const Color(0xFF6366F1)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.storefront_rounded,
+                              size: 16,
+                              color: _selectedViewTab == 1
+                                  ? Colors.white
+                                  : AppColors.textSecondary,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'المحلات والمنيو',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: _selectedViewTab == 1
+                                    ? Colors.white
+                                    : AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 12),
 
-            if (_filteredItems.isEmpty)
-              Padding(
-                padding: const EdgeInsets.all(40),
-                child: Center(
-                  child: Column(
-                    children: [
-                      const Icon(Icons.phonelink_off_rounded,
-                          size: 48, color: Colors.grey),
-                      const SizedBox(height: 12),
-                      const Text(
-                        'لا توجد أجهزة مطابقة للبحث حالياً',
-                        style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey,
-                            fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 6),
-                      TextButton(
-                        onPressed: () {
-                          setState(() {
-                            _selectedCategory = 'الكل';
-                            _selectedBrand = 'الكل';
-                            _selectedStoreFilter = null;
-                            _searchController.clear();
-                          });
-                        },
-                        child: const Text('إعادة ضبط الفلاتر',
-                            style: TextStyle(color: Color(0xFF6366F1))),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            else
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: _filteredItems.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.64,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                ),
-                itemBuilder: (context, index) {
-                  final item = _filteredItems[index];
-                  return GestureDetector(
-                    onTap: () => _showProductDetailsModal(item),
-                    child: MultiServiceProductCard(
-                      id: item.id,
-                      title: item.title,
-                      subtitle: '${item.brand} • ${item.storeName}',
-                      price: item.price,
-                      oldPrice: item.oldPrice,
-                      imagePath: item.imagePath,
-                      accentColor: const Color(0xFF6366F1),
-                      categoryTag: item.brand,
-                      rating: item.rating,
-                    ),
-                  );
-                },
-              ),
-            const SizedBox(height: 30),
+            _selectedViewTab == 1
+                ? _buildStoresListView()
+                : _buildProductsSection(),
           ],
         ),
       ),
@@ -913,6 +978,463 @@ class _ElectronicsScreenState extends State<ElectronicsScreen> {
           );
         },
       ),
+    );
+  }
+
+  Widget _buildStoresListView() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'متاجر جرجا المعتمدة (${girgaElectronicsStores.length}):',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Text(
+                'تغطية كاملة',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Color(0xFF10B981),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+        ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          itemCount: girgaElectronicsStores.length,
+          separatorBuilder: (context, index) => const SizedBox(height: 14),
+          itemBuilder: (context, index) {
+            final store = girgaElectronicsStores[index];
+            return Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.cardBg,
+                borderRadius: BorderRadius.circular(22),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 10,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 56,
+                        height: 56,
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF6366F1).withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: const Icon(
+                          Icons.storefront_rounded,
+                          color: Color(0xFF6366F1),
+                          size: 30,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  store.name,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                const Icon(
+                                  Icons.verified_rounded,
+                                  color: Color(0xFF10B981),
+                                  size: 16,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              store.location,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                const Icon(Icons.star_rounded,
+                                    color: Colors.amber, size: 14),
+                                const SizedBox(width: 3),
+                                Text(
+                                  '${store.rating} • التوصيل ${store.deliveryTime}',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: store.categories.map((cat) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF6366F1).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          cat,
+                          style: const TextStyle(
+                            color: Color(0xFF6366F1),
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 44,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF6366F1),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      onPressed: () => _openStoreMenuModal(store),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.restaurant_menu_rounded,
+                              color: Colors.white, size: 18),
+                          SizedBox(width: 8),
+                          Text(
+                            'تصفح منيو وأجهزة المحل 📋',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProductsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // CATEGORIES CHOICE CHIPS
+        SizedBox(
+          height: 38,
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            scrollDirection: Axis.horizontal,
+            itemCount: _categories.length,
+            separatorBuilder: (context, index) => const SizedBox(width: 8),
+            itemBuilder: (context, index) {
+              final cat = _categories[index];
+              final isSelected = _selectedCategory == cat;
+              return ChoiceChip(
+                label: Text(cat),
+                selected: isSelected,
+                selectedColor: const Color(0xFF6366F1),
+                backgroundColor: AppColors.cardBg,
+                labelStyle: TextStyle(
+                  color: isSelected ? Colors.white : AppColors.textPrimary,
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                ),
+                onSelected: (val) {
+                  if (val) {
+                    setState(() => _selectedCategory = cat);
+                  }
+                },
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 10),
+
+        // BRANDS HORIZONTAL FILTER CHIPS
+        SizedBox(
+          height: 34,
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            scrollDirection: Axis.horizontal,
+            itemCount: _brands.length,
+            separatorBuilder: (context, index) => const SizedBox(width: 6),
+            itemBuilder: (context, index) {
+              final brand = _brands[index];
+              final isSelected = _selectedBrand == brand;
+              return FilterChip(
+                label: Text(brand),
+                selected: isSelected,
+                selectedColor: const Color(0xFF6366F1).withValues(alpha: 0.2),
+                checkmarkColor: const Color(0xFF6366F1),
+                backgroundColor: AppColors.cardBg,
+                labelStyle: TextStyle(
+                  color: isSelected
+                      ? const Color(0xFF6366F1)
+                      : AppColors.textSecondary,
+                  fontSize: 10,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                ),
+                onSelected: (val) {
+                  setState(() => _selectedBrand = val ? brand : 'الكل');
+                },
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // GIRGA VERIFIED ELECTRONICS STORES DIRECTORY PREVIEW
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'متاجر الإلكترونيات المعتمدة بجرجا',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (_selectedStoreFilter != null)
+                GestureDetector(
+                  onTap: () => setState(() => _selectedStoreFilter = null),
+                  child: const Text(
+                    'عرض الكل',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Color(0xFF6366F1),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          height: 72,
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            scrollDirection: Axis.horizontal,
+            itemCount: girgaElectronicsStores.length,
+            separatorBuilder: (context, index) => const SizedBox(width: 10),
+            itemBuilder: (context, index) {
+              final store = girgaElectronicsStores[index];
+              final isSelected = _selectedStoreFilter == store.name;
+              return GestureDetector(
+                onTap: () => _openStoreMenuModal(store),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: isSelected ? const Color(0xFF0F172A) : AppColors.cardBg,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isSelected
+                          ? const Color(0xFF6366F1)
+                          : Colors.transparent,
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF6366F1).withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.storefront_rounded,
+                          color: Color(0xFF6366F1),
+                          size: 18,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            store.name,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: isSelected
+                                  ? Colors.white
+                                  : AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              const Icon(Icons.star_rounded,
+                                  color: Colors.amber, size: 12),
+                              const SizedBox(width: 3),
+                              Text(
+                                '${store.rating} • ${store.deliveryTime}',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: isSelected
+                                      ? Colors.white70
+                                      : AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // PRODUCTS CATALOG GRID
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                _selectedStoreFilter != null
+                    ? 'منتجات ${_selectedStoreFilter!}:'
+                    : 'أحدث المنتجات المتوفرة (${_filteredItems.length}):',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const Text(
+                'تسليم فوري',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Color(0xFF10B981),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        if (_filteredItems.isEmpty)
+          Padding(
+            padding: const EdgeInsets.all(40),
+            child: Center(
+              child: Column(
+                children: [
+                  const Icon(Icons.phonelink_off_rounded,
+                      size: 48, color: Colors.grey),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'لا توجد أجهزة مطابقة للبحث حالياً',
+                    style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 6),
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _selectedCategory = 'الكل';
+                        _selectedBrand = 'الكل';
+                        _selectedStoreFilter = null;
+                        _searchController.clear();
+                      });
+                    },
+                    child: const Text('إعادة ضبط الفلاتر',
+                        style: TextStyle(color: Color(0xFF6366F1))),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: _filteredItems.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 0.64,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+            ),
+            itemBuilder: (context, index) {
+              final item = _filteredItems[index];
+              return GestureDetector(
+                onTap: () => _showProductDetailsModal(item),
+                child: MultiServiceProductCard(
+                  id: item.id,
+                  title: item.title,
+                  subtitle: '${item.brand} • ${item.storeName}',
+                  price: item.price,
+                  oldPrice: item.oldPrice,
+                  imagePath: item.imagePath,
+                  accentColor: const Color(0xFF6366F1),
+                  categoryTag: item.brand,
+                  rating: item.rating,
+                ),
+              );
+            },
+          ),
+        const SizedBox(height: 30),
+      ],
     );
   }
 }
