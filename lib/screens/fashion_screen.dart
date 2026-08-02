@@ -5,10 +5,6 @@ import '../models/fashion_item.dart';
 import '../theme/app_colors.dart';
 import '../widgets/multi_service_product_card.dart';
 
-// ───────────────────────────────────────────────────────────────
-//  FASHION SCREEN – full featured, matching ElectronicsScreen style
-// ───────────────────────────────────────────────────────────────
-
 class FashionScreen extends StatefulWidget {
   const FashionScreen({super.key});
 
@@ -22,32 +18,17 @@ class _FashionScreenState extends State<FashionScreen> {
   String _selectedCategory = 'الكل';
   String _selectedBrand = 'الكل';
   String? _selectedStoreFilter;
-  int _selectedViewTab = 0; // 0 = Products, 1 = Stores & Menus
+  int _selectedViewTab = 0;
 
   final List<String> _categories = const [
-    'الكل',
-    'قمصان',
-    'بناطيل',
-    'جاكيتات',
-    'أحذية رجالية',
-    'أحذية نسائية',
-    'رياضي',
-    'كلاسيك',
-    'ملابس أطفال',
-    'ملابس محتشمة',
-    'إكسسوارات',
+    'الكل', 'قمصان', 'بناطيل', 'جاكيتات',
+    'أحذية رجالية', 'أحذية نسائية', 'رياضي',
+    'كلاسيك', 'ملابس أطفال', 'ملابس محتشمة', 'إكسسوارات',
   ];
 
   final List<String> _brands = const [
-    'الكل',
-    'Zara',
-    'H&M',
-    "Levi's",
-    'Nike',
-    'Adidas',
-    'Clarks',
-    'Aldo',
-    'Gap',
+    'الكل', 'Zara', 'H&M', "Levi's",
+    'Nike', 'Adidas', 'Clarks', 'Aldo', 'Gap',
   ];
 
   @override
@@ -78,7 +59,6 @@ class _FashionScreenState extends State<FashionScreen> {
     }).toList();
   }
 
-  // ── Product Detail Bottom Sheet ──────────────────────────────
   void _showProductDetailsModal(FashionItem item) {
     int quantity = 1;
     String? selectedSize;
@@ -99,12 +79,10 @@ class _FashionScreenState extends State<FashionScreen> {
               ),
               child: Column(
                 children: [
-                  // Handle
                   const SizedBox(height: 12),
                   Center(
                     child: Container(
-                      width: 44,
-                      height: 5,
+                      width: 44, height: 5,
                       decoration: BoxDecoration(
                         color: Colors.white24,
                         borderRadius: BorderRadius.circular(10),
@@ -117,7 +95,6 @@ class _FashionScreenState extends State<FashionScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Image Hero
                           ClipRRect(
                             borderRadius: BorderRadius.circular(18),
                             child: Container(
@@ -133,47 +110,34 @@ class _FashionScreenState extends State<FashionScreen> {
                                       fit: BoxFit.cover,
                                       errorBuilder: (ctx, e, st) => const Icon(
                                         Icons.checkroom_rounded,
-                                        size: 80,
-                                        color: Color(0xFFEC4899),
+                                        size: 80, color: Color(0xFFEC4899),
                                       ),
                                     ),
                                   ),
                                   if (item.isNew)
                                     Positioned(
-                                      top: 12,
-                                      right: 12,
+                                      top: 12, right: 12,
                                       child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 10, vertical: 4),
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                         decoration: BoxDecoration(
                                           color: const Color(0xFF10B981),
-                                          borderRadius:
-                                              BorderRadius.circular(20),
+                                          borderRadius: BorderRadius.circular(20),
                                         ),
                                         child: const Text('جديد',
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.bold)),
+                                            style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                                       ),
                                     ),
                                   if (item.isBestSeller)
                                     Positioned(
-                                      top: 12,
-                                      left: 12,
+                                      top: 12, left: 12,
                                       child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 10, vertical: 4),
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                         decoration: BoxDecoration(
                                           color: const Color(0xFFEC4899),
-                                          borderRadius:
-                                              BorderRadius.circular(20),
+                                          borderRadius: BorderRadius.circular(20),
                                         ),
                                         child: const Text('الأكثر مبيعاً',
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.bold)),
+                                            style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                                       ),
                                     ),
                                 ],
@@ -181,223 +145,124 @@ class _FashionScreenState extends State<FashionScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
-
-                          // Title + Brand
-                          Text(
-                            item.title,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          Text(item.title,
+                              style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                           const SizedBox(height: 4),
                           Row(
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 3),
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                 decoration: BoxDecoration(
-                                  color:
-                                      const Color(0xFFEC4899).withValues(alpha: 0.2),
+                                  color: const Color(0xFFEC4899).withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: Text(
-                                  item.brand,
-                                  style: const TextStyle(
-                                    color: Color(0xFFEC4899),
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                                child: Text(item.brand,
+                                    style: const TextStyle(color: Color(0xFFEC4899), fontSize: 11, fontWeight: FontWeight.bold)),
                               ),
                               const SizedBox(width: 8),
-                              const Icon(Icons.star_rounded,
-                                  color: Colors.amber, size: 14),
+                              const Icon(Icons.star_rounded, color: Colors.amber, size: 14),
                               const SizedBox(width: 3),
-                              Text(
-                                '${item.rating} (${item.reviewCount} تقييم)',
-                                style: const TextStyle(
-                                    color: Colors.white60, fontSize: 11),
-                              ),
+                              Text('${item.rating} (${item.reviewCount} تقييم)',
+                                  style: const TextStyle(color: Colors.white60, fontSize: 11)),
                             ],
                           ),
                           const SizedBox(height: 12),
-
-                          // Price
                           Row(
                             children: [
-                              Text(
-                                '${item.price.toStringAsFixed(0)} ج.م',
-                                style: const TextStyle(
-                                  color: Color(0xFFEC4899),
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
+                              Text('${item.price.toStringAsFixed(0)} ج.م',
+                                  style: const TextStyle(color: Color(0xFFEC4899), fontSize: 22, fontWeight: FontWeight.w900)),
                               if (item.oldPrice != null) ...[
                                 const SizedBox(width: 10),
-                                Text(
-                                  '${item.oldPrice!.toStringAsFixed(0)} ج.م',
-                                  style: const TextStyle(
-                                    color: Colors.white38,
-                                    fontSize: 14,
-                                    decoration: TextDecoration.lineThrough,
-                                  ),
-                                ),
+                                Text('${item.oldPrice!.toStringAsFixed(0)} ج.م',
+                                    style: const TextStyle(color: Colors.white38, fontSize: 14, decoration: TextDecoration.lineThrough)),
                                 const SizedBox(width: 6),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 6, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFEC4899)
-                                        .withValues(alpha: 0.2),
+                                    color: const Color(0xFFEC4899).withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Text(
                                     '-${(((item.oldPrice! - item.price) / item.oldPrice!) * 100).toStringAsFixed(0)}%',
-                                    style: const TextStyle(
-                                      color: Color(0xFFEC4899),
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                    style: const TextStyle(color: Color(0xFFEC4899), fontSize: 10, fontWeight: FontWeight.bold),
                                   ),
                                 ),
                               ],
                             ],
                           ),
                           const SizedBox(height: 4),
-                          Text(
-                            'من ${item.storeName}',
-                            style: const TextStyle(
-                                color: Colors.white54, fontSize: 11),
-                          ),
+                          Text('من ${item.storeName}',
+                              style: const TextStyle(color: Colors.white54, fontSize: 11)),
                           const SizedBox(height: 16),
-
-                          // Specs
                           if (item.specs.isNotEmpty) ...[
-                            const Text(
-                              'المواصفات:',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                            const Text('المواصفات:',
+                                style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
                             const SizedBox(height: 6),
-                            Text(
-                              item.specs,
-                              style: const TextStyle(
-                                color: Colors.white60,
-                                fontSize: 12,
-                                height: 1.6,
-                              ),
-                            ),
+                            Text(item.specs,
+                                style: const TextStyle(color: Colors.white60, fontSize: 12, height: 1.6)),
                             const SizedBox(height: 16),
                           ],
-
-                          // Colors
                           if (item.availableColors.isNotEmpty) ...[
-                            const Text(
-                              'الألوان المتاحة:',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                            const Text('الألوان المتاحة:',
+                                style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
                             const SizedBox(height: 8),
                             Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
+                              spacing: 8, runSpacing: 8,
                               children: item.availableColors.map((color) {
                                 final isSel = selectedColor == color;
                                 return GestureDetector(
-                                  onTap: () =>
-                                      setModalState(() => selectedColor = color),
+                                  onTap: () => setModalState(() => selectedColor = color),
                                   child: AnimatedContainer(
                                     duration: const Duration(milliseconds: 200),
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 6),
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                     decoration: BoxDecoration(
-                                      color: isSel
-                                          ? const Color(0xFFEC4899)
-                                          : const Color(0xFF1E293B),
+                                      color: isSel ? const Color(0xFFEC4899) : const Color(0xFF1E293B),
                                       borderRadius: BorderRadius.circular(20),
                                       border: Border.all(
-                                        color: isSel
-                                            ? const Color(0xFFEC4899)
-                                            : Colors.white24,
+                                        color: isSel ? const Color(0xFFEC4899) : Colors.white24,
                                       ),
                                     ),
-                                    child: Text(
-                                      color,
-                                      style: TextStyle(
-                                        color: isSel
-                                            ? Colors.white
-                                            : Colors.white70,
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
+                                    child: Text(color,
+                                        style: TextStyle(
+                                          color: isSel ? Colors.white : Colors.white70,
+                                          fontSize: 11, fontWeight: FontWeight.w600,
+                                        )),
                                   ),
                                 );
                               }).toList(),
                             ),
                             const SizedBox(height: 16),
                           ],
-
-                          // Sizes
-                          const Text(
-                            'المقاسات المتاحة:',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          const Text('المقاسات المتاحة:',
+                              style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
                           const SizedBox(height: 8),
                           Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
+                            spacing: 8, runSpacing: 8,
                             children: item.availableSizes.map((size) {
                               final isSel = selectedSize == size;
                               return GestureDetector(
-                                onTap: () =>
-                                    setModalState(() => selectedSize = size),
+                                onTap: () => setModalState(() => selectedSize = size),
                                 child: AnimatedContainer(
                                   duration: const Duration(milliseconds: 200),
-                                  width: 52,
-                                  height: 38,
+                                  width: 52, height: 38,
                                   alignment: Alignment.center,
                                   decoration: BoxDecoration(
-                                    color: isSel
-                                        ? const Color(0xFFEC4899)
-                                        : const Color(0xFF1E293B),
+                                    color: isSel ? const Color(0xFFEC4899) : const Color(0xFF1E293B),
                                     borderRadius: BorderRadius.circular(10),
                                     border: Border.all(
-                                      color: isSel
-                                          ? const Color(0xFFEC4899)
-                                          : Colors.white24,
+                                      color: isSel ? const Color(0xFFEC4899) : Colors.white24,
                                     ),
                                   ),
-                                  child: Text(
-                                    size,
-                                    style: TextStyle(
-                                      color: isSel
-                                          ? Colors.white
-                                          : Colors.white70,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
+                                  child: Text(size,
+                                      style: TextStyle(
+                                        color: isSel ? Colors.white : Colors.white70,
+                                        fontSize: 11, fontWeight: FontWeight.bold,
+                                      )),
                                 ),
                               );
                             }).toList(),
                           ),
                           const SizedBox(height: 20),
-
-                          // Quantity + Add
                           Row(
                             children: [
                               Container(
@@ -408,26 +273,16 @@ class _FashionScreenState extends State<FashionScreen> {
                                 child: Row(
                                   children: [
                                     IconButton(
-                                      icon: const Icon(Icons.remove_rounded,
-                                          color: Colors.white70, size: 20),
+                                      icon: const Icon(Icons.remove_rounded, color: Colors.white70, size: 20),
                                       onPressed: () {
-                                        if (quantity > 1) {
-                                          setModalState(() => quantity--);
-                                        }
+                                        if (quantity > 1) setModalState(() => quantity--);
                                       },
                                     ),
-                                    Text(
-                                      '$quantity',
-                                      style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold),
-                                    ),
+                                    Text('$quantity',
+                                        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                                     IconButton(
-                                      icon: const Icon(Icons.add_rounded,
-                                          color: Color(0xFFEC4899), size: 20),
-                                      onPressed: () =>
-                                          setModalState(() => quantity++),
+                                      icon: const Icon(Icons.add_rounded, color: Color(0xFFEC4899), size: 20),
+                                      onPressed: () => setModalState(() => quantity++),
                                     ),
                                   ],
                                 ),
@@ -437,43 +292,27 @@ class _FashionScreenState extends State<FashionScreen> {
                                 child: ElevatedButton(
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFFEC4899),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 14),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                    padding: const EdgeInsets.symmetric(vertical: 14),
                                   ),
                                   onPressed: () {
                                     Navigator.pop(context);
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Text(
-                                          'تمت إضافة ${item.title} ($quantity قطعة) للسلة! 🛍️',
-                                        ),
-                                        backgroundColor:
-                                            const Color(0xFFEC4899),
+                                        content: Text('تمت إضافة ${item.title} ($quantity قطعة) للسلة! 🛍️'),
+                                        backgroundColor: const Color(0xFFEC4899),
                                         behavior: SnackBarBehavior.floating,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                        ),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                       ),
                                     );
                                   },
                                   child: const Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(Icons.shopping_bag_rounded,
-                                          color: Colors.white, size: 18),
+                                      Icon(Icons.shopping_bag_rounded, color: Colors.white, size: 18),
                                       SizedBox(width: 8),
-                                      Text(
-                                        'أضف للسلة',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
+                                      Text('أضف للسلة',
+                                          style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
                                     ],
                                   ),
                                 ),
@@ -494,7 +333,6 @@ class _FashionScreenState extends State<FashionScreen> {
     );
   }
 
-  // ── Store Menu Bottom Sheet ──────────────────────────────────
   void _openStoreMenuModal(FashionStoreModel store) {
     String selectedStoreCategory = 'الكل';
     final TextEditingController storeSearchCtrl = TextEditingController();
@@ -508,8 +346,7 @@ class _FashionScreenState extends State<FashionScreen> {
           builder: (context, setModalState) {
             final storeProducts = sampleFashionItems.where((item) {
               if (item.storeName != store.name) return false;
-              if (selectedStoreCategory != 'الكل' &&
-                  item.category != selectedStoreCategory) {
+              if (selectedStoreCategory != 'الكل' && item.category != selectedStoreCategory) {
                 return false;
               }
               final q = storeSearchCtrl.text.trim().toLowerCase();
@@ -531,17 +368,11 @@ class _FashionScreenState extends State<FashionScreen> {
                   const SizedBox(height: 12),
                   Center(
                     child: Container(
-                      width: 44,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: Colors.white24,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+                      width: 44, height: 5,
+                      decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(10)),
                     ),
                   ),
                   const SizedBox(height: 14),
-
-                  // Store Header
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Container(
@@ -554,19 +385,13 @@ class _FashionScreenState extends State<FashionScreen> {
                       child: Row(
                         children: [
                           Container(
-                            width: 54,
-                            height: 54,
+                            width: 54, height: 54,
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFEC4899)
-                                  .withValues(alpha: 0.2),
+                              color: const Color(0xFFEC4899).withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(16),
                             ),
-                            child: const Icon(
-                              Icons.storefront_rounded,
-                              color: Color(0xFFEC4899),
-                              size: 28,
-                            ),
+                            child: const Icon(Icons.storefront_rounded, color: Color(0xFFEC4899), size: 28),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -576,39 +401,23 @@ class _FashionScreenState extends State<FashionScreen> {
                                 Row(
                                   children: [
                                     Flexible(
-                                      child: Text(
-                                        store.name,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
+                                      child: Text(store.name,
+                                          style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
                                     ),
                                     const SizedBox(width: 6),
-                                    const Icon(Icons.verified_rounded,
-                                        color: Color(0xFF10B981), size: 16),
+                                    const Icon(Icons.verified_rounded, color: Color(0xFF10B981), size: 16),
                                   ],
                                 ),
                                 const SizedBox(height: 4),
-                                Text(
-                                  store.location,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                      color: Colors.white60, fontSize: 11),
-                                ),
+                                Text(store.location, maxLines: 1, overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(color: Colors.white60, fontSize: 11)),
                                 const SizedBox(height: 4),
                                 Row(
                                   children: [
-                                    const Icon(Icons.star_rounded,
-                                        color: Colors.amber, size: 14),
+                                    const Icon(Icons.star_rounded, color: Colors.amber, size: 14),
                                     const SizedBox(width: 3),
-                                    Text(
-                                      '${store.rating} • ${store.deliveryTime}',
-                                      style: const TextStyle(
-                                          color: Colors.white70, fontSize: 11),
-                                    ),
+                                    Text('${store.rating} • ${store.deliveryTime}',
+                                        style: const TextStyle(color: Colors.white70, fontSize: 11)),
                                   ],
                                 ),
                               ],
@@ -619,8 +428,6 @@ class _FashionScreenState extends State<FashionScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-
-                  // Search inside store
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Container(
@@ -630,36 +437,28 @@ class _FashionScreenState extends State<FashionScreen> {
                       ),
                       child: TextField(
                         controller: storeSearchCtrl,
-                        style: const TextStyle(
-                            color: Colors.white, fontSize: 13),
-                        onChanged: (_) => setModalState(() {}),
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        onChanged: (v) => setModalState(() {}),
                         decoration: const InputDecoration(
                           hintText: 'ابحث في منيو المحل...',
-                          hintStyle:
-                              TextStyle(color: Colors.white38, fontSize: 12),
-                          prefixIcon: Icon(Icons.search_rounded,
-                              color: Color(0xFFEC4899), size: 18),
+                          hintStyle: TextStyle(color: Colors.white38, fontSize: 12),
+                          prefixIcon: Icon(Icons.search_rounded, color: Color(0xFFEC4899), size: 18),
                           border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 12),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                         ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 12),
-
-                  // Category chips
                   SizedBox(
                     height: 34,
                     child: ListView.separated(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       scrollDirection: Axis.horizontal,
                       itemCount: ['الكل', ...store.categories].length,
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(width: 6),
+                      separatorBuilder: (context, index) => const SizedBox(width: 6),
                       itemBuilder: (context, index) {
-                        final cat =
-                            ['الكل', ...store.categories][index];
+                        final cat = ['الكل', ...store.categories][index];
                         final isSel = selectedStoreCategory == cat;
                         return FilterChip(
                           label: Text(cat),
@@ -669,39 +468,26 @@ class _FashionScreenState extends State<FashionScreen> {
                           labelStyle: TextStyle(
                             color: isSel ? Colors.white : Colors.white70,
                             fontSize: 11,
-                            fontWeight: isSel
-                                ? FontWeight.bold
-                                : FontWeight.normal,
+                            fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
                           ),
-                          onSelected: (val) => setModalState(
-                              () => selectedStoreCategory =
-                                  val ? cat : 'الكل'),
+                          onSelected: (val) => setModalState(() => selectedStoreCategory = val ? cat : 'الكل'),
                         );
                       },
                     ),
                   ),
                   const SizedBox(height: 14),
-
-                  // Products grid
                   Expanded(
                     child: storeProducts.isEmpty
                         ? const Center(
-                            child: Text(
-                              'لا توجد منتجات مطابقة في هذا المحل',
-                              style: TextStyle(
-                                  color: Colors.white54, fontSize: 13),
-                            ),
+                            child: Text('لا توجد منتجات مطابقة في هذا المحل',
+                                style: TextStyle(color: Colors.white54, fontSize: 13)),
                           )
                         : GridView.builder(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             itemCount: storeProducts.length,
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              childAspectRatio: 0.64,
-                              crossAxisSpacing: 12,
-                              mainAxisSpacing: 12,
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2, childAspectRatio: 0.64,
+                              crossAxisSpacing: 12, mainAxisSpacing: 12,
                             ),
                             itemBuilder: (context, index) {
                               final item = storeProducts[index];
@@ -713,8 +499,7 @@ class _FashionScreenState extends State<FashionScreen> {
                                 child: MultiServiceProductCard(
                                   id: item.id,
                                   title: item.title,
-                                  subtitle:
-                                      '${item.brand} • ${item.storeName}',
+                                  subtitle: '${item.brand} • ${item.storeName}',
                                   price: item.price,
                                   oldPrice: item.oldPrice,
                                   imagePath: item.imagePath,
@@ -735,10 +520,8 @@ class _FashionScreenState extends State<FashionScreen> {
     );
   }
 
-  // ── BUILD ────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -751,49 +534,32 @@ class _FashionScreenState extends State<FashionScreen> {
             const Icon(Icons.checkroom_rounded, color: Color(0xFFEC4899)),
             const SizedBox(width: 6),
             Flexible(
-              child: Text(
-                'أزياء وموضة',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFFEC4899),
-                ),
-              ),
+              child: Text('أزياء وموضة',
+                  maxLines: 1, overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFFEC4899))),
             ),
           ],
         ),
         actions: [
           AnimatedBuilder(
             animation: appState,
-            builder: (context, _) {
+            builder: (context, child) {
               final count = appState.totalItemCount;
               return Stack(
                 alignment: Alignment.center,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.shopping_bag_rounded,
-                        color: Color(0xFFEC4899)),
+                    icon: const Icon(Icons.shopping_bag_rounded, color: Color(0xFFEC4899)),
                     onPressed: () {},
                   ),
                   if (count > 0)
                     Positioned(
-                      right: 6,
-                      top: 6,
+                      right: 6, top: 6,
                       child: Container(
                         padding: const EdgeInsets.all(3),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFEC4899),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text(
-                          '$count',
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 9,
-                              fontWeight: FontWeight.bold),
-                        ),
+                        decoration: const BoxDecoration(color: Color(0xFFEC4899), shape: BoxShape.circle),
+                        child: Text('$count',
+                            style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
                       ),
                     ),
                 ],
@@ -806,67 +572,47 @@ class _FashionScreenState extends State<FashionScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. PROMO BANNER
+            // PROMO BANNER
             const Padding(
               padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
               child: FashionPromoBanner(),
             ),
-
-            // 2. SEARCH
+            // SEARCH
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
               child: Container(
                 decoration: BoxDecoration(
                   color: AppColors.cardBg,
                   borderRadius: BorderRadius.circular(18),
-                  boxShadow: const [
-                    BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 8,
-                        offset: Offset(0, 3)),
-                  ],
+                  boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 3))],
                 ),
                 child: TextField(
                   controller: _searchController,
-                  onChanged: (_) => setState(() {}),
+                  onChanged: (v) => setState(() {}),
                   decoration: InputDecoration(
                     hintText: 'ابحث عن ملابس، أحذية، ماركة أو محل...',
-                    hintStyle:
-                        const TextStyle(fontSize: 12, color: Colors.grey),
-                    prefixIcon: const Icon(Icons.search_rounded,
-                        color: Color(0xFFEC4899), size: 20),
+                    hintStyle: const TextStyle(fontSize: 12, color: Colors.grey),
+                    prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFFEC4899), size: 20),
                     suffixIcon: _searchController.text.isNotEmpty
                         ? IconButton(
-                            icon: const Icon(Icons.close_rounded,
-                                size: 18, color: Colors.grey),
-                            onPressed: () {
-                              _searchController.clear();
-                              setState(() {});
-                            },
+                            icon: const Icon(Icons.close_rounded, size: 18, color: Colors.grey),
+                            onPressed: () { _searchController.clear(); setState(() {}); },
                           )
                         : null,
                     border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 14),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   ),
                 ),
               ),
             ),
-
-            // 3. VIEW MODE TAB SWITCHER
+            // VIEW MODE SWITCHER
             Container(
-              margin:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
                 color: AppColors.cardBg,
                 borderRadius: BorderRadius.circular(16),
-                boxShadow: const [
-                  BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 6,
-                      offset: Offset(0, 2)),
-                ],
+                boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 2))],
               ),
               child: Row(
                 children: [
@@ -877,30 +623,20 @@ class _FashionScreenState extends State<FashionScreen> {
                         duration: const Duration(milliseconds: 200),
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         decoration: BoxDecoration(
-                          color: _selectedViewTab == 0
-                              ? const Color(0xFFEC4899)
-                              : Colors.transparent,
+                          color: _selectedViewTab == 0 ? const Color(0xFFEC4899) : Colors.transparent,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.checkroom_rounded,
-                                size: 16,
-                                color: _selectedViewTab == 0
-                                    ? Colors.white
-                                    : AppColors.textSecondary),
+                            Icon(Icons.checkroom_rounded, size: 16,
+                                color: _selectedViewTab == 0 ? Colors.white : AppColors.textSecondary),
                             const SizedBox(width: 6),
-                            Text(
-                              'كافة الأزياء',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: _selectedViewTab == 0
-                                    ? Colors.white
-                                    : AppColors.textSecondary,
-                              ),
-                            ),
+                            Text('كافة الأزياء',
+                                style: TextStyle(
+                                  fontSize: 12, fontWeight: FontWeight.bold,
+                                  color: _selectedViewTab == 0 ? Colors.white : AppColors.textSecondary,
+                                )),
                           ],
                         ),
                       ),
@@ -913,30 +649,20 @@ class _FashionScreenState extends State<FashionScreen> {
                         duration: const Duration(milliseconds: 200),
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         decoration: BoxDecoration(
-                          color: _selectedViewTab == 1
-                              ? const Color(0xFFEC4899)
-                              : Colors.transparent,
+                          color: _selectedViewTab == 1 ? const Color(0xFFEC4899) : Colors.transparent,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.storefront_rounded,
-                                size: 16,
-                                color: _selectedViewTab == 1
-                                    ? Colors.white
-                                    : AppColors.textSecondary),
+                            Icon(Icons.storefront_rounded, size: 16,
+                                color: _selectedViewTab == 1 ? Colors.white : AppColors.textSecondary),
                             const SizedBox(width: 6),
-                            Text(
-                              'المحلات والمنيو',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: _selectedViewTab == 1
-                                    ? Colors.white
-                                    : AppColors.textSecondary,
-                              ),
-                            ),
+                            Text('المحلات والمنيو',
+                                style: TextStyle(
+                                  fontSize: 12, fontWeight: FontWeight.bold,
+                                  color: _selectedViewTab == 1 ? Colors.white : AppColors.textSecondary,
+                                )),
                           ],
                         ),
                       ),
@@ -945,99 +671,13 @@ class _FashionScreenState extends State<FashionScreen> {
                 ],
               ),
             ),
-
-            _selectedViewTab == 1
-                ? _buildStoresListView()
-                : _buildProductsSection(),
+            _selectedViewTab == 1 ? _buildStoresListView() : _buildProductsSection(),
           ],
         ),
-      ),
-      bottomNavigationBar: AnimatedBuilder(
-        animation: appState,
-        builder: (context, _) {
-          final count = appState.totalItemCount;
-          final total = appState.grandTotal;
-          if (count == 0) return const SizedBox.shrink();
-          return Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0F172A),
-              borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(24)),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFEC4899).withValues(alpha: 0.3),
-                  blurRadius: 20,
-                  offset: const Offset(0, -4),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEC4899).withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(Icons.shopping_bag_rounded,
-                          color: Color(0xFFEC4899), size: 22),
-                    ),
-                    const SizedBox(width: 12),
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('السلة الحالية',
-                            style: TextStyle(
-                                color: Colors.white54, fontSize: 11)),
-                        Text(
-                          '${total.toStringAsFixed(0)} ج.م',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFEC4899),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16)),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 12),
-                  ),
-                  onPressed: () {},
-                  child: const Row(
-                    children: [
-                      Text('إتمام الطلب',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold)),
-                      SizedBox(width: 6),
-                      Icon(Icons.arrow_forward_rounded,
-                          color: Colors.white, size: 16),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
       ),
     );
   }
 
-  // ── Products Section ─────────────────────────────────────────
   Widget _buildProductsSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1049,8 +689,7 @@ class _FashionScreenState extends State<FashionScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             scrollDirection: Axis.horizontal,
             itemCount: _categories.length,
-            separatorBuilder: (context, index) =>
-                const SizedBox(width: 8),
+            separatorBuilder: (context, index) => const SizedBox(width: 8),
             itemBuilder: (context, index) {
               final cat = _categories[index];
               final isSelected = _selectedCategory == cat;
@@ -1061,18 +700,14 @@ class _FashionScreenState extends State<FashionScreen> {
                 backgroundColor: AppColors.cardBg,
                 labelStyle: TextStyle(
                   color: isSelected ? Colors.white : AppColors.textPrimary,
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 11, fontWeight: FontWeight.bold,
                 ),
-                onSelected: (val) {
-                  if (val) setState(() => _selectedCategory = cat);
-                },
+                onSelected: (val) { if (val) setState(() => _selectedCategory = cat); },
               );
             },
           ),
         ),
         const SizedBox(height: 10),
-
         // Brand chips
         SizedBox(
           height: 34,
@@ -1080,55 +715,40 @@ class _FashionScreenState extends State<FashionScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             scrollDirection: Axis.horizontal,
             itemCount: _brands.length,
-            separatorBuilder: (context, index) =>
-                const SizedBox(width: 6),
+            separatorBuilder: (context, index) => const SizedBox(width: 6),
             itemBuilder: (context, index) {
               final brand = _brands[index];
               final isSelected = _selectedBrand == brand;
               return FilterChip(
                 label: Text(brand),
                 selected: isSelected,
-                selectedColor:
-                    const Color(0xFFEC4899).withValues(alpha: 0.2),
+                selectedColor: const Color(0xFFEC4899).withValues(alpha: 0.2),
                 checkmarkColor: const Color(0xFFEC4899),
                 backgroundColor: AppColors.cardBg,
                 labelStyle: TextStyle(
-                  color: isSelected
-                      ? const Color(0xFFEC4899)
-                      : AppColors.textSecondary,
+                  color: isSelected ? const Color(0xFFEC4899) : AppColors.textSecondary,
                   fontSize: 10,
-                  fontWeight:
-                      isSelected ? FontWeight.bold : FontWeight.normal,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 ),
-                onSelected: (val) {
-                  setState(
-                      () => _selectedBrand = val ? brand : 'الكل');
-                },
+                onSelected: (val) => setState(() => _selectedBrand = val ? brand : 'الكل'),
               );
             },
           ),
         ),
         const SizedBox(height: 20),
-
-        // Stores preview strip
+        // Stores strip
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'محلات الأزياء المعتمدة بجرجا',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-              ),
+              const Text('محلات الأزياء المعتمدة بجرجا',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
               if (_selectedStoreFilter != null)
                 GestureDetector(
-                  onTap: () =>
-                      setState(() => _selectedStoreFilter = null),
+                  onTap: () => setState(() => _selectedStoreFilter = null),
                   child: const Text('عرض الكل',
-                      style: TextStyle(
-                          fontSize: 11,
-                          color: Color(0xFFEC4899),
-                          fontWeight: FontWeight.bold)),
+                      style: TextStyle(fontSize: 11, color: Color(0xFFEC4899), fontWeight: FontWeight.bold)),
                 ),
             ],
           ),
@@ -1140,8 +760,7 @@ class _FashionScreenState extends State<FashionScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             scrollDirection: Axis.horizontal,
             itemCount: girgaFashionStores.length,
-            separatorBuilder: (context, index) =>
-                const SizedBox(width: 10),
+            separatorBuilder: (context, index) => const SizedBox(width: 10),
             itemBuilder: (context, index) {
               final store = girgaFashionStores[index];
               final isSelected = _selectedStoreFilter == store.name;
@@ -1149,17 +768,12 @@ class _FashionScreenState extends State<FashionScreen> {
                 onTap: () => _openStoreMenuModal(store),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
-                    color: isSelected
-                        ? const Color(0xFF1E0512)
-                        : AppColors.cardBg,
+                    color: isSelected ? const Color(0xFF1E0512) : AppColors.cardBg,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: isSelected
-                          ? const Color(0xFFEC4899)
-                          : Colors.transparent,
+                      color: isSelected ? const Color(0xFFEC4899) : Colors.transparent,
                       width: 1.5,
                     ),
                   ),
@@ -1168,41 +782,28 @@ class _FashionScreenState extends State<FashionScreen> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEC4899)
-                              .withValues(alpha: 0.15),
+                          color: const Color(0xFFEC4899).withValues(alpha: 0.15),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.storefront_rounded,
-                            color: Color(0xFFEC4899), size: 18),
+                        child: const Icon(Icons.storefront_rounded, color: Color(0xFFEC4899), size: 18),
                       ),
                       const SizedBox(width: 10),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
-                            store.name,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: isSelected
-                                  ? const Color(0xFFEC4899)
-                                  : AppColors.textPrimary,
-                            ),
-                          ),
+                          Text(store.name,
+                              style: TextStyle(
+                                fontSize: 12, fontWeight: FontWeight.bold,
+                                color: isSelected ? const Color(0xFFEC4899) : AppColors.textPrimary,
+                              )),
                           const SizedBox(height: 2),
                           Row(
                             children: [
-                              const Icon(Icons.star_rounded,
-                                  color: Colors.amber, size: 12),
+                              const Icon(Icons.star_rounded, color: Colors.amber, size: 12),
                               const SizedBox(width: 3),
-                              Text(
-                                '${store.rating} • ${store.deliveryTime}',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
+                              Text('${store.rating} • ${store.deliveryTime}',
+                                  style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
                             ],
                           ),
                         ],
@@ -1215,8 +816,6 @@ class _FashionScreenState extends State<FashionScreen> {
           ),
         ),
         const SizedBox(height: 20),
-
-        // Products heading
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
@@ -1226,38 +825,24 @@ class _FashionScreenState extends State<FashionScreen> {
                 _selectedStoreFilter != null
                     ? 'منتجات ${_selectedStoreFilter!}:'
                     : 'أحدث الأزياء المتوفرة (${_filteredItems.length}):',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
               ),
               const Text('تسليم في نفس اليوم',
-                  style: TextStyle(
-                      fontSize: 11,
-                      color: Color(0xFF10B981),
-                      fontWeight: FontWeight.bold)),
+                  style: TextStyle(fontSize: 11, color: Color(0xFF10B981), fontWeight: FontWeight.bold)),
             ],
           ),
         ),
         const SizedBox(height: 12),
-
         if (_filteredItems.isEmpty)
           Padding(
             padding: const EdgeInsets.all(40),
             child: Center(
               child: Column(
                 children: [
-                  const Icon(Icons.checkroom_outlined,
-                      size: 48, color: Colors.grey),
+                  const Icon(Icons.checkroom_outlined, size: 48, color: Colors.grey),
                   const SizedBox(height: 12),
-                  const Text(
-                    'لا توجد أزياء مطابقة للبحث',
-                    style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey,
-                        fontWeight: FontWeight.bold),
-                  ),
+                  const Text('لا توجد أزياء مطابقة للبحث',
+                      style: TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 6),
                   TextButton(
                     onPressed: () => setState(() {
@@ -1267,8 +852,7 @@ class _FashionScreenState extends State<FashionScreen> {
                       _searchController.clear();
                     }),
                     child: const Text('إعادة ضبط الفلاتر',
-                        style:
-                            TextStyle(color: Color(0xFFEC4899))),
+                        style: TextStyle(color: Color(0xFFEC4899))),
                   ),
                 ],
               ),
@@ -1280,12 +864,9 @@ class _FashionScreenState extends State<FashionScreen> {
             physics: const NeverScrollableScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 16),
             itemCount: _filteredItems.length,
-            gridDelegate:
-                const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 0.64,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2, childAspectRatio: 0.64,
+              crossAxisSpacing: 12, mainAxisSpacing: 12,
             ),
             itemBuilder: (context, index) {
               final item = _filteredItems[index];
@@ -1310,38 +891,28 @@ class _FashionScreenState extends State<FashionScreen> {
     );
   }
 
-  // ── Stores Directory Section ──────────────────────────────────
   Widget _buildStoresListView() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'محلات أزياء جرجا (${girgaFashionStores.length}):',
-                style: const TextStyle(
-                    fontSize: 14, fontWeight: FontWeight.bold),
-              ),
+              Text('محلات أزياء جرجا (${girgaFashionStores.length}):',
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
               const Text('تغطية كاملة',
-                  style: TextStyle(
-                      fontSize: 11,
-                      color: Color(0xFF10B981),
-                      fontWeight: FontWeight.bold)),
+                  style: TextStyle(fontSize: 11, color: Color(0xFF10B981), fontWeight: FontWeight.bold)),
             ],
           ),
         ),
         ListView.separated(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          padding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           itemCount: girgaFashionStores.length,
-          separatorBuilder: (context, index) =>
-              const SizedBox(height: 14),
+          separatorBuilder: (context, index) => const SizedBox(height: 14),
           itemBuilder: (context, index) {
             final store = girgaFashionStores[index];
             return Container(
@@ -1349,12 +920,7 @@ class _FashionScreenState extends State<FashionScreen> {
               decoration: BoxDecoration(
                 color: AppColors.cardBg,
                 borderRadius: BorderRadius.circular(22),
-                boxShadow: const [
-                  BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 10,
-                      offset: Offset(0, 4)),
-                ],
+                boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 4))],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1362,58 +928,39 @@ class _FashionScreenState extends State<FashionScreen> {
                   Row(
                     children: [
                       Container(
-                        width: 56,
-                        height: 56,
+                        width: 56, height: 56,
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEC4899)
-                              .withValues(alpha: 0.15),
+                          color: const Color(0xFFEC4899).withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(18),
                         ),
-                        child: const Icon(Icons.storefront_rounded,
-                            color: Color(0xFFEC4899), size: 30),
+                        child: const Icon(Icons.storefront_rounded, color: Color(0xFFEC4899), size: 30),
                       ),
                       const SizedBox(width: 14),
                       Expanded(
                         child: Column(
-                          crossAxisAlignment:
-                              CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
                               children: [
                                 Flexible(
-                                  child: Text(
-                                    store.name,
-                                    style: const TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold),
-                                  ),
+                                  child: Text(store.name,
+                                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
                                 ),
                                 const SizedBox(width: 6),
-                                const Icon(Icons.verified_rounded,
-                                    color: Color(0xFF10B981),
-                                    size: 16),
+                                const Icon(Icons.verified_rounded, color: Color(0xFF10B981), size: 16),
                               ],
                             ),
                             const SizedBox(height: 4),
-                            Text(
-                              store.location,
-                              style: TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.textSecondary),
-                            ),
+                            Text(store.location,
+                                style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                             const SizedBox(height: 4),
                             Row(
                               children: [
-                                const Icon(Icons.star_rounded,
-                                    color: Colors.amber, size: 14),
+                                const Icon(Icons.star_rounded, color: Colors.amber, size: 14),
                                 const SizedBox(width: 3),
-                                Text(
-                                  '${store.rating} • التوصيل ${store.deliveryTime}',
-                                  style: TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.textSecondary),
-                                ),
+                                Text('${store.rating} • التوصيل ${store.deliveryTime}',
+                                    style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                               ],
                             ),
                           ],
@@ -1423,82 +970,71 @@ class _FashionScreenState extends State<FashionScreen> {
                   ),
                   const SizedBox(height: 12),
                   Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
+                    spacing: 6, runSpacing: 6,
                     children: store.categories.map((cat) {
                       return Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEC4899)
-                              .withValues(alpha: 0.1),
+                          color: const Color(0xFFEC4899).withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Text(
-                          cat,
-                          style: const TextStyle(
-                            color: Color(0xFFEC4899),
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        child: Text(cat,
+                            style: const TextStyle(color: Color(0xFFEC4899), fontSize: 10, fontWeight: FontWeight.bold)),
                       );
                     }).toList(),
                   ),
                   const SizedBox(height: 14),
                   SizedBox(
-                    width: double.infinity,
-                    height: 44,
+                    width: double.infinity, height: 44,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFEC4899),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
                       onPressed: () => _openStoreMenuModal(store),
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.style_rounded,
-                              color: Colors.white, size: 18),
+                          Icon(Icons.style_rounded, color: Colors.white, size: 18),
                           SizedBox(width: 8),
-                          Text(
-                            'تصفح تشكيلة المحل 👗',
-                            style: TextStyle(
-                           final List<_FashionPromoOffer> _offers = const [
-    _FashionPromoOffer(
-      badgeText: 'عروض الموسم! 🌟',
-      title: 'تشكيلة الخريف الجديدة من أرقى الماركات',
-      subtitleText: 'خصم يصل حتى',
-      discountNum: '40',
-      footerNote: 'بوتيك الأناقة جرجا • كود: STYLE40',
-      buttonText: 'تسوقي الآن',
-      imagePath: 'assets/images/fashion_banner_1.png',
-      overlayColors: [Color(0xCC831843), Color(0x88BE185D)],
-    ),
-    _FashionPromoOffer(
-      badgeText: 'أحذية بأسعار مذهلة! 💟',
-      title: 'Nike • Adidas • Clarks – تخفيضات حصرية',
-      subtitleText: 'خصم يبدأ من',
-      discountNum: '30',
-      footerNote: 'سنتر المدينة للأحذية • ضمان 6 أشهر',
-      buttonText: 'اكتشف العروض',
-      imagePath: 'assets/images/fashion_banner_2.png',
-      overlayColors: [Color(0xCC1E3A5F), Color(0x882563EB)],
-    ),
-    _FashionPromoOffer(
-      badgeText: 'الملابس المحتشمة الأنيقة! 👗',
-      title: 'عباءات وأزياء محتشمة بتصاميم عصرية',
-      subtitleText: 'وفر حتى',
-      discountNum: '35',
-      footerNote: 'نيو ستايل جرجا • تسليم بالبيت',
-      buttonText: 'استعرض التشكيلة',
-      imagePath: 'assets/images/fashion_banner_3.png',
-      overlayColors: [Color(0xCC3B1F5F), Color(0x887C3AED)],
-    ),
-  ];
-required this.footerNote,
+                          Text('تصفح تشكيلة المحل 👗',
+                              style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  FASHION PROMO BANNER  –  real photo background
+// ─────────────────────────────────────────────────────────────────
+class _FashionPromoOffer {
+  final String badgeText;
+  final String title;
+  final String subtitleText;
+  final String discountNum;
+  final String footerNote;
+  final String buttonText;
+  final String imagePath;
+  final List<Color> overlayColors;
+
+  const _FashionPromoOffer({
+    required this.badgeText,
+    required this.title,
+    required this.subtitleText,
+    required this.discountNum,
+    required this.footerNote,
     required this.buttonText,
+    required this.imagePath,
+    required this.overlayColors,
   });
 }
 
@@ -1522,6 +1058,8 @@ class _FashionPromoBannerState extends State<FashionPromoBanner> {
       discountNum: '40',
       footerNote: 'بوتيك الأناقة جرجا • كود: STYLE40',
       buttonText: 'تسوقي الآن',
+      imagePath: 'assets/images/fashion_banner_1.png',
+      overlayColors: [Color(0xDD831843), Color(0x99BE185D)],
     ),
     _FashionPromoOffer(
       badgeText: 'أحذية بأسعار مذهلة! 👟',
@@ -1530,6 +1068,8 @@ class _FashionPromoBannerState extends State<FashionPromoBanner> {
       discountNum: '30',
       footerNote: 'سنتر المدينة للأحذية • ضمان 6 أشهر',
       buttonText: 'اكتشف العروض',
+      imagePath: 'assets/images/fashion_banner_2.png',
+      overlayColors: [Color(0xDD1E3A5F), Color(0x992563EB)],
     ),
     _FashionPromoOffer(
       badgeText: 'الملابس المحتشمة الأنيقة! 👗',
@@ -1538,11 +1078,12 @@ class _FashionPromoBannerState extends State<FashionPromoBanner> {
       discountNum: '35',
       footerNote: 'نيو ستايل جرجا • تسليم بالبيت',
       buttonText: 'استعرض التشكيلة',
+      imagePath: 'assets/images/fashion_banner_3.png',
+      overlayColors: [Color(0xDD3B1F5F), Color(0x997C3AED)],
     ),
   ];
 
-  // Gradient pairs per slide – kept as fallback tint
-  final List<List<Color>> _gradients = const [
+  final List<List<Color>> _fallbackGradients = const [
     [Color(0xFF831843), Color(0xFFBE185D), Color(0xFFEC4899)],
     [Color(0xFF1E3A5F), Color(0xFF2563EB), Color(0xFF60A5FA)],
     [Color(0xFF3B1F5F), Color(0xFF7C3AED), Color(0xFFA78BFA)],
@@ -1576,14 +1117,13 @@ class _FashionPromoBannerState extends State<FashionPromoBanner> {
     return Column(
       children: [
         SizedBox(
-          height: 175,
+          height: 180,
           child: PageView.builder(
             controller: _pageController,
-            onPageChanged: (index) =>
-                setState(() => _currentPage = index),
+            onPageChanged: (index) => setState(() => _currentPage = index),
             itemCount: _offers.length,
             itemBuilder: (context, index) =>
-                _buildCard(_offers[index], _gradients[index]),
+                _buildCard(_offers[index], _fallbackGradients[index]),
           ),
         ),
         const SizedBox(height: 10),
@@ -1595,7 +1135,7 @@ class _FashionPromoBannerState extends State<FashionPromoBanner> {
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeOutCubic,
               margin: const EdgeInsets.symmetric(horizontal: 3),
-              width: isSel ? 18 : 8,
+              width: isSel ? 20 : 8,
               height: 8,
               decoration: BoxDecoration(
                 color: isSel
@@ -1610,8 +1150,7 @@ class _FashionPromoBannerState extends State<FashionPromoBanner> {
     );
   }
 
-  Widget _buildCard(
-      _FashionPromoOffer offer, List<Color> gradientColors) {
+  Widget _buildCard(_FashionPromoOffer offer, List<Color> gradientColors) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 2),
       decoration: BoxDecoration(
@@ -1619,7 +1158,7 @@ class _FashionPromoBannerState extends State<FashionPromoBanner> {
         boxShadow: [
           BoxShadow(
             color: gradientColors[0].withValues(alpha: 0.5),
-            blurRadius: 20,
+            blurRadius: 22,
             offset: const Offset(0, 8),
           ),
         ],
@@ -1629,7 +1168,7 @@ class _FashionPromoBannerState extends State<FashionPromoBanner> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // 1. Real photo background
+            // ── 1. Photo background ──────────────────
             Image.asset(
               offer.imagePath,
               fit: BoxFit.cover,
@@ -1643,7 +1182,7 @@ class _FashionPromoBannerState extends State<FashionPromoBanner> {
                 ),
               ),
             ),
-            // 2. Dark gradient overlay for legibility
+            // ── 2. Gradient color overlay ────────────
             Positioned.fill(
               child: Container(
                 decoration: BoxDecoration(
@@ -1659,51 +1198,39 @@ class _FashionPromoBannerState extends State<FashionPromoBanner> {
                 ),
               ),
             ),
-            // 3. Subtle vignette top
+            // ── 3. Bottom vignette ───────────────────
             Positioned.fill(
               child: Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      Color(0x66000000),
-                      Colors.transparent,
-                    ],
+                    colors: [Color(0x88000000), Colors.transparent],
                     begin: Alignment.bottomCenter,
                     end: Alignment.topCenter,
                   ),
                 ),
               ),
             ),
-            // 4. Content
+            // ── 4. Content ───────────────────────────
             Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 14, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Badge top-right
+                  // Badge
                   Align(
                     alignment: Alignment.topRight,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.92),
+                        color: Colors.white.withValues(alpha: 0.9),
                         borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.2),
-                            blurRadius: 6,
-                          ),
-                        ],
+                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 6)],
                       ),
                       child: Text(
                         offer.badgeText,
                         style: TextStyle(
-                          color: gradientColors[0],
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
+                          color: gradientColors[0], fontSize: 10, fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
@@ -1712,10 +1239,8 @@ class _FashionPromoBannerState extends State<FashionPromoBanner> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Soft frosted backdrop behind text
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
                           color: Colors.black.withValues(alpha: 0.35),
                           borderRadius: BorderRadius.circular(12),
@@ -1725,10 +1250,8 @@ class _FashionPromoBannerState extends State<FashionPromoBanner> {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            height: 1.3,
+                            color: Colors.white, fontSize: 13,
+                            fontWeight: FontWeight.bold, height: 1.3,
                           ),
                         ),
                       ),
@@ -1740,23 +1263,16 @@ class _FashionPromoBannerState extends State<FashionPromoBanner> {
                           Text(
                             '${offer.subtitleText} ',
                             style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              shadows: [
-                                Shadow(color: Colors.black54, blurRadius: 4),
-                              ],
+                              color: Colors.white, fontSize: 11,
+                              shadows: [Shadow(color: Colors.black54, blurRadius: 4)],
                             ),
                           ),
                           Text(
                             offer.discountNum,
                             style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 30,
-                              fontWeight: FontWeight.w900,
-                              height: 1.0,
-                              shadows: [
-                                Shadow(color: Colors.black45, blurRadius: 8),
-                              ],
+                              color: Colors.white, fontSize: 32,
+                              fontWeight: FontWeight.w900, height: 1.0,
+                              shadows: [Shadow(color: Colors.black45, blurRadius: 8)],
                             ),
                           ),
                           const SizedBox(width: 3),
@@ -1767,16 +1283,13 @@ class _FashionPromoBannerState extends State<FashionPromoBanner> {
                               shape: BoxShape.circle,
                             ),
                             child: const Text('%',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.bold)),
+                                style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
                           ),
                         ],
                       ),
                     ],
                   ),
-                  // Footer row
+                  // Footer
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -1784,11 +1297,8 @@ class _FashionPromoBannerState extends State<FashionPromoBanner> {
                         child: Text(
                           offer.footerNote,
                           style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 9,
-                            shadows: [
-                              Shadow(color: Colors.black54, blurRadius: 4),
-                            ],
+                            color: Colors.white70, fontSize: 9,
+                            shadows: [Shadow(color: Colors.black54, blurRadius: 4)],
                           ),
                         ),
                       ),
@@ -1796,26 +1306,18 @@ class _FashionPromoBannerState extends State<FashionPromoBanner> {
                       ElevatedButton(
                         onPressed: () {},
                         style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              Colors.white.withValues(alpha: 0.92),
+                          backgroundColor: Colors.white.withValues(alpha: 0.92),
                           foregroundColor: gradientColors[0],
                           elevation: 6,
-                          shadowColor:
-                              Colors.black.withValues(alpha: 0.3),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 6),
+                          shadowColor: Colors.black.withValues(alpha: 0.3),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                           minimumSize: const Size(0, 30),
                         ),
                         child: Text(
                           offer.buttonText,
                           style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: gradientColors[0],
-                          ),
+                              fontSize: 11, fontWeight: FontWeight.bold, color: gradientColors[0]),
                         ),
                       ),
                     ],
