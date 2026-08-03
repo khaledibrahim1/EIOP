@@ -1212,10 +1212,16 @@ class _FashionScreenState extends State<FashionScreen> {
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.style_rounded, color: Colors.white, size: 20),
-                          SizedBox(width: 8),
-                          Text('تصفح تشكيلة وتصاميم المحل 👗',
-                              style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                          Icon(Icons.style_rounded, color: Colors.white, size: 18),
+                          SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              'تصفح تشكيلة وتصاميم المحل 👗',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                            ),
+                          ),
                         ],
                       ),
                     ),
