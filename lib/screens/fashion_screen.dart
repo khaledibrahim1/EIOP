@@ -23,7 +23,7 @@ class _FashionScreenState extends State<FashionScreen> {
   final Set<String> _favoriteItemIds = {};
 
   final List<Map<String, dynamic>> _audienceOptions = const [
-    {'name': 'الكل', 'icon': Icons.grid_view_rounded},
+    {'name': 'الكل', 'icon': Icons.all_inclusive_rounded},
     {'name': 'رجالي', 'icon': Icons.man_rounded},
     {'name': 'حريمي', 'icon': Icons.woman_rounded},
     {'name': 'أطفال', 'icon': Icons.child_friendly_rounded},
@@ -945,7 +945,7 @@ class _FashionScreenState extends State<FashionScreen> {
                   },
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
             ],
 
             // 5. PRODUCTS SECTION OR STORES SECTION
@@ -956,43 +956,148 @@ class _FashionScreenState extends State<FashionScreen> {
     );
   }
 
-  Widget _buildProductsSection() {
+  Widget _buildCategoryShowcase() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Category Chips with Icons
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE11D48).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.style_rounded, color: Color(0xFFE11D48), size: 18),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text('أقسام التشكيلة',
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                ],
+              ),
+              if (_selectedCategory != 'الكل')
+                GestureDetector(
+                  onTap: () => setState(() => _selectedCategory = 'الكل'),
+                  child: const Text('عرض الكل',
+                      style: TextStyle(fontSize: 12, color: Color(0xFFE11D48), fontWeight: FontWeight.bold)),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
         SizedBox(
-          height: 42,
+          height: 100,
           child: ListView.separated(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             scrollDirection: Axis.horizontal,
             itemCount: _categories.length,
-            separatorBuilder: (context, index) => const SizedBox(width: 8),
+            separatorBuilder: (context, index) => const SizedBox(width: 10),
             itemBuilder: (context, index) {
               final cat = _categories[index];
               final String name = cat['name'];
               final IconData icon = cat['icon'];
               final isSelected = _selectedCategory == name;
 
-              return ChoiceChip(
-                avatar: Icon(icon, size: 16, color: isSelected ? Colors.white : const Color(0xFFE11D48)),
-                label: Text(name),
-                selected: isSelected,
-                selectedColor: const Color(0xFFE11D48),
-                backgroundColor: AppColors.cardBg,
-                elevation: isSelected ? 4 : 0,
-                shadowColor: const Color(0xFFE11D48).withValues(alpha: 0.4),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                labelStyle: TextStyle(
-                  color: isSelected ? Colors.white : AppColors.textPrimary,
-                  fontSize: 12, fontWeight: FontWeight.bold,
+              final count = name == 'الكل'
+                  ? sampleFashionItems.length
+                  : sampleFashionItems.where((i) => i.category == name).length;
+
+              return GestureDetector(
+                onTap: () => setState(() => _selectedCategory = name),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  width: 86,
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                  decoration: BoxDecoration(
+                    gradient: isSelected
+                        ? const LinearGradient(
+                            colors: [Color(0xFFE11D48), Color(0xFF9F1239)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          )
+                        : null,
+                    color: isSelected ? null : AppColors.cardBg,
+                    borderRadius: BorderRadius.circular(22),
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: const Color(0xFFE11D48).withValues(alpha: 0.4),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ]
+                        : [
+                            const BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 6,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                    border: Border.all(
+                      color: isSelected ? Colors.transparent : Colors.white.withValues(alpha: 0.08),
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? Colors.white.withValues(alpha: 0.22)
+                              : const Color(0xFFE11D48).withValues(alpha: 0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          icon,
+                          size: 20,
+                          color: isSelected ? Colors.white : const Color(0xFFE11D48),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: isSelected ? Colors.white : AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '$count قطع',
+                        style: TextStyle(
+                          fontSize: 9,
+                          color: isSelected ? Colors.white70 : AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                onSelected: (val) { if (val) setState(() => _selectedCategory = name); },
               );
             },
           ),
         ),
-        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget _buildProductsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Luxury Visual Category Showcase Cards
+        _buildCategoryShowcase(),
+        const SizedBox(height: 18),
 
         // Section Header & Sort Menu
         Padding(
