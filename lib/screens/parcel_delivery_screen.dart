@@ -1,4 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:http/http.dart' as http;
+import 'package:latlong2/latlong.dart' hide Path;
 import '../models/cart_state.dart';
 import '../theme/app_colors.dart';
 import 'location_picker_screen.dart';
@@ -28,12 +32,13 @@ class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen>
   final TextEditingController _notesController = TextEditingController();
   final TextEditingController _couponController = TextEditingController();
 
+  static const String _googleApiKey = 'AIzaSyBJGpJhzzL5VqwseWSl9AwVbStK83Ztzis';
+  final MapController _headerMapController = MapController();
+
   // Interactive Map Animation & Pan/Zoom Controls
   late AnimationController _driverAnimController;
   final DraggableScrollableController _sheetController =
       DraggableScrollableController();
-  Offset _mapPanOffset = Offset.zero;
-  double _mapZoomScale = 1.0;
   bool _isLocatingMap = false;
 
   // Options & Flags
@@ -44,13 +49,145 @@ class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen>
   bool _isUploadingPhoto = false;
   double _discount = 0.0;
 
+  LatLng _pickupLatLng = const LatLng(26.3385, 31.8912);
+  LatLng _dropoffLatLng = const LatLng(26.3450, 31.8980);
+  List<LatLng> _googleRoutePoints = [];
+  bool _isLoadingRoute = false;
+
   @override
   void initState() {
     super.initState();
     _driverAnimController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 7),
+      duration: const Duration(seconds: 8),
     )..repeat();
+
+    _fetchGoogleMapsDirectionsRoute();
+  }
+
+  Future<void> _fetchGoogleMapsDirectionsRoute() async {
+    if (!mounted) return;
+    setState(() => _isLoadingRoute = true);
+    try {
+      final url = Uri.parse(
+        'https://maps.googleapis.com/maps/api/directions/json?'
+        'origin=${_pickupLatLng.latitude},${_pickupLatLng.longitude}&'
+        'destination=${_dropoffLatLng.latitude},${_dropoffLatLng.longitude}&'
+        'mode=driving&key=$_googleApiKey',
+      );
+
+      final response = await http.get(url).timeout(const Duration(seconds: 5));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['status'] == 'OK' && (data['routes'] as List).isNotEmpty) {
+          final pointsStr = data['routes'][0]['overview_polyline']['points'] as String;
+          final decoded = _decodePolyline(pointsStr);
+          if (decoded.isNotEmpty && mounted) {
+            setState(() {
+              _googleRoutePoints = decoded;
+            });
+            _headerMapController.fitCamera(
+              CameraFit.coordinates(
+                coordinates: _googleRoutePoints,
+                padding: const EdgeInsets.all(45),
+              ),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Google Directions API error: $e');
+    } finally {
+      if (mounted) setState(() => _isLoadingRoute = false);
+    }
+  }
+
+  List<LatLng> _decodePolyline(String encoded) {
+    List<LatLng> poly = [];
+    int index = 0, len = encoded.length;
+    int lat = 0, lng = 0;
+
+    while (index < len) {
+      int b, shift = 0, result = 0;
+      do {
+        b = encoded.codeUnitAt(index++) - 63;
+        result |= (b & 0x1f) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+      int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+      lat += dlat;
+
+      shift = 0;
+      result = 0;
+      do {
+        b = encoded.codeUnitAt(index++) - 63;
+        result |= (b & 0x1f) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+      int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+      lng += dlng;
+
+      poly.add(LatLng(lat / 1E5, lng / 1E5));
+    }
+    return poly;
+  }
+
+  LatLng _getInterpolatedRoutePosition(double progress) {
+    final points = _googleRoutePoints.isNotEmpty
+        ? _googleRoutePoints
+        : [_pickupLatLng, _dropoffLatLng];
+
+    if (points.isEmpty) return _pickupLatLng;
+    if (points.length == 1) return points.first;
+
+    const Distance distanceCalc = Distance();
+    double totalDist = 0.0;
+    List<double> segmentDistances = [];
+
+    for (int i = 0; i < points.length - 1; i++) {
+      double d = distanceCalc.as(LengthUnit.Meter, points[i], points[i + 1]);
+      segmentDistances.add(d);
+      totalDist += d;
+    }
+
+    if (totalDist == 0) return points.first;
+
+    double targetDist = totalDist * progress.clamp(0.0, 1.0);
+    double accumulated = 0.0;
+
+    for (int i = 0; i < segmentDistances.length; i++) {
+      if (accumulated + segmentDistances[i] >= targetDist) {
+        double segProgress = (targetDist - accumulated) / segmentDistances[i];
+        LatLng p1 = points[i];
+        LatLng p2 = points[i + 1];
+        double lat = p1.latitude + (p2.latitude - p1.latitude) * segProgress;
+        double lng = p1.longitude + (p2.longitude - p1.longitude) * segProgress;
+        return LatLng(lat, lng);
+      }
+      accumulated += segmentDistances[i];
+    }
+
+    return points.last;
+  }
+
+  Future<LatLng?> _geocodeAddress(String address) async {
+    try {
+      final url = Uri.parse(
+        'https://maps.googleapis.com/maps/api/geocode/json?'
+        'address=${Uri.encodeComponent(address)}&'
+        'components=country:EG&'
+        'key=$_googleApiKey',
+      );
+      final res = await http.get(url).timeout(const Duration(seconds: 4));
+      if (res.statusCode == 200) {
+        final data = json.decode(res.body);
+        if (data['status'] == 'OK' && (data['results'] as List).isNotEmpty) {
+          final loc = data['results'][0]['geometry']['location'];
+          return LatLng(loc['lat'] as double, loc['lng'] as double);
+        }
+      }
+    } catch (_) {}
+    return null;
   }
 
   @override
@@ -64,21 +201,30 @@ class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen>
     _recipientPhoneController.dispose();
     _notesController.dispose();
     _couponController.dispose();
+    _headerMapController.dispose();
     super.dispose();
   }
 
   void _recenterMap() {
     setState(() => _isLocatingMap = true);
+    if (_googleRoutePoints.isNotEmpty) {
+      _headerMapController.fitCamera(
+        CameraFit.coordinates(
+          coordinates: _googleRoutePoints,
+          padding: const EdgeInsets.all(45),
+        ),
+      );
+    } else {
+      _headerMapController.move(const LatLng(26.3417, 31.8946), 15.5);
+    }
     Future.delayed(const Duration(milliseconds: 600), () {
       if (!mounted) return;
       setState(() {
         _isLocatingMap = false;
-        _mapPanOffset = Offset.zero;
-        _mapZoomScale = 1.0;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('تم ضبط التمركز على موقعك في جرجا 🎯'),
+          content: Text('تم ضبط التمركز على مسار Google Maps 🎯'),
           duration: Duration(seconds: 1),
         ),
       );
@@ -132,6 +278,13 @@ class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen>
       setState(() {
         _pickupController.text = result;
       });
+      final newLatLng = await _geocodeAddress(result);
+      if (newLatLng != null && mounted) {
+        setState(() {
+          _pickupLatLng = newLatLng;
+        });
+        _fetchGoogleMapsDirectionsRoute();
+      }
     }
   }
 
@@ -150,6 +303,13 @@ class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen>
       setState(() {
         _dropoffController.text = result;
       });
+      final newLatLng = await _geocodeAddress(result);
+      if (newLatLng != null && mounted) {
+        setState(() {
+          _dropoffLatLng = newLatLng;
+        });
+        _fetchGoogleMapsDirectionsRoute();
+      }
     }
   }
 
@@ -459,41 +619,129 @@ class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen>
         top: false,
         child: Stack(
           children: [
-            // 1. FULL-SCREEN INTERACTIVE VECTOR MAP CANVAS (BACKGROUND)
+            // 1. FULL-SCREEN INTERACTIVE GOOGLE MAPS PLATFORM (BACKGROUND)
             Positioned(
               top: 0,
               left: 0,
               right: 0,
               bottom: 65,
-              child: GestureDetector(
-                onScaleUpdate: (details) {
-                  setState(() {
-                    _mapPanOffset += details.focalPointDelta;
-                    if (details.scale != 1.0) {
-                      _mapZoomScale =
-                          (_mapZoomScale * details.scale).clamp(0.7, 2.8);
-                    }
-                  });
-                },
-                child: Stack(
-                  children: [
-                    // Animated Interactive Vector Map Canvas Painter
-                    AnimatedBuilder(
-                      animation: _driverAnimController,
-                      builder: (context, child) {
-                        return CustomPaint(
-                          size: Size.infinite,
-                          painter: _ParcelRouteMapPainter(
-                            driverProgress: _driverAnimController.value,
-                            panOffset: _mapPanOffset,
-                            zoomScale: _mapZoomScale,
-                          ),
-                        );
-                      },
+              child: Stack(
+                children: [
+                  FlutterMap(
+                    mapController: _headerMapController,
+                    options: const MapOptions(
+                      initialCenter: LatLng(26.3417, 31.8946),
+                      initialZoom: 15.2,
                     ),
+                    children: [
+                      TileLayer(
+                        urlTemplate:
+                            'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=ar&key=$_googleApiKey',
+                        userAgentPackageName: 'com.girga.food',
+                        maxZoom: 20,
+                      ),
+                      // Polyline connecting Pickup & Dropoff via Google Maps Directions API
+                      PolylineLayer(
+                        polylines: [
+                          Polyline(
+                            points: _googleRoutePoints.isNotEmpty
+                                ? _googleRoutePoints
+                                : [_pickupLatLng, _dropoffLatLng],
+                            strokeWidth: 5.5,
+                            color: const Color(0xFF0EA5E9),
+                          ),
+                        ],
+                      ),
+                      // Markers Layer
+                      AnimatedBuilder(
+                        animation: _driverAnimController,
+                        builder: (context, child) {
+                          final driverPos = _getInterpolatedRoutePosition(_driverAnimController.value);
 
-                    // Map Dark Overlay Gradient
-                    Positioned.fill(
+                          return MarkerLayer(
+                            markers: [
+                              // Pickup Marker
+                              Marker(
+                                point: _pickupLatLng,
+                                width: 140,
+                                height: 60,
+                                alignment: Alignment.topCenter,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF0F172A),
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(color: const Color(0xFFD4FF00)),
+                                      ),
+                                      child: const Text('الاستلام 🟢',
+                                          style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                                    ),
+                                    const Icon(Icons.location_on_rounded, color: Color(0xFFD4FF00), size: 24),
+                                  ],
+                                ),
+                              ),
+                              // Dropoff Marker
+                              Marker(
+                                point: _dropoffLatLng,
+                                width: 140,
+                                height: 60,
+                                alignment: Alignment.topCenter,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFEF4444),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Text('التسليم 🔴',
+                                          style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                                    ),
+                                    const Icon(Icons.location_on_rounded, color: Color(0xFFEF4444), size: 24),
+                                  ],
+                                ),
+                              ),
+                              // Live Moving Motorcycle Captain
+                              Marker(
+                                point: driverPos,
+                                width: 130,
+                                height: 60,
+                                alignment: Alignment.topCenter,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF0EA5E9),
+                                        borderRadius: BorderRadius.circular(8),
+                                        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6)],
+                                      ),
+                                      child: const Text('كابتن مرسول 🛵',
+                                          style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: const BoxDecoration(color: Color(0xFF0F172A), shape: BoxShape.circle),
+                                      child: const Icon(Icons.two_wheeler_rounded, color: Color(0xFFD4FF00), size: 18),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+
+                  // Map Dark Overlay Gradient
+                  Positioned.fill(
+                    child: IgnorePointer(
                       child: Container(
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
@@ -508,95 +756,127 @@ class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen>
                         ),
                       ),
                     ),
+                  ),
 
-                    // FLOATING MAP ZOOM & GPS CONTROLS (RIGHT SIDE)
-                    Positioned(
-                      left: 14,
-                      bottom: 85,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
+                  // Google Maps Attribution Tag
+                  Positioned(
+                    top: 54,
+                    right: 14,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0F172A).withValues(alpha: 0.85),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFF4285F4).withValues(alpha: 0.5)),
+                      ),
+                      child: Row(
                         children: [
-                          // Zoom In (+) Button
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _mapZoomScale =
-                                    (_mapZoomScale + 0.25).clamp(0.7, 2.8);
-                              });
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF0F172A),
-                                shape: BoxShape.circle,
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Colors.black26,
-                                    blurRadius: 6,
-                                  ),
-                                ],
-                              ),
-                              child: const Icon(Icons.add_rounded,
-                                  color: Color(0xFFD4FF00), size: 18),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          // Zoom Out (-) Button
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _mapZoomScale =
-                                    (_mapZoomScale - 0.25).clamp(0.7, 2.8);
-                              });
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF0F172A),
-                                shape: BoxShape.circle,
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Colors.black26,
-                                    blurRadius: 6,
-                                  ),
-                                ],
-                              ),
-                              child: const Icon(Icons.remove_rounded,
-                                  color: Color(0xFFD4FF00), size: 18),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          // GPS Recenter Button
-                          GestureDetector(
-                            onTap: _recenterMap,
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF0F172A),
-                                shape: BoxShape.circle,
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Colors.black26,
-                                    blurRadius: 6,
-                                  ),
-                                ],
-                              ),
-                              child: _isLocatingMap
-                                  ? const SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Color(0xFFD4FF00),
-                                      ),
-                                    )
-                                  : const Icon(Icons.my_location_rounded,
-                                      color: Color(0xFFD4FF00), size: 18),
-                            ),
+                          if (_isLoadingRoute)
+                            const SizedBox(
+                              width: 12,
+                              height: 12,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF4285F4)),
+                            )
+                          else
+                            const Icon(Icons.map_rounded, color: Color(0xFF4285F4), size: 14),
+                          const SizedBox(width: 6),
+                          Text(
+                            _isLoadingRoute ? 'جاري جلب مسار Google Maps...' : 'Google Maps Platform 🟢',
+                            style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
                     ),
+                  ),
+
+                  // FLOATING MAP ZOOM & GPS CONTROLS (RIGHT SIDE)
+                  Positioned(
+                    left: 14,
+                    bottom: 85,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Zoom In (+) Button
+                        GestureDetector(
+                          onTap: () {
+                            _headerMapController.move(
+                              _headerMapController.camera.center,
+                              (_headerMapController.camera.zoom + 0.5).clamp(3.0, 20.0),
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF0F172A),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black26,
+                                  blurRadius: 6,
+                                ),
+                              ],
+                            ),
+                            child: const Icon(Icons.add_rounded,
+                                color: Color(0xFFD4FF00), size: 18),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        // Zoom Out (-) Button
+                        GestureDetector(
+                          onTap: () {
+                            _headerMapController.move(
+                              _headerMapController.camera.center,
+                              (_headerMapController.camera.zoom - 0.5).clamp(3.0, 20.0),
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF0F172A),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black26,
+                                  blurRadius: 6,
+                                ),
+                              ],
+                            ),
+                            child: const Icon(Icons.remove_rounded,
+                                color: Color(0xFFD4FF00), size: 18),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        // GPS Recenter Button
+                        GestureDetector(
+                          onTap: _recenterMap,
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF0F172A),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black26,
+                                  blurRadius: 6,
+                                ),
+                              ],
+                            ),
+                            child: _isLocatingMap
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Color(0xFFD4FF00),
+                                    ),
+                                  )
+                                : const Icon(Icons.my_location_rounded,
+                                    color: Color(0xFFD4FF00), size: 18),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
 
                   // TOP FLOATING BAR (BACK BUTTON & STATUS)
                   SafeArea(
@@ -784,7 +1064,6 @@ class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen>
                 ],
               ),
             ),
-          ),
 
             // 2. DRAGGABLE & PULLABLE SLIDING BOTTOM SHEET
             DraggableScrollableSheet(
@@ -1358,11 +1637,11 @@ class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen>
               );
             },
           ),
-          ],
-        ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildServiceTypeTab(int index, String title, IconData icon) {
     final isSelected = _selectedServiceType == index;
@@ -1428,210 +1707,4 @@ class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen>
   }
 }
 
-// Custom Map Canvas Painter for Parcel Delivery Screen Header
-// Custom Map Canvas Painter for Parcel Delivery Screen Header
-class _ParcelRouteMapPainter extends CustomPainter {
-  final double driverProgress;
-  final Offset panOffset;
-  final double zoomScale;
 
-  _ParcelRouteMapPainter({
-    required this.driverProgress,
-    required this.panOffset,
-    required this.zoomScale,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    canvas.save();
-    // Apply pan & zoom relative to center
-    canvas.translate(size.width / 2 + panOffset.dx, size.height / 2 + panOffset.dy);
-    canvas.scale(zoomScale);
-    canvas.translate(-size.width / 2, -size.height / 2);
-
-    // Light Map Ground
-    final bgPaint = Paint()..color = const Color(0xFFE2E8F0);
-    canvas.drawRect(
-        Rect.fromLTWH(
-            -size.width * 0.5, -size.height * 0.5, size.width * 2, size.height * 2),
-        bgPaint);
-
-    // Minor Streets
-    final roadPaint = Paint()
-      ..color = Colors.white
-      ..strokeWidth = 12
-      ..style = PaintingStyle.stroke;
-
-    // Main Avenue
-    final mainRoadPaint = Paint()
-      ..color = const Color(0xFFCBD5E1)
-      ..strokeWidth = 22
-      ..style = PaintingStyle.stroke;
-
-    // Nile River Curve
-    final riverPaint = Paint()
-      ..color = const Color(0xFFBFDBFE)
-      ..strokeWidth = 38
-      ..style = PaintingStyle.stroke;
-
-    final riverPath = Path()
-      ..moveTo(size.width * 0.88, -50)
-      ..cubicTo(
-        size.width * 0.95,
-        size.height * 0.4,
-        size.width * 0.82,
-        size.height * 0.7,
-        size.width * 0.9,
-        size.height + 50,
-      );
-    canvas.drawPath(riverPath, riverPaint);
-
-    // Draw Girga Street Network
-    final path1 = Path()
-      ..moveTo(-50, size.height * 0.35)
-      ..lineTo(size.width + 50, size.height * 0.42);
-
-    final path2 = Path()
-      ..moveTo(size.width * 0.45, -50)
-      ..lineTo(size.width * 0.52, size.height + 50);
-
-    final path3 = Path()
-      ..moveTo(-50, size.height * 0.7)
-      ..lineTo(size.width + 50, size.height * 0.65);
-
-    canvas.drawPath(path1, mainRoadPaint);
-    canvas.drawPath(path2, roadPaint);
-    canvas.drawPath(path3, roadPaint);
-
-    // DRAW STREET NAMES & LANDMARKS
-    _drawText(canvas, 'شارع المحطة', Offset(size.width * 0.12, size.height * 0.30),
-        Colors.black54, 10, true);
-    _drawText(canvas, 'ميدان النهضة', Offset(size.width * 0.60, size.height * 0.68),
-        Colors.black54, 10, true);
-    _drawText(canvas, 'شارع الأهرام', Offset(size.width * 0.48, size.height * 0.15),
-        Colors.black45, 9, false);
-    _drawText(canvas, 'طريق الكورنيش', Offset(size.width * 0.78, size.height * 0.45),
-        Colors.blue.shade700, 9, true);
-
-    // DRAW ROUTE POLYLINE (From Pickup to Dropoff)
-    final routePath = Path()
-      ..moveTo(size.width * 0.25, size.height * 0.38)
-      ..lineTo(size.width * 0.45, size.height * 0.38)
-      ..lineTo(size.width * 0.45, size.height * 0.62)
-      ..lineTo(size.width * 0.72, size.height * 0.62);
-
-    final routeLinePaint = Paint()
-      ..color = const Color(0xFF0F172A)
-      ..strokeWidth = 6
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawPath(routePath, routeLinePaint);
-
-    // PICKUP GREEN DOT 🟢 & BADGE
-    final startOffset = Offset(size.width * 0.25, size.height * 0.38);
-    final startCirclePaint = Paint()..color = const Color(0xFFD4FF00);
-    final startBorderPaint = Paint()
-      ..color = const Color(0xFF0F172A)
-      ..strokeWidth = 3
-      ..style = PaintingStyle.stroke;
-
-    canvas.drawCircle(startOffset, 10, startCirclePaint);
-    canvas.drawCircle(startOffset, 10, startBorderPaint);
-    _drawBadge(canvas, 'الاستلام 🟢', Offset(startOffset.dx, startOffset.dy - 22),
-        const Color(0xFF0F172A), Colors.white);
-
-    // DROPOFF RED DOT 🔴 & BADGE
-    final endOffset = Offset(size.width * 0.72, size.height * 0.62);
-    final endCirclePaint = Paint()..color = const Color(0xFFEF4444);
-
-    canvas.drawCircle(endOffset, 10, endCirclePaint);
-    canvas.drawCircle(endOffset, 10, startBorderPaint);
-    _drawBadge(canvas, 'التسليم 🔴', Offset(endOffset.dx, endOffset.dy - 22),
-        const Color(0xFFEF4444), Colors.white);
-
-    // LIVE MOVING COURIER MOTORCYCLE MARKER 🛵
-    final pathMetrics = routePath.computeMetrics().first;
-    final currentDistance = pathMetrics.length * driverProgress;
-    final tangent = pathMetrics.getTangentForOffset(currentDistance);
-    if (tangent != null) {
-      final currentPos = tangent.position;
-
-      // Pulse ring around driver position
-      final pulsePaint = Paint()
-        ..color = const Color(0xFF0EA5E9).withValues(alpha: 0.25)
-        ..style = PaintingStyle.fill;
-      canvas.drawCircle(currentPos, 22, pulsePaint);
-
-      // Driver icon circle background
-      final driverBgPaint = Paint()..color = const Color(0xFF0F172A);
-      canvas.drawCircle(currentPos, 14, driverBgPaint);
-      final driverBorderPaint = Paint()
-        ..color = const Color(0xFFD4FF00)
-        ..strokeWidth = 2.5
-        ..style = PaintingStyle.stroke;
-      canvas.drawCircle(currentPos, 14, driverBorderPaint);
-
-      // Draw Driver Badge
-      _drawBadge(canvas, 'كابتن مرسول 🛵',
-          Offset(currentPos.dx, currentPos.dy + 24), const Color(0xFF0EA5E9), Colors.white);
-    }
-
-    canvas.restore();
-  }
-
-  void _drawBadge(
-      Canvas canvas, String text, Offset center, Color bg, Color textColor) {
-    final textSpan = TextSpan(
-      text: text,
-      style: TextStyle(
-        color: textColor,
-        fontSize: 9,
-        fontWeight: FontWeight.bold,
-      ),
-    );
-    final textPainter = TextPainter(
-      text: textSpan,
-      textDirection: TextDirection.rtl,
-    );
-    textPainter.layout();
-
-    final bgRect = Rect.fromCenter(
-      center: center,
-      width: textPainter.width + 12,
-      height: textPainter.height + 6,
-    );
-    final bgPaint = Paint()..color = bg;
-    canvas.drawRRect(
-        RRect.fromRectAndRadius(bgRect, const Radius.circular(8)), bgPaint);
-    textPainter.paint(
-        canvas,
-        Offset(
-            center.dx - textPainter.width / 2, center.dy - textPainter.height / 2));
-  }
-
-  void _drawText(Canvas canvas, String text, Offset offset, Color color,
-      double fontSize, bool bold) {
-    final textSpan = TextSpan(
-      text: text,
-      style: TextStyle(
-        color: color,
-        fontSize: fontSize,
-        fontWeight: bold ? FontWeight.bold : FontWeight.normal,
-      ),
-    );
-    final textPainter = TextPainter(
-      text: textSpan,
-      textDirection: TextDirection.rtl,
-    );
-    textPainter.layout();
-    textPainter.paint(canvas, offset);
-  }
-
-  @override
-  bool shouldRepaint(covariant _ParcelRouteMapPainter oldDelegate) {
-    return oldDelegate.driverProgress != driverProgress ||
-        oldDelegate.panOffset != panOffset ||
-        oldDelegate.zoomScale != zoomScale;
-  }
-}

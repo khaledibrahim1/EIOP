@@ -35,6 +35,25 @@ class _HomeScreenState extends State<HomeScreen> {
   String _selectedCatId = '';
   String _searchQuery = '';
 
+  String get _displayLocationName {
+    final loc = _selectedLocationName;
+    if (loc.contains('جرجا')) return 'مدينة جرجا';
+    if (loc.contains('سوهاج')) return 'مدينة سوهاج';
+    if (loc.contains('البلينا')) return 'البلينا';
+    if (loc.contains('طما')) return 'طما';
+    if (loc.contains('طهطا')) return 'طهطا';
+    if (loc.contains('المنشأة')) return 'المنشأة';
+    if (loc.contains('أخميم')) return 'أخميم';
+
+    final parts =
+        loc.split(RegExp(r'[,()\-–—]')).map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+    if (parts.isNotEmpty) {
+      final lastPart = parts.last;
+      if (lastPart.length < 25) return lastPart;
+    }
+    return 'مدينة جرجا';
+  }
+
   void _showLocationConfirmationDialog() {
     showDialog(
       context: context,
@@ -563,35 +582,43 @@ class _HomeScreenState extends State<HomeScreen> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    GestureDetector(
-                                      onTap: _showLocationConfirmationDialog,
-                                      child: Row(
-                                        children: [
-                                          const Text(
-                                            'اللوكيشن: ',
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w400,
-                                              color: Colors.white70,
+                                    Expanded(
+                                      child: GestureDetector(
+                                        onTap: _showLocationConfirmationDialog,
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Text(
+                                              'اللوكيشن: ',
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w400,
+                                                color: Colors.white70,
+                                              ),
                                             ),
-                                          ),
-                                          Text(
-                                            _selectedLocationName,
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w900,
+                                            Flexible(
+                                              child: Text(
+                                                _displayLocationName,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w900,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            const Icon(
+                                              Icons.keyboard_arrow_down_rounded,
                                               color: Colors.white,
+                                              size: 20,
                                             ),
-                                          ),
-                                          const SizedBox(width: 4),
-                                          const Icon(
-                                            Icons.keyboard_arrow_down_rounded,
-                                            color: Colors.white,
-                                            size: 20,
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
                                     ),
+                                    const SizedBox(width: 8),
 
                                     // Dark Mode Switch & Shopping Bag
                                     Row(
