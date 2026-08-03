@@ -16,9 +16,18 @@ class _FashionScreenState extends State<FashionScreen> {
   final TextEditingController _searchController = TextEditingController();
 
   String _selectedCategory = 'الكل';
+  String _selectedAudience = 'الكل'; // 'الكل', 'رجالي', 'حريمي', 'أطفال'
   String _selectedSort = 'الافتراضي';
+  int _selectedViewTab = 0; // 0: All Products, 1: Boutiques & Stores
 
   final Set<String> _favoriteItemIds = {};
+
+  final List<Map<String, dynamic>> _audienceOptions = const [
+    {'name': 'الكل', 'icon': Icons.grid_view_rounded},
+    {'name': 'رجالي', 'icon': Icons.man_rounded},
+    {'name': 'حريمي', 'icon': Icons.woman_rounded},
+    {'name': 'أطفال', 'icon': Icons.child_friendly_rounded},
+  ];
 
   final List<Map<String, dynamic>> _categories = const [
     {'name': 'الكل', 'icon': Icons.grid_view_rounded},
@@ -54,9 +63,45 @@ class _FashionScreenState extends State<FashionScreen> {
     });
   }
 
+  bool _matchesAudience(FashionItem item, String audience) {
+    if (audience == 'الكل') return true;
+    final cat = item.category.toLowerCase();
+    final title = item.title.toLowerCase();
+    final specs = item.specs.toLowerCase();
+
+    if (audience == 'رجالي') {
+      return cat.contains('رجالي') ||
+          cat.contains('قمصان') ||
+          cat.contains('بناطيل') ||
+          cat.contains('جاكيتات') ||
+          cat.contains('كلاسيك') ||
+          title.contains('رجالي') ||
+          specs.contains('رجالي');
+    }
+    if (audience == 'حريمي') {
+      return cat.contains('نسائ') ||
+          cat.contains('حريم') ||
+          cat.contains('محتشمة') ||
+          cat.contains('عباءة') ||
+          title.contains('نسائ') ||
+          title.contains('عباءة') ||
+          title.contains('حريم');
+    }
+    if (audience == 'أطفال') {
+      return cat.contains('أطفال') ||
+          title.contains('أطفال') ||
+          title.contains('طفل') ||
+          specs.contains('أطفال');
+    }
+    return true;
+  }
+
   List<FashionItem> get _filteredItems {
     List<FashionItem> items = sampleFashionItems.where((item) {
       if (_selectedCategory != 'الكل' && item.category != _selectedCategory) {
+        return false;
+      }
+      if (!_matchesAudience(item, _selectedAudience)) {
         return false;
       }
       final query = _searchController.text.trim().toLowerCase();
@@ -501,6 +546,198 @@ class _FashionScreenState extends State<FashionScreen> {
     );
   }
 
+  void _openStoreMenuModal(FashionStoreModel store) {
+    String selectedStoreCategory = 'الكل';
+    final TextEditingController storeSearchCtrl = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final storeProducts = sampleFashionItems.where((item) {
+              if (item.storeName != store.name) return false;
+              if (selectedStoreCategory != 'الكل' && item.category != selectedStoreCategory) {
+                return false;
+              }
+              final q = storeSearchCtrl.text.trim().toLowerCase();
+              if (q.isNotEmpty) {
+                return item.title.toLowerCase().contains(q) ||
+                    item.brand.toLowerCase().contains(q);
+              }
+              return true;
+            }).toList();
+
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.88,
+              decoration: const BoxDecoration(
+                color: Color(0xFF0B1120),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+                border: Border(top: BorderSide(color: Color(0xFFE11D48), width: 2)),
+              ),
+              child: Column(
+                children: [
+                  const SizedBox(height: 12),
+                  Center(
+                    child: Container(
+                      width: 48, height: 5,
+                      decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E293B),
+                        borderRadius: BorderRadius.circular(22),
+                        border: Border.all(color: Colors.white12),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 60, height: 60,
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFE11D48), Color(0xFFBE185D)],
+                              ),
+                              borderRadius: BorderRadius.circular(18),
+                              boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 8)],
+                            ),
+                            child: const Icon(Icons.storefront_rounded, color: Colors.white, size: 30),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Flexible(
+                                      child: Text(store.name,
+                                          style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    const Icon(Icons.verified_rounded, color: Color(0xFF10B981), size: 18),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(store.location, maxLines: 1, overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(color: Colors.white60, fontSize: 11)),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.star_rounded, color: Colors.amber, size: 14),
+                                    const SizedBox(width: 4),
+                                    Text('${store.rating} • التوصيل ${store.deliveryTime}',
+                                        style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E293B),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: Colors.white12),
+                      ),
+                      child: TextField(
+                        controller: storeSearchCtrl,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        onChanged: (v) => setModalState(() {}),
+                        decoration: const InputDecoration(
+                          hintText: 'ابحث في تشكيلة المحل...',
+                          hintStyle: TextStyle(color: Colors.white38, fontSize: 12),
+                          prefixIcon: Icon(Icons.search_rounded, color: Color(0xFFE11D48), size: 20),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    height: 38,
+                    child: ListView.separated(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      scrollDirection: Axis.horizontal,
+                      itemCount: ['الكل', ...store.categories].length,
+                      separatorBuilder: (context, index) => const SizedBox(width: 8),
+                      itemBuilder: (context, index) {
+                        final cat = ['الكل', ...store.categories][index];
+                        final isSel = selectedStoreCategory == cat;
+                        return ChoiceChip(
+                          label: Text(cat),
+                          selected: isSel,
+                          selectedColor: const Color(0xFFE11D48),
+                          backgroundColor: const Color(0xFF1E293B),
+                          labelStyle: TextStyle(
+                            color: isSel ? Colors.white : Colors.white70,
+                            fontSize: 12,
+                            fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                          ),
+                          onSelected: (val) => setModalState(() => selectedStoreCategory = val ? cat : 'الكل'),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Expanded(
+                    child: storeProducts.isEmpty
+                        ? const Center(
+                            child: Text('لا توجد منتجات مطابقة في هذا المحل',
+                                style: TextStyle(color: Colors.white54, fontSize: 13)),
+                          )
+                        : GridView.builder(
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                            itemCount: storeProducts.length,
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2, childAspectRatio: 0.62,
+                              crossAxisSpacing: 14, mainAxisSpacing: 14,
+                            ),
+                            itemBuilder: (context, index) {
+                              final item = storeProducts[index];
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  _showProductDetailsModal(item);
+                                },
+                                child: MultiServiceProductCard(
+                                  id: item.id,
+                                  title: item.title,
+                                  subtitle: '${item.brand} • ${item.storeName}',
+                                  price: item.price,
+                                  oldPrice: item.oldPrice,
+                                  imagePath: item.imagePath,
+                                  accentColor: const Color(0xFFE11D48),
+                                  categoryTag: item.brand,
+                                  rating: item.rating,
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -597,10 +834,118 @@ class _FashionScreenState extends State<FashionScreen> {
               child: FashionPromoBanner(),
             ),
 
-            const SizedBox(height: 16),
+            // 3. VIEW MODE SWITCHER TABS (كافة الأزياء vs المحلات والمنيو)
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: AppColors.cardBg,
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 3))],
+                border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _selectedViewTab = 0),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 250),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: _selectedViewTab == 0 ? const Color(0xFFE11D48) : Colors.transparent,
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: _selectedViewTab == 0 ? [
+                            BoxShadow(color: const Color(0xFFE11D48).withValues(alpha: 0.3), blurRadius: 8)
+                          ] : null,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.checkroom_rounded, size: 18,
+                                color: _selectedViewTab == 0 ? Colors.white : AppColors.textSecondary),
+                            const SizedBox(width: 8),
+                            Text('كافة الأزياء',
+                                style: TextStyle(
+                                  fontSize: 13, fontWeight: FontWeight.bold,
+                                  color: _selectedViewTab == 0 ? Colors.white : AppColors.textSecondary,
+                                )),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _selectedViewTab = 1),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 250),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: _selectedViewTab == 1 ? const Color(0xFFE11D48) : Colors.transparent,
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: _selectedViewTab == 1 ? [
+                            BoxShadow(color: const Color(0xFFE11D48).withValues(alpha: 0.3), blurRadius: 8)
+                          ] : null,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.storefront_rounded, size: 18,
+                                color: _selectedViewTab == 1 ? Colors.white : AppColors.textSecondary),
+                            const SizedBox(width: 8),
+                            Text('المحلات والمنيو',
+                                style: TextStyle(
+                                  fontSize: 13, fontWeight: FontWeight.bold,
+                                  color: _selectedViewTab == 1 ? Colors.white : AppColors.textSecondary,
+                                )),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
-            // 3. CATEGORIES & PRODUCTS SECTION
-            _buildProductsSection(),
+            // 4. AUDIENCE FILTER STRIP (رجالي ، حريمي ، أطفال)
+            if (_selectedViewTab == 0) ...[
+              SizedBox(
+                height: 40,
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _audienceOptions.length,
+                  separatorBuilder: (context, index) => const SizedBox(width: 8),
+                  itemBuilder: (context, index) {
+                    final aud = _audienceOptions[index];
+                    final String name = aud['name'];
+                    final IconData icon = aud['icon'];
+                    final isSelected = _selectedAudience == name;
+
+                    return ChoiceChip(
+                      avatar: Icon(icon, size: 16, color: isSelected ? Colors.white : const Color(0xFFE11D48)),
+                      label: Text(name),
+                      selected: isSelected,
+                      selectedColor: const Color(0xFFE11D48),
+                      backgroundColor: AppColors.cardBg,
+                      elevation: isSelected ? 4 : 0,
+                      shadowColor: const Color(0xFFE11D48).withValues(alpha: 0.4),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                      labelStyle: TextStyle(
+                        color: isSelected ? Colors.white : AppColors.textPrimary,
+                        fontSize: 12, fontWeight: FontWeight.bold,
+                      ),
+                      onSelected: (val) { if (val) setState(() => _selectedAudience = name); },
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+
+            // 5. PRODUCTS SECTION OR STORES SECTION
+            _selectedViewTab == 1 ? _buildStoresListView() : _buildProductsSection(),
           ],
         ),
       ),
@@ -704,6 +1049,7 @@ class _FashionScreenState extends State<FashionScreen> {
                   TextButton(
                     onPressed: () => setState(() {
                       _selectedCategory = 'الكل';
+                      _selectedAudience = 'الكل';
                       _selectedSort = 'الافتراضي';
                       _searchController.clear();
                     }),
@@ -743,6 +1089,142 @@ class _FashionScreenState extends State<FashionScreen> {
             },
           ),
         const SizedBox(height: 30),
+      ],
+    );
+  }
+
+  Widget _buildStoresListView() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('بوتيكات ومحلات أزياء جرجا (${girgaFashionStores.length}):',
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+              const Row(
+                children: [
+                  Icon(Icons.verified_rounded, color: Color(0xFF10B981), size: 16),
+                  SizedBox(width: 4),
+                  Text('مضمونة ومعتمدة',
+                      style: TextStyle(fontSize: 11, color: Color(0xFF10B981), fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ],
+          ),
+        ),
+        ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          itemCount: girgaFashionStores.length,
+          separatorBuilder: (context, index) => const SizedBox(height: 16),
+          itemBuilder: (context, index) {
+            final store = girgaFashionStores[index];
+            return Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: AppColors.cardBg,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 12, offset: Offset(0, 4))],
+                border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 60, height: 60,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFE11D48), Color(0xFFBE185D)],
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(color: const Color(0xFFE11D48).withValues(alpha: 0.3), blurRadius: 8),
+                          ],
+                        ),
+                        child: const Icon(Icons.storefront_rounded, color: Colors.white, size: 30),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Flexible(
+                                  child: Text(store.name,
+                                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                ),
+                                const SizedBox(width: 6),
+                                const Icon(Icons.verified_rounded, color: Color(0xFF10B981), size: 18),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(store.location,
+                                style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                const Icon(Icons.star_rounded, color: Colors.amber, size: 14),
+                                const SizedBox(width: 4),
+                                Text('${store.rating} • التوصيل ${store.deliveryTime}',
+                                    style: TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  Wrap(
+                    spacing: 8, runSpacing: 6,
+                    children: store.categories.map((cat) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE11D48).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFFE11D48).withValues(alpha: 0.2)),
+                        ),
+                        child: Text(cat,
+                            style: const TextStyle(color: Color(0xFFE11D48), fontSize: 11, fontWeight: FontWeight.bold)),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity, height: 46,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFE11D48),
+                        elevation: 4,
+                        shadowColor: const Color(0xFFE11D48).withValues(alpha: 0.3),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      onPressed: () => _openStoreMenuModal(store),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.style_rounded, color: Colors.white, size: 20),
+                          SizedBox(width: 8),
+                          Text('تصفح تشكيلة وتصاميم المحل 👗',
+                              style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       ],
     );
   }
