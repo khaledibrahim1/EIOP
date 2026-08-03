@@ -520,11 +520,15 @@ class _FashionScreenState extends State<FashionScreen> {
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      const Icon(Icons.shopping_bag_rounded, color: Colors.white, size: 20),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        'أضف للسلة (${(item.price * quantity).toStringAsFixed(0)} ج.م)',
-                                        style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                                      const Icon(Icons.shopping_bag_rounded, color: Colors.white, size: 18),
+                                      const SizedBox(width: 6),
+                                      Flexible(
+                                        child: Text(
+                                          'أضف للسلة (${(item.price * quantity).toStringAsFixed(0)} ج.م)',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                                        ),
                                       ),
                                     ],
                                   ),
