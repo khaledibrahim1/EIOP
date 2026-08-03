@@ -16,19 +16,35 @@ class _FashionScreenState extends State<FashionScreen> {
   final TextEditingController _searchController = TextEditingController();
 
   String _selectedCategory = 'الكل';
-  String _selectedBrand = 'الكل';
-  String? _selectedStoreFilter;
-  int _selectedViewTab = 0;
+  String _selectedAudience = 'الكل'; // 'الكل', 'رجالي', 'حريمي', 'أطفال'
+  String _selectedSort = 'الافتراضي';
+  int _selectedViewTab = 0; // 0: All Products, 1: Boutiques & Stores
 
-  final List<String> _categories = const [
-    'الكل', 'قمصان', 'بناطيل', 'جاكيتات',
-    'أحذية رجالية', 'أحذية نسائية', 'رياضي',
-    'كلاسيك', 'ملابس أطفال', 'ملابس محتشمة', 'إكسسوارات',
+  final Set<String> _favoriteItemIds = {};
+
+  final List<Map<String, dynamic>> _audienceOptions = const [
+    {'name': 'الكل', 'icon': Icons.all_inclusive_rounded},
+    {'name': 'رجالي', 'icon': Icons.man_rounded},
+    {'name': 'حريمي', 'icon': Icons.woman_rounded},
+    {'name': 'أطفال', 'icon': Icons.child_friendly_rounded},
   ];
 
-  final List<String> _brands = const [
-    'الكل', 'Zara', 'H&M', "Levi's",
-    'Nike', 'Adidas', 'Clarks', 'Aldo', 'Gap',
+  final List<Map<String, dynamic>> _categories = const [
+    {'name': 'الكل', 'icon': Icons.grid_view_rounded},
+    {'name': 'قمصان', 'icon': Icons.checkroom_rounded},
+    {'name': 'بناطيل', 'icon': Icons.dry_cleaning_rounded},
+    {'name': 'جاكيتات', 'icon': Icons.shield_rounded},
+    {'name': 'أحذية رجالية', 'icon': Icons.roller_skating_rounded},
+    {'name': 'أحذية نسائية', 'icon': Icons.do_not_step_rounded},
+    {'name': 'رياضي', 'icon': Icons.sports_soccer_rounded},
+    {'name': 'كلاسيك', 'icon': Icons.work_rounded},
+    {'name': 'ملابس أطفال', 'icon': Icons.child_care_rounded},
+    {'name': 'ملابس محتشمة', 'icon': Icons.face_3_rounded},
+    {'name': 'إكسسوارات', 'icon': Icons.watch_rounded},
+  ];
+
+  final List<String> _sortOptions = const [
+    'الافتراضي', 'الأحدث', 'الأعلى تقييماً', 'السعر: من الأقل للأعلى', 'السعر: من الأعلى للأقل',
   ];
 
   @override
@@ -37,15 +53,55 @@ class _FashionScreenState extends State<FashionScreen> {
     super.dispose();
   }
 
+  void _toggleFavorite(String id) {
+    setState(() {
+      if (_favoriteItemIds.contains(id)) {
+        _favoriteItemIds.remove(id);
+      } else {
+        _favoriteItemIds.add(id);
+      }
+    });
+  }
+
+  bool _matchesAudience(FashionItem item, String audience) {
+    if (audience == 'الكل') return true;
+    final cat = item.category.toLowerCase();
+    final title = item.title.toLowerCase();
+    final specs = item.specs.toLowerCase();
+
+    if (audience == 'رجالي') {
+      return cat.contains('رجالي') ||
+          cat.contains('قمصان') ||
+          cat.contains('بناطيل') ||
+          cat.contains('جاكيتات') ||
+          cat.contains('كلاسيك') ||
+          title.contains('رجالي') ||
+          specs.contains('رجالي');
+    }
+    if (audience == 'حريمي') {
+      return cat.contains('نسائ') ||
+          cat.contains('حريم') ||
+          cat.contains('محتشمة') ||
+          cat.contains('عباءة') ||
+          title.contains('نسائ') ||
+          title.contains('عباءة') ||
+          title.contains('حريم');
+    }
+    if (audience == 'أطفال') {
+      return cat.contains('أطفال') ||
+          title.contains('أطفال') ||
+          title.contains('طفل') ||
+          specs.contains('أطفال');
+    }
+    return true;
+  }
+
   List<FashionItem> get _filteredItems {
-    return sampleFashionItems.where((item) {
+    List<FashionItem> items = sampleFashionItems.where((item) {
       if (_selectedCategory != 'الكل' && item.category != _selectedCategory) {
         return false;
       }
-      if (_selectedBrand != 'الكل' && !item.brand.contains(_selectedBrand)) {
-        return false;
-      }
-      if (_selectedStoreFilter != null && item.storeName != _selectedStoreFilter) {
+      if (!_matchesAudience(item, _selectedAudience)) {
         return false;
       }
       final query = _searchController.text.trim().toLowerCase();
@@ -57,12 +113,24 @@ class _FashionScreenState extends State<FashionScreen> {
       }
       return true;
     }).toList();
+
+    if (_selectedSort == 'الأحدث') {
+      items.sort((a, b) => (b.isNew ? 1 : 0).compareTo(a.isNew ? 1 : 0));
+    } else if (_selectedSort == 'الأعلى تقييماً') {
+      items.sort((a, b) => b.rating.compareTo(a.rating));
+    } else if (_selectedSort == 'السعر: من الأقل للأعلى') {
+      items.sort((a, b) => a.price.compareTo(b.price));
+    } else if (_selectedSort == 'السعر: من الأعلى للأقل') {
+      items.sort((a, b) => b.price.compareTo(a.price));
+    }
+
+    return items;
   }
 
   void _showProductDetailsModal(FashionItem item) {
     int quantity = 1;
-    String? selectedSize;
-    String? selectedColor;
+    String? selectedSize = item.availableSizes.isNotEmpty ? item.availableSizes.first : null;
+    String? selectedColor = item.availableColors.isNotEmpty ? item.availableColors.first : null;
 
     showModalBottomSheet(
       context: context,
@@ -71,18 +139,20 @@ class _FashionScreenState extends State<FashionScreen> {
       builder: (context) {
         return StatefulBuilder(
           builder: (ctx, setModalState) {
+            final bool isFav = _favoriteItemIds.contains(item.id);
             return Container(
-              height: MediaQuery.of(context).size.height * 0.85,
+              height: MediaQuery.of(context).size.height * 0.88,
               decoration: const BoxDecoration(
-                color: Color(0xFF0F172A),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                color: Color(0xFF0B1120),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+                border: Border(top: BorderSide(color: Color(0xFFE11D48), width: 2)),
               ),
               child: Column(
                 children: [
                   const SizedBox(height: 12),
                   Center(
                     child: Container(
-                      width: 44, height: 5,
+                      width: 48, height: 5,
                       decoration: BoxDecoration(
                         color: Colors.white24,
                         borderRadius: BorderRadius.circular(10),
@@ -91,184 +161,323 @@ class _FashionScreenState extends State<FashionScreen> {
                   ),
                   Expanded(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Image Hero Showcase
                           ClipRRect(
-                            borderRadius: BorderRadius.circular(18),
+                            borderRadius: BorderRadius.circular(24),
                             child: Container(
-                              height: 200,
+                              height: 240,
                               color: const Color(0xFF1E293B),
                               child: Stack(
                                 children: [
                                   Center(
                                     child: Image.asset(
                                       item.imagePath,
-                                      height: 200,
+                                      height: 240,
                                       width: double.infinity,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (ctx, e, st) => const Icon(
-                                        Icons.checkroom_rounded,
-                                        size: 80, color: Color(0xFFEC4899),
+                                      errorBuilder: (ctx, e, st) => Container(
+                                        color: const Color(0xFF1E293B),
+                                        child: const Center(
+                                          child: Icon(
+                                            Icons.checkroom_rounded,
+                                            size: 90, color: Color(0xFFE11D48),
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ),
-                                  if (item.isNew)
-                                    Positioned(
-                                      top: 12, right: 12,
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFF10B981),
-                                          borderRadius: BorderRadius.circular(20),
+                                  // Gradient Overlay
+                                  Positioned.fill(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            Colors.transparent,
+                                            Colors.black.withValues(alpha: 0.7),
+                                          ],
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
                                         ),
-                                        child: const Text('جديد',
-                                            style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                                       ),
                                     ),
-                                  if (item.isBestSeller)
-                                    Positioned(
-                                      top: 12, left: 12,
+                                  ),
+                                  // Favorite Button
+                                  Positioned(
+                                    top: 14, right: 14,
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        _toggleFavorite(item.id);
+                                        setModalState(() {});
+                                      },
                                       child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                        padding: const EdgeInsets.all(10),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFFEC4899),
-                                          borderRadius: BorderRadius.circular(20),
+                                          color: Colors.black.withValues(alpha: 0.5),
+                                          shape: BoxShape.circle,
+                                          border: Border.all(color: Colors.white24),
                                         ),
-                                        child: const Text('الأكثر مبيعاً',
-                                            style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                                        child: Icon(
+                                          isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                                          color: isFav ? const Color(0xFFE11D48) : Colors.white,
+                                          size: 20,
+                                        ),
                                       ),
                                     ),
+                                  ),
+                                  // Badges
+                                  Positioned(
+                                    bottom: 14, right: 14,
+                                    child: Row(
+                                      children: [
+                                        if (item.isNew)
+                                          Container(
+                                            margin: const EdgeInsets.only(left: 6),
+                                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                                            decoration: BoxDecoration(
+                                              gradient: const LinearGradient(
+                                                colors: [Color(0xFF10B981), Color(0xFF059669)],
+                                              ),
+                                              borderRadius: BorderRadius.circular(20),
+                                              boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6)],
+                                            ),
+                                            child: const Text('جديد 🌟',
+                                                style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                                          ),
+                                        if (item.isBestSeller)
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                                            decoration: BoxDecoration(
+                                              gradient: const LinearGradient(
+                                                colors: [Color(0xFFE11D48), Color(0xFFBE185D)],
+                                              ),
+                                              borderRadius: BorderRadius.circular(20),
+                                              boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6)],
+                                            ),
+                                            child: const Text('الأكثر مبيعاً 🔥',
+                                                style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
                           ),
-                          const SizedBox(height: 16),
-                          Text(item.title,
-                              style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 18),
+                          // Title & Brand
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              Expanded(
+                                child: Text(
+                                  item.title,
+                                  style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold, height: 1.3),
+                                ),
+                              ),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFEC4899).withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(8),
+                                  color: const Color(0xFFE11D48).withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: const Color(0xFFE11D48).withValues(alpha: 0.4)),
                                 ),
                                 child: Text(item.brand,
-                                    style: const TextStyle(color: Color(0xFFEC4899), fontSize: 11, fontWeight: FontWeight.bold)),
+                                    style: const TextStyle(color: Color(0xFFE11D48), fontSize: 12, fontWeight: FontWeight.bold)),
                               ),
-                              const SizedBox(width: 8),
-                              const Icon(Icons.star_rounded, color: Colors.amber, size: 14),
-                              const SizedBox(width: 3),
-                              Text('${item.rating} (${item.reviewCount} تقييم)',
-                                  style: const TextStyle(color: Colors.white60, fontSize: 11)),
                             ],
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 8),
+                          // Rating & Store
                           Row(
                             children: [
-                              Text('${item.price.toStringAsFixed(0)} ج.م',
-                                  style: const TextStyle(color: Color(0xFFEC4899), fontSize: 22, fontWeight: FontWeight.w900)),
-                              if (item.oldPrice != null) ...[
-                                const SizedBox(width: 10),
-                                Text('${item.oldPrice!.toStringAsFixed(0)} ج.م',
-                                    style: const TextStyle(color: Colors.white38, fontSize: 14, decoration: TextDecoration.lineThrough)),
-                                const SizedBox(width: 6),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFEC4899).withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    '-${(((item.oldPrice! - item.price) / item.oldPrice!) * 100).toStringAsFixed(0)}%',
-                                    style: const TextStyle(color: Color(0xFFEC4899), fontSize: 10, fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ],
+                              const Icon(Icons.star_rounded, color: Colors.amber, size: 16),
+                              const SizedBox(width: 4),
+                              Text('${item.rating}',
+                                  style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                              const SizedBox(width: 4),
+                              Text('(${item.reviewCount} تقييم)',
+                                  style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                              const SizedBox(width: 12),
+                              const Text('•', style: TextStyle(color: Colors.white38)),
+                              const SizedBox(width: 12),
+                              const Icon(Icons.storefront_rounded, color: Colors.white54, size: 15),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Text(item.storeName,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w500)),
+                              ),
                             ],
                           ),
-                          const SizedBox(height: 4),
-                          Text('من ${item.storeName}',
-                              style: const TextStyle(color: Colors.white54, fontSize: 11)),
                           const SizedBox(height: 16),
+                          // Price Card
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1E293B),
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(color: Colors.white12),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text('السعر النهائي:',
+                                        style: TextStyle(color: Colors.white54, fontSize: 11)),
+                                    const SizedBox(height: 2),
+                                    Row(
+                                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                                      textBaseline: TextBaseline.alphabetic,
+                                      children: [
+                                        Text('${item.price.toStringAsFixed(0)} ',
+                                            style: const TextStyle(color: Color(0xFFE11D48), fontSize: 26, fontWeight: FontWeight.w900)),
+                                        const Text('ج.م',
+                                            style: TextStyle(color: Color(0xFFE11D48), fontSize: 14, fontWeight: FontWeight.bold)),
+                                        if (item.oldPrice != null) ...[
+                                          const SizedBox(width: 10),
+                                          Text('${item.oldPrice!.toStringAsFixed(0)} ج.م',
+                                              style: const TextStyle(color: Colors.white38, fontSize: 13, decoration: TextDecoration.lineThrough)),
+                                        ],
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                if (item.oldPrice != null)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFE11D48),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      'خصم ${(((item.oldPrice! - item.price) / item.oldPrice!) * 100).toStringAsFixed(0)}%',
+                                      style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          // Specs
                           if (item.specs.isNotEmpty) ...[
-                            const Text('المواصفات:',
-                                style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 6),
-                            Text(item.specs,
-                                style: const TextStyle(color: Colors.white60, fontSize: 12, height: 1.6)),
-                            const SizedBox(height: 16),
-                          ],
-                          if (item.availableColors.isNotEmpty) ...[
-                            const Text('الألوان المتاحة:',
-                                style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                            const Text('مواصفات المنتج:',
+                                style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
                             const SizedBox(height: 8),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1E293B).withValues(alpha: 0.6),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Text(item.specs,
+                                  style: const TextStyle(color: Colors.white70, fontSize: 12, height: 1.6)),
+                            ),
+                            const SizedBox(height: 18),
+                          ],
+                          // Available Colors
+                          if (item.availableColors.isNotEmpty) ...[
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text('اللون:',
+                                    style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                                if (selectedColor != null)
+                                  Text(selectedColor!,
+                                      style: const TextStyle(color: Color(0xFFE11D48), fontSize: 12, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
                             Wrap(
-                              spacing: 8, runSpacing: 8,
+                              spacing: 10, runSpacing: 10,
                               children: item.availableColors.map((color) {
                                 final isSel = selectedColor == color;
                                 return GestureDetector(
                                   onTap: () => setModalState(() => selectedColor = color),
                                   child: AnimatedContainer(
                                     duration: const Duration(milliseconds: 200),
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                     decoration: BoxDecoration(
-                                      color: isSel ? const Color(0xFFEC4899) : const Color(0xFF1E293B),
+                                      color: isSel ? const Color(0xFFE11D48) : const Color(0xFF1E293B),
                                       borderRadius: BorderRadius.circular(20),
                                       border: Border.all(
-                                        color: isSel ? const Color(0xFFEC4899) : Colors.white24,
+                                        color: isSel ? const Color(0xFFE11D48) : Colors.white24,
                                       ),
+                                      boxShadow: isSel ? [
+                                        BoxShadow(color: const Color(0xFFE11D48).withValues(alpha: 0.4), blurRadius: 8)
+                                      ] : null,
                                     ),
                                     child: Text(color,
                                         style: TextStyle(
                                           color: isSel ? Colors.white : Colors.white70,
-                                          fontSize: 11, fontWeight: FontWeight.w600,
+                                          fontSize: 12, fontWeight: FontWeight.bold,
                                         )),
                                   ),
                                 );
                               }).toList(),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 18),
                           ],
-                          const Text('المقاسات المتاحة:',
-                              style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 8),
-                          Wrap(
-                            spacing: 8, runSpacing: 8,
-                            children: item.availableSizes.map((size) {
-                              final isSel = selectedSize == size;
-                              return GestureDetector(
-                                onTap: () => setModalState(() => selectedSize = size),
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 200),
-                                  width: 52, height: 38,
-                                  alignment: Alignment.center,
-                                  decoration: BoxDecoration(
-                                    color: isSel ? const Color(0xFFEC4899) : const Color(0xFF1E293B),
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(
-                                      color: isSel ? const Color(0xFFEC4899) : Colors.white24,
+                          // Sizes
+                          if (item.availableSizes.isNotEmpty) ...[
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text('المقاس:',
+                                    style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                                if (selectedSize != null)
+                                  Text(selectedSize!,
+                                      style: const TextStyle(color: Color(0xFFE11D48), fontSize: 12, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Wrap(
+                              spacing: 10, runSpacing: 10,
+                              children: item.availableSizes.map((size) {
+                                final isSel = selectedSize == size;
+                                return GestureDetector(
+                                  onTap: () => setModalState(() => selectedSize = size),
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    constraints: const BoxConstraints(minWidth: 54), height: 42,
+                                    alignment: Alignment.center,
+                                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                                    decoration: BoxDecoration(
+                                      color: isSel ? const Color(0xFFE11D48) : const Color(0xFF1E293B),
+                                      borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(
+                                        color: isSel ? const Color(0xFFE11D48) : Colors.white24,
+                                      ),
+                                      boxShadow: isSel ? [
+                                        BoxShadow(color: const Color(0xFFE11D48).withValues(alpha: 0.4), blurRadius: 8)
+                                      ] : null,
                                     ),
+                                    child: Text(size,
+                                        style: TextStyle(
+                                          color: isSel ? Colors.white : Colors.white70,
+                                          fontSize: 12, fontWeight: FontWeight.bold,
+                                        )),
                                   ),
-                                  child: Text(size,
-                                      style: TextStyle(
-                                        color: isSel ? Colors.white : Colors.white70,
-                                        fontSize: 11, fontWeight: FontWeight.bold,
-                                      )),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                          const SizedBox(height: 20),
+                                );
+                              }).toList(),
+                            ),
+                            const SizedBox(height: 24),
+                          ],
+                          // Add to Cart Bar
                           Row(
                             children: [
                               Container(
                                 decoration: BoxDecoration(
                                   color: const Color(0xFF1E293B),
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: Colors.white12),
                                 ),
                                 child: Row(
                                   children: [
@@ -281,7 +490,7 @@ class _FashionScreenState extends State<FashionScreen> {
                                     Text('$quantity',
                                         style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                                     IconButton(
-                                      icon: const Icon(Icons.add_rounded, color: Color(0xFFEC4899), size: 20),
+                                      icon: const Icon(Icons.add_rounded, color: Color(0xFFE11D48), size: 20),
                                       onPressed: () => setModalState(() => quantity++),
                                     ),
                                   ],
@@ -291,28 +500,36 @@ class _FashionScreenState extends State<FashionScreen> {
                               Expanded(
                                 child: ElevatedButton(
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFFEC4899),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    backgroundColor: const Color(0xFFE11D48),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                    elevation: 6,
+                                    shadowColor: const Color(0xFFE11D48).withValues(alpha: 0.4),
                                   ),
                                   onPressed: () {
                                     Navigator.pop(context);
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text('تمت إضافة ${item.title} ($quantity قطعة) للسلة! 🛍️'),
-                                        backgroundColor: const Color(0xFFEC4899),
+                                        backgroundColor: const Color(0xFFE11D48),
                                         behavior: SnackBarBehavior.floating,
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                                       ),
                                     );
                                   },
-                                  child: const Row(
+                                  child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(Icons.shopping_bag_rounded, color: Colors.white, size: 18),
-                                      SizedBox(width: 8),
-                                      Text('أضف للسلة',
-                                          style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+                                      const Icon(Icons.shopping_bag_rounded, color: Colors.white, size: 18),
+                                      const SizedBox(width: 6),
+                                      Flexible(
+                                        child: Text(
+                                          'أضف للسلة (${(item.price * quantity).toStringAsFixed(0)} ج.م)',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -360,40 +577,44 @@ class _FashionScreenState extends State<FashionScreen> {
             return Container(
               height: MediaQuery.of(context).size.height * 0.88,
               decoration: const BoxDecoration(
-                color: Color(0xFF0F172A),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                color: Color(0xFF0B1120),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+                border: Border(top: BorderSide(color: Color(0xFFE11D48), width: 2)),
               ),
               child: Column(
                 children: [
                   const SizedBox(height: 12),
                   Center(
                     child: Container(
-                      width: 44, height: 5,
+                      width: 48, height: 5,
                       decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(10)),
                     ),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 16),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Container(
-                      padding: const EdgeInsets.all(14),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: const Color(0xFF1E293B),
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(22),
                         border: Border.all(color: Colors.white12),
                       ),
                       child: Row(
                         children: [
                           Container(
-                            width: 54, height: 54,
-                            padding: const EdgeInsets.all(10),
+                            width: 60, height: 60,
+                            padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFEC4899).withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(16),
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFE11D48), Color(0xFFBE185D)],
+                              ),
+                              borderRadius: BorderRadius.circular(18),
+                              boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 8)],
                             ),
-                            child: const Icon(Icons.storefront_rounded, color: Color(0xFFEC4899), size: 28),
+                            child: const Icon(Icons.storefront_rounded, color: Colors.white, size: 30),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 14),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -402,10 +623,10 @@ class _FashionScreenState extends State<FashionScreen> {
                                   children: [
                                     Flexible(
                                       child: Text(store.name,
-                                          style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+                                          style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                                     ),
                                     const SizedBox(width: 6),
-                                    const Icon(Icons.verified_rounded, color: Color(0xFF10B981), size: 16),
+                                    const Icon(Icons.verified_rounded, color: Color(0xFF10B981), size: 18),
                                   ],
                                 ),
                                 const SizedBox(height: 4),
@@ -415,9 +636,9 @@ class _FashionScreenState extends State<FashionScreen> {
                                 Row(
                                   children: [
                                     const Icon(Icons.star_rounded, color: Colors.amber, size: 14),
-                                    const SizedBox(width: 3),
-                                    Text('${store.rating} • ${store.deliveryTime}',
-                                        style: const TextStyle(color: Colors.white70, fontSize: 11)),
+                                    const SizedBox(width: 4),
+                                    Text('${store.rating} • التوصيل ${store.deliveryTime}',
+                                        style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
                                   ],
                                 ),
                               ],
@@ -427,47 +648,48 @@ class _FashionScreenState extends State<FashionScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 14),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Container(
                       decoration: BoxDecoration(
                         color: const Color(0xFF1E293B),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: Colors.white12),
                       ),
                       child: TextField(
                         controller: storeSearchCtrl,
                         style: const TextStyle(color: Colors.white, fontSize: 13),
                         onChanged: (v) => setModalState(() {}),
                         decoration: const InputDecoration(
-                          hintText: 'ابحث في منيو المحل...',
+                          hintText: 'ابحث في تشكيلة المحل...',
                           hintStyle: TextStyle(color: Colors.white38, fontSize: 12),
-                          prefixIcon: Icon(Icons.search_rounded, color: Color(0xFFEC4899), size: 18),
+                          prefixIcon: Icon(Icons.search_rounded, color: Color(0xFFE11D48), size: 20),
                           border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 14),
                   SizedBox(
-                    height: 34,
+                    height: 38,
                     child: ListView.separated(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
                       scrollDirection: Axis.horizontal,
                       itemCount: ['الكل', ...store.categories].length,
-                      separatorBuilder: (context, index) => const SizedBox(width: 6),
+                      separatorBuilder: (context, index) => const SizedBox(width: 8),
                       itemBuilder: (context, index) {
                         final cat = ['الكل', ...store.categories][index];
                         final isSel = selectedStoreCategory == cat;
-                        return FilterChip(
+                        return ChoiceChip(
                           label: Text(cat),
                           selected: isSel,
-                          selectedColor: const Color(0xFFEC4899),
+                          selectedColor: const Color(0xFFE11D48),
                           backgroundColor: const Color(0xFF1E293B),
                           labelStyle: TextStyle(
                             color: isSel ? Colors.white : Colors.white70,
-                            fontSize: 11,
+                            fontSize: 12,
                             fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
                           ),
                           onSelected: (val) => setModalState(() => selectedStoreCategory = val ? cat : 'الكل'),
@@ -483,11 +705,11 @@ class _FashionScreenState extends State<FashionScreen> {
                                 style: TextStyle(color: Colors.white54, fontSize: 13)),
                           )
                         : GridView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                             itemCount: storeProducts.length,
                             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2, childAspectRatio: 0.64,
-                              crossAxisSpacing: 12, mainAxisSpacing: 12,
+                              crossAxisCount: 2, childAspectRatio: 0.62,
+                              crossAxisSpacing: 14, mainAxisSpacing: 14,
                             ),
                             itemBuilder: (context, index) {
                               final item = storeProducts[index];
@@ -503,7 +725,7 @@ class _FashionScreenState extends State<FashionScreen> {
                                   price: item.price,
                                   oldPrice: item.oldPrice,
                                   imagePath: item.imagePath,
-                                  accentColor: const Color(0xFFEC4899),
+                                  accentColor: const Color(0xFFE11D48),
                                   categoryTag: item.brand,
                                   rating: item.rating,
                                 ),
@@ -531,13 +753,17 @@ class _FashionScreenState extends State<FashionScreen> {
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.checkroom_rounded, color: Color(0xFFEC4899)),
-            const SizedBox(width: 6),
-            Flexible(
-              child: Text('أزياء وموضة',
-                  maxLines: 1, overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFFEC4899))),
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE11D48).withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.checkroom_rounded, color: Color(0xFFE11D48), size: 18),
             ),
+            const SizedBox(width: 8),
+            const Text('أزياء وموضة',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFFE11D48))),
           ],
         ),
         actions: [
@@ -549,15 +775,15 @@ class _FashionScreenState extends State<FashionScreen> {
                 alignment: Alignment.center,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.shopping_bag_rounded, color: Color(0xFFEC4899)),
+                    icon: const Icon(Icons.shopping_bag_rounded, color: Color(0xFFE11D48)),
                     onPressed: () {},
                   ),
                   if (count > 0)
                     Positioned(
                       right: 6, top: 6,
                       child: Container(
-                        padding: const EdgeInsets.all(3),
-                        decoration: const BoxDecoration(color: Color(0xFFEC4899), shape: BoxShape.circle),
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(color: Color(0xFFE11D48), shape: BoxShape.circle),
                         child: Text('$count',
                             style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
                       ),
@@ -572,47 +798,55 @@ class _FashionScreenState extends State<FashionScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // PROMO BANNER
-            const Padding(
-              padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
-              child: FashionPromoBanner(),
-            ),
-            // SEARCH
+            // 1. SEARCH BAR AT TOP OF PAGE
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
               child: Container(
                 decoration: BoxDecoration(
                   color: AppColors.cardBg,
-                  borderRadius: BorderRadius.circular(18),
-                  boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 3))],
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 4))],
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
                 ),
                 child: TextField(
                   controller: _searchController,
                   onChanged: (v) => setState(() {}),
+                  style: const TextStyle(fontSize: 13, color: Colors.white),
                   decoration: InputDecoration(
-                    hintText: 'ابحث عن ملابس، أحذية، ماركة أو محل...',
+                    hintText: 'ابحث عن ملابس، أحذية، عروض في جرجا...',
                     hintStyle: const TextStyle(fontSize: 12, color: Colors.grey),
-                    prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFFEC4899), size: 20),
+                    prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFFE11D48), size: 22),
                     suffixIcon: _searchController.text.isNotEmpty
                         ? IconButton(
                             icon: const Icon(Icons.close_rounded, size: 18, color: Colors.grey),
-                            onPressed: () { _searchController.clear(); setState(() {}); },
+                            onPressed: () {
+                              _searchController.clear();
+                              setState(() {});
+                            },
                           )
                         : null,
                     border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
                   ),
                 ),
               ),
             ),
-            // VIEW MODE SWITCHER
+
+            // 2. PROMO BANNER
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: FashionPromoBanner(),
+            ),
+
+            // 3. VIEW MODE SWITCHER TABS (كافة الأزياء vs المحلات والمنيو)
             Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
                 color: AppColors.cardBg,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 2))],
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 3))],
+                border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
               ),
               child: Row(
                 children: [
@@ -620,21 +854,24 @@ class _FashionScreenState extends State<FashionScreen> {
                     child: GestureDetector(
                       onTap: () => setState(() => _selectedViewTab = 0),
                       child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        duration: const Duration(milliseconds: 250),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
-                          color: _selectedViewTab == 0 ? const Color(0xFFEC4899) : Colors.transparent,
-                          borderRadius: BorderRadius.circular(12),
+                          color: _selectedViewTab == 0 ? const Color(0xFFE11D48) : Colors.transparent,
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: _selectedViewTab == 0 ? [
+                            BoxShadow(color: const Color(0xFFE11D48).withValues(alpha: 0.3), blurRadius: 8)
+                          ] : null,
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.checkroom_rounded, size: 16,
+                            Icon(Icons.checkroom_rounded, size: 18,
                                 color: _selectedViewTab == 0 ? Colors.white : AppColors.textSecondary),
-                            const SizedBox(width: 6),
+                            const SizedBox(width: 8),
                             Text('كافة الأزياء',
                                 style: TextStyle(
-                                  fontSize: 12, fontWeight: FontWeight.bold,
+                                  fontSize: 13, fontWeight: FontWeight.bold,
                                   color: _selectedViewTab == 0 ? Colors.white : AppColors.textSecondary,
                                 )),
                           ],
@@ -646,21 +883,24 @@ class _FashionScreenState extends State<FashionScreen> {
                     child: GestureDetector(
                       onTap: () => setState(() => _selectedViewTab = 1),
                       child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        duration: const Duration(milliseconds: 250),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
-                          color: _selectedViewTab == 1 ? const Color(0xFFEC4899) : Colors.transparent,
-                          borderRadius: BorderRadius.circular(12),
+                          color: _selectedViewTab == 1 ? const Color(0xFFE11D48) : Colors.transparent,
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: _selectedViewTab == 1 ? [
+                            BoxShadow(color: const Color(0xFFE11D48).withValues(alpha: 0.3), blurRadius: 8)
+                          ] : null,
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.storefront_rounded, size: 16,
+                            Icon(Icons.storefront_rounded, size: 18,
                                 color: _selectedViewTab == 1 ? Colors.white : AppColors.textSecondary),
-                            const SizedBox(width: 6),
+                            const SizedBox(width: 8),
                             Text('المحلات والمنيو',
                                 style: TextStyle(
-                                  fontSize: 12, fontWeight: FontWeight.bold,
+                                  fontSize: 13, fontWeight: FontWeight.bold,
                                   color: _selectedViewTab == 1 ? Colors.white : AppColors.textSecondary,
                                 )),
                           ],
@@ -671,6 +911,44 @@ class _FashionScreenState extends State<FashionScreen> {
                 ],
               ),
             ),
+
+            // 4. AUDIENCE FILTER STRIP (رجالي ، حريمي ، أطفال)
+            if (_selectedViewTab == 0) ...[
+              SizedBox(
+                height: 40,
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _audienceOptions.length,
+                  separatorBuilder: (context, index) => const SizedBox(width: 8),
+                  itemBuilder: (context, index) {
+                    final aud = _audienceOptions[index];
+                    final String name = aud['name'];
+                    final IconData icon = aud['icon'];
+                    final isSelected = _selectedAudience == name;
+
+                    return ChoiceChip(
+                      avatar: Icon(icon, size: 16, color: isSelected ? Colors.white : const Color(0xFFE11D48)),
+                      label: Text(name),
+                      selected: isSelected,
+                      selectedColor: const Color(0xFFE11D48),
+                      backgroundColor: AppColors.cardBg,
+                      elevation: isSelected ? 4 : 0,
+                      shadowColor: const Color(0xFFE11D48).withValues(alpha: 0.4),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                      labelStyle: TextStyle(
+                        color: isSelected ? Colors.white : AppColors.textPrimary,
+                        fontSize: 12, fontWeight: FontWeight.bold,
+                      ),
+                      onSelected: (val) { if (val) setState(() => _selectedAudience = name); },
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+
+            // 5. PRODUCTS SECTION OR STORES SECTION
             _selectedViewTab == 1 ? _buildStoresListView() : _buildProductsSection(),
           ],
         ),
@@ -678,135 +956,129 @@ class _FashionScreenState extends State<FashionScreen> {
     );
   }
 
-  Widget _buildProductsSection() {
+  Widget _buildCategoryShowcase() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Category chips
-        SizedBox(
-          height: 38,
-          child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            scrollDirection: Axis.horizontal,
-            itemCount: _categories.length,
-            separatorBuilder: (context, index) => const SizedBox(width: 8),
-            itemBuilder: (context, index) {
-              final cat = _categories[index];
-              final isSelected = _selectedCategory == cat;
-              return ChoiceChip(
-                label: Text(cat),
-                selected: isSelected,
-                selectedColor: const Color(0xFFEC4899),
-                backgroundColor: AppColors.cardBg,
-                labelStyle: TextStyle(
-                  color: isSelected ? Colors.white : AppColors.textPrimary,
-                  fontSize: 11, fontWeight: FontWeight.bold,
-                ),
-                onSelected: (val) { if (val) setState(() => _selectedCategory = cat); },
-              );
-            },
-          ),
-        ),
-        const SizedBox(height: 10),
-        // Brand chips
-        SizedBox(
-          height: 34,
-          child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            scrollDirection: Axis.horizontal,
-            itemCount: _brands.length,
-            separatorBuilder: (context, index) => const SizedBox(width: 6),
-            itemBuilder: (context, index) {
-              final brand = _brands[index];
-              final isSelected = _selectedBrand == brand;
-              return FilterChip(
-                label: Text(brand),
-                selected: isSelected,
-                selectedColor: const Color(0xFFEC4899).withValues(alpha: 0.2),
-                checkmarkColor: const Color(0xFFEC4899),
-                backgroundColor: AppColors.cardBg,
-                labelStyle: TextStyle(
-                  color: isSelected ? const Color(0xFFEC4899) : AppColors.textSecondary,
-                  fontSize: 10,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                ),
-                onSelected: (val) => setState(() => _selectedBrand = val ? brand : 'الكل'),
-              );
-            },
-          ),
-        ),
-        const SizedBox(height: 20),
-        // Stores strip
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('محلات الأزياء المعتمدة بجرجا',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-              if (_selectedStoreFilter != null)
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE11D48).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.style_rounded, color: Color(0xFFE11D48), size: 18),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text('أقسام التشكيلة',
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                ],
+              ),
+              if (_selectedCategory != 'الكل')
                 GestureDetector(
-                  onTap: () => setState(() => _selectedStoreFilter = null),
+                  onTap: () => setState(() => _selectedCategory = 'الكل'),
                   child: const Text('عرض الكل',
-                      style: TextStyle(fontSize: 11, color: Color(0xFFEC4899), fontWeight: FontWeight.bold)),
+                      style: TextStyle(fontSize: 12, color: Color(0xFFE11D48), fontWeight: FontWeight.bold)),
                 ),
             ],
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 12),
         SizedBox(
-          height: 72,
+          height: 100,
           child: ListView.separated(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             scrollDirection: Axis.horizontal,
-            itemCount: girgaFashionStores.length,
+            itemCount: _categories.length,
             separatorBuilder: (context, index) => const SizedBox(width: 10),
             itemBuilder: (context, index) {
-              final store = girgaFashionStores[index];
-              final isSelected = _selectedStoreFilter == store.name;
+              final cat = _categories[index];
+              final String name = cat['name'];
+              final IconData icon = cat['icon'];
+              final isSelected = _selectedCategory == name;
+
+              final count = name == 'الكل'
+                  ? sampleFashionItems.length
+                  : sampleFashionItems.where((i) => i.category == name).length;
+
               return GestureDetector(
-                onTap: () => _openStoreMenuModal(store),
+                onTap: () => setState(() => _selectedCategory = name),
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  duration: const Duration(milliseconds: 250),
+                  width: 86,
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
                   decoration: BoxDecoration(
-                    color: isSelected ? const Color(0xFF1E0512) : AppColors.cardBg,
-                    borderRadius: BorderRadius.circular(16),
+                    gradient: isSelected
+                        ? const LinearGradient(
+                            colors: [Color(0xFFE11D48), Color(0xFF9F1239)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          )
+                        : null,
+                    color: isSelected ? null : AppColors.cardBg,
+                    borderRadius: BorderRadius.circular(22),
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: const Color(0xFFE11D48).withValues(alpha: 0.4),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ]
+                        : [
+                            const BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 6,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
                     border: Border.all(
-                      color: isSelected ? const Color(0xFFEC4899) : Colors.transparent,
-                      width: 1.5,
+                      color: isSelected ? Colors.transparent : Colors.white.withValues(alpha: 0.08),
                     ),
                   ),
-                  child: Row(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(8),
+                        width: 38,
+                        height: 38,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEC4899).withValues(alpha: 0.15),
+                          color: isSelected
+                              ? Colors.white.withValues(alpha: 0.22)
+                              : const Color(0xFFE11D48).withValues(alpha: 0.12),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.storefront_rounded, color: Color(0xFFEC4899), size: 18),
+                        child: Icon(
+                          icon,
+                          size: 20,
+                          color: isSelected ? Colors.white : const Color(0xFFE11D48),
+                        ),
                       ),
-                      const SizedBox(width: 10),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(store.name,
-                              style: TextStyle(
-                                fontSize: 12, fontWeight: FontWeight.bold,
-                                color: isSelected ? const Color(0xFFEC4899) : AppColors.textPrimary,
-                              )),
-                          const SizedBox(height: 2),
-                          Row(
-                            children: [
-                              const Icon(Icons.star_rounded, color: Colors.amber, size: 12),
-                              const SizedBox(width: 3),
-                              Text('${store.rating} • ${store.deliveryTime}',
-                                  style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
-                            ],
-                          ),
-                        ],
+                      const SizedBox(height: 6),
+                      Text(
+                        name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: isSelected ? Colors.white : AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '$count قطع',
+                        style: TextStyle(
+                          fontSize: 9,
+                          color: isSelected ? Colors.white70 : AppColors.textSecondary,
+                        ),
                       ),
                     ],
                   ),
@@ -815,44 +1087,83 @@ class _FashionScreenState extends State<FashionScreen> {
             },
           ),
         ),
-        const SizedBox(height: 20),
+      ],
+    );
+  }
+
+  Widget _buildProductsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Luxury Visual Category Showcase Cards
+        _buildCategoryShowcase(),
+        const SizedBox(height: 18),
+
+        // Section Header & Sort Menu
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                _selectedStoreFilter != null
-                    ? 'منتجات ${_selectedStoreFilter!}:'
-                    : 'أحدث الأزياء المتوفرة (${_filteredItems.length}):',
+                'أحدث الأزياء المتوفرة (${_filteredItems.length}):',
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
               ),
-              const Text('تسليم في نفس اليوم',
-                  style: TextStyle(fontSize: 11, color: Color(0xFF10B981), fontWeight: FontWeight.bold)),
+              // Sort Popup Menu
+              PopupMenuButton<String>(
+                initialValue: _selectedSort,
+                onSelected: (val) => setState(() => _selectedSort = val),
+                color: const Color(0xFF1E293B),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.cardBg,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white10),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.sort_rounded, color: Color(0xFFE11D48), size: 16),
+                      const SizedBox(width: 4),
+                      Text(_selectedSort,
+                          style: const TextStyle(fontSize: 11, color: Colors.white70, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+                itemBuilder: (ctx) => _sortOptions.map((opt) {
+                  return PopupMenuItem<String>(
+                    value: opt,
+                    child: Text(opt, style: const TextStyle(color: Colors.white, fontSize: 12)),
+                  );
+                }).toList(),
+              ),
             ],
           ),
         ),
         const SizedBox(height: 12),
+
+        // Product Grid View
         if (_filteredItems.isEmpty)
           Padding(
             padding: const EdgeInsets.all(40),
             child: Center(
               child: Column(
                 children: [
-                  const Icon(Icons.checkroom_outlined, size: 48, color: Colors.grey),
-                  const SizedBox(height: 12),
-                  const Text('لا توجد أزياء مطابقة للبحث',
-                      style: TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 6),
+                  const Icon(Icons.checkroom_outlined, size: 54, color: Colors.grey),
+                  const SizedBox(height: 14),
+                  const Text('لا توجد أزياء مطابقة للبحث أو التصفية',
+                      style: TextStyle(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
                   TextButton(
                     onPressed: () => setState(() {
                       _selectedCategory = 'الكل';
-                      _selectedBrand = 'الكل';
-                      _selectedStoreFilter = null;
+                      _selectedAudience = 'الكل';
+                      _selectedSort = 'الافتراضي';
                       _searchController.clear();
                     }),
                     child: const Text('إعادة ضبط الفلاتر',
-                        style: TextStyle(color: Color(0xFFEC4899))),
+                        style: TextStyle(color: Color(0xFFE11D48), fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
@@ -865,8 +1176,8 @@ class _FashionScreenState extends State<FashionScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             itemCount: _filteredItems.length,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2, childAspectRatio: 0.64,
-              crossAxisSpacing: 12, mainAxisSpacing: 12,
+              crossAxisCount: 2, childAspectRatio: 0.62,
+              crossAxisSpacing: 14, mainAxisSpacing: 14,
             ),
             itemBuilder: (context, index) {
               final item = _filteredItems[index];
@@ -879,7 +1190,7 @@ class _FashionScreenState extends State<FashionScreen> {
                   price: item.price,
                   oldPrice: item.oldPrice,
                   imagePath: item.imagePath,
-                  accentColor: const Color(0xFFEC4899),
+                  accentColor: const Color(0xFFE11D48),
                   categoryTag: item.brand,
                   rating: item.rating,
                 ),
@@ -900,10 +1211,16 @@ class _FashionScreenState extends State<FashionScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('محلات أزياء جرجا (${girgaFashionStores.length}):',
+              Text('بوتيكات ومحلات أزياء جرجا (${girgaFashionStores.length}):',
                   style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-              const Text('تغطية كاملة',
-                  style: TextStyle(fontSize: 11, color: Color(0xFF10B981), fontWeight: FontWeight.bold)),
+              const Row(
+                children: [
+                  Icon(Icons.verified_rounded, color: Color(0xFF10B981), size: 16),
+                  SizedBox(width: 4),
+                  Text('مضمونة ومعتمدة',
+                      style: TextStyle(fontSize: 11, color: Color(0xFF10B981), fontWeight: FontWeight.bold)),
+                ],
+              ),
             ],
           ),
         ),
@@ -912,15 +1229,16 @@ class _FashionScreenState extends State<FashionScreen> {
           physics: const NeverScrollableScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           itemCount: girgaFashionStores.length,
-          separatorBuilder: (context, index) => const SizedBox(height: 14),
+          separatorBuilder: (context, index) => const SizedBox(height: 16),
           itemBuilder: (context, index) {
             final store = girgaFashionStores[index];
             return Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
                 color: AppColors.cardBg,
-                borderRadius: BorderRadius.circular(22),
-                boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 4))],
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 12, offset: Offset(0, 4))],
+                border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -928,13 +1246,18 @@ class _FashionScreenState extends State<FashionScreen> {
                   Row(
                     children: [
                       Container(
-                        width: 56, height: 56,
-                        padding: const EdgeInsets.all(10),
+                        width: 60, height: 60,
+                        padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEC4899).withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(18),
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFE11D48), Color(0xFFBE185D)],
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(color: const Color(0xFFE11D48).withValues(alpha: 0.3), blurRadius: 8),
+                          ],
                         ),
-                        child: const Icon(Icons.storefront_rounded, color: Color(0xFFEC4899), size: 30),
+                        child: const Icon(Icons.storefront_rounded, color: Colors.white, size: 30),
                       ),
                       const SizedBox(width: 14),
                       Expanded(
@@ -945,10 +1268,10 @@ class _FashionScreenState extends State<FashionScreen> {
                               children: [
                                 Flexible(
                                   child: Text(store.name,
-                                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                                 ),
                                 const SizedBox(width: 6),
-                                const Icon(Icons.verified_rounded, color: Color(0xFF10B981), size: 16),
+                                const Icon(Icons.verified_rounded, color: Color(0xFF10B981), size: 18),
                               ],
                             ),
                             const SizedBox(height: 4),
@@ -958,9 +1281,9 @@ class _FashionScreenState extends State<FashionScreen> {
                             Row(
                               children: [
                                 const Icon(Icons.star_rounded, color: Colors.amber, size: 14),
-                                const SizedBox(width: 3),
+                                const SizedBox(width: 4),
                                 Text('${store.rating} • التوصيل ${store.deliveryTime}',
-                                    style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                                    style: TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
                               ],
                             ),
                           ],
@@ -968,37 +1291,46 @@ class _FashionScreenState extends State<FashionScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 14),
                   Wrap(
-                    spacing: 6, runSpacing: 6,
+                    spacing: 8, runSpacing: 6,
                     children: store.categories.map((cat) {
                       return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEC4899).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
+                          color: const Color(0xFFE11D48).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFFE11D48).withValues(alpha: 0.2)),
                         ),
                         child: Text(cat,
-                            style: const TextStyle(color: Color(0xFFEC4899), fontSize: 10, fontWeight: FontWeight.bold)),
+                            style: const TextStyle(color: Color(0xFFE11D48), fontSize: 11, fontWeight: FontWeight.bold)),
                       );
                     }).toList(),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 16),
                   SizedBox(
-                    width: double.infinity, height: 44,
+                    width: double.infinity, height: 46,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFEC4899),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        backgroundColor: const Color(0xFFE11D48),
+                        elevation: 4,
+                        shadowColor: const Color(0xFFE11D48).withValues(alpha: 0.3),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
                       onPressed: () => _openStoreMenuModal(store),
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.style_rounded, color: Colors.white, size: 18),
-                          SizedBox(width: 8),
-                          Text('تصفح تشكيلة المحل 👗',
-                              style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                          SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              'تصفح تشكيلة وتصاميم المحل 👗',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -1135,11 +1467,11 @@ class _FashionPromoBannerState extends State<FashionPromoBanner> {
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeOutCubic,
               margin: const EdgeInsets.symmetric(horizontal: 3),
-              width: isSel ? 20 : 8,
+              width: isSel ? 22 : 8,
               height: 8,
               decoration: BoxDecoration(
                 color: isSel
-                    ? const Color(0xFFEC4899)
+                    ? const Color(0xFFE11D48)
                     : Colors.grey.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -1168,7 +1500,6 @@ class _FashionPromoBannerState extends State<FashionPromoBanner> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // ── 1. Photo background ──────────────────
             Image.asset(
               offer.imagePath,
               fit: BoxFit.cover,
@@ -1182,7 +1513,6 @@ class _FashionPromoBannerState extends State<FashionPromoBanner> {
                 ),
               ),
             ),
-            // ── 2. Gradient color overlay ────────────
             Positioned.fill(
               child: Container(
                 decoration: BoxDecoration(
@@ -1198,7 +1528,6 @@ class _FashionPromoBannerState extends State<FashionPromoBanner> {
                 ),
               ),
             ),
-            // ── 3. Bottom vignette ───────────────────
             Positioned.fill(
               child: Container(
                 decoration: const BoxDecoration(
@@ -1210,20 +1539,18 @@ class _FashionPromoBannerState extends State<FashionPromoBanner> {
                 ),
               ),
             ),
-            // ── 4. Content ───────────────────────────
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Badge
                   Align(
                     alignment: Alignment.topRight,
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.9),
+                        color: Colors.white.withValues(alpha: 0.92),
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 6)],
                       ),
@@ -1235,7 +1562,6 @@ class _FashionPromoBannerState extends State<FashionPromoBanner> {
                       ),
                     ),
                   ),
-                  // Title + discount
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -1289,7 +1615,6 @@ class _FashionPromoBannerState extends State<FashionPromoBanner> {
                       ),
                     ],
                   ),
-                  // Footer
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -1306,7 +1631,7 @@ class _FashionPromoBannerState extends State<FashionPromoBanner> {
                       ElevatedButton(
                         onPressed: () {},
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white.withValues(alpha: 0.92),
+                          backgroundColor: Colors.white.withValues(alpha: 0.95),
                           foregroundColor: gradientColors[0],
                           elevation: 6,
                           shadowColor: Colors.black.withValues(alpha: 0.3),
