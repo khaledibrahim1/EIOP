@@ -195,12 +195,17 @@ class _JobsScreenState extends State<JobsScreen> {
                       icon: const Icon(Icons.arrow_back_ios_rounded, size: 20),
                       onPressed: () => Navigator.pop(context),
                     ),
-                    Text(
-                      job.companyName,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
+                    Expanded(
+                      child: Text(
+                        job.companyName,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     IconButton(
@@ -269,15 +274,13 @@ class _JobsScreenState extends State<JobsScreen> {
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildMetricStat('الراتب', job.salaryRange),
+                      Expanded(child: _buildMetricStat('الراتب', job.salaryRange)),
                       Container(
                           width: 1, height: 28, color: AppColors.textSecondary.withValues(alpha: 0.2)),
-                      _buildMetricStat('المتقدمين', '${job.applicationsCount} طلب'),
+                      Expanded(child: _buildMetricStat('المتقدمين', '${job.applicationsCount} طلب')),
                       Container(
                           width: 1, height: 28, color: AppColors.textSecondary.withValues(alpha: 0.2)),
-                      _buildMetricStat('نوع العمل', job.jobType.split('/')[0]),
-                    ],
+                      Expanded(child: _buildMetricStat('نوع العمل', job.jobType.split('/')[0])),
                   ),
                 ),
                 const SizedBox(height: 18),
