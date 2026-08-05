@@ -274,6 +274,7 @@ class _JobsScreenState extends State<JobsScreen> {
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
                       Expanded(child: _buildMetricStat('الراتب', job.salaryRange)),
                       Container(
                           width: 1, height: 28, color: AppColors.textSecondary.withValues(alpha: 0.2)),
@@ -281,6 +282,7 @@ class _JobsScreenState extends State<JobsScreen> {
                       Container(
                           width: 1, height: 28, color: AppColors.textSecondary.withValues(alpha: 0.2)),
                       Expanded(child: _buildMetricStat('نوع العمل', job.jobType.split('/')[0])),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 18),
