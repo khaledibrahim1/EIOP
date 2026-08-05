@@ -21,7 +21,6 @@ class _RealEstateScreenState extends State<RealEstateScreen>
   String _selectedCategory = 'الكل';
   String _searchQuery = '';
   final Set<String> _favoriteIds = {'prop_1'};
-  int _selectedBottomNavIndex = 0;
 
   final List<String> _categories = [
     'الكل',
@@ -1184,70 +1183,6 @@ class _RealEstateScreenState extends State<RealEstateScreen>
                     ),
                   ),
                 ),
-              ),
-            ),
-
-            // 7. DARK FLOATING BOTTOM NAVIGATION BAR (Matches Screen 1 Bottom Nav)
-            Container(
-              margin: const EdgeInsets.fromLTRB(20, 0, 20, 14),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
-                borderRadius: BorderRadius.circular(28),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 16,
-                    offset: Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildBottomNavItem(0, Icons.home_rounded, 'Home'),
-                  _buildBottomNavItem(1, Icons.explore_rounded, 'Explore'),
-                  _buildBottomNavItem(2, Icons.favorite_rounded, 'Favorite'),
-                  _buildBottomNavItem(3, Icons.mail_rounded, 'Messages'),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBottomNavItem(int index, IconData icon, String label) {
-    final isSelected = _selectedBottomNavIndex == index;
-    return GestureDetector(
-      onTap: () {
-        setState(() => _selectedBottomNavIndex = index);
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? Colors.white.withValues(alpha: 0.15)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? Colors.white : Colors.grey[500],
-              size: 20,
-            ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? Colors.white : Colors.grey[500],
-                fontSize: 10,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
             ),
           ],
