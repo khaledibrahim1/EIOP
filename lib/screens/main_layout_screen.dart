@@ -3,6 +3,8 @@ import '../models/cart_state.dart';
 import '../theme/app_colors.dart';
 import '../widgets/animated_bottom_nav.dart';
 import 'cart_screen.dart';
+import 'categories_screen.dart';
+import 'favorites_screen.dart';
 import 'home_screen.dart';
 import 'order_tracking_screen.dart';
 
@@ -33,8 +35,9 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
             index: _currentTabIndex,
             children: [
               HomeScreen(onNavigateTab: _onTabSelect),
+              const CategoriesScreen(),
               const OrderTrackingScreen(),
-              _buildWalletScreen(),
+              const FavoritesScreen(),
               _buildProfileScreen(),
             ],
           ),
@@ -48,7 +51,7 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
               else if (appState.totalItemCount > 0)
                 _buildFloatingCartBar(context),
 
-              // 3. Animated Bottom Navigation Bar
+              // 3. Animated Bottom Navigation Bar (5 Tabs)
               AnimatedBottomNav(
                 currentIndex: _currentTabIndex,
                 onTap: _onTabSelect,
@@ -285,173 +288,211 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
       backgroundColor: AppColors.background,
       body: SafeArea(
         top: false,
-        child: Column(
-          children: [
-            // Top Header Container matching Home & Restaurants pages
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                gradient: AppColors.headerFadeGradient,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: SafeArea(
-                bottom: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'حسابي',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.textPrimary,
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            children: [
+              // Top Header Container
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  gradient: AppColors.headerFadeGradient,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: SafeArea(
+                  bottom: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'حسابي',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.textPrimary,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'إعدادات وملف المستخدم',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
+                        const SizedBox(height: 2),
+                        Text(
+                          'إعدادات وملف المستخدم',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
 
-            // Profile Card Details
-            Expanded(
-              child: Center(
+              Padding(
+                padding: const EdgeInsets.all(20),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    // Profile Header Card
                     Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: AppColors.primary,
-                        shape: BoxShape.circle,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
-                      child: const CircleAvatar(
-                        radius: 50,
-                        backgroundImage:
-                            AssetImage('assets/images/delivery_rider.png'),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: const BoxDecoration(
+                              color: AppColors.primary,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const CircleAvatar(
+                              radius: 32,
+                              backgroundImage: AssetImage(
+                                  'assets/images/delivery_rider.png'),
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'عميل EIOP Super App',
+                                  style: TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                                const SizedBox(height: 3),
+                                Text(
+                                  'user@eiop-app.com • 01012345678',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () {},
+                            icon: const Icon(
+                              Icons.edit_outlined,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'عميل EIOP Super App',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
+                    const SizedBox(height: 14),
+
+                    // Useful Profile Options List
+                    _buildProfileTile(
+                      icon: Icons.location_on_outlined,
+                      title: 'عناوين التوصيل المحفوظة',
+                      subtitle: 'إدارة وتغيير مواقع التوصيل',
+                      onTap: () {},
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'user@eiop-app.com',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: AppColors.textSecondary,
-                      ),
+                    _buildProfileTile(
+                      icon: Icons.receipt_long_outlined,
+                      title: 'طلباتي السابقة',
+                      subtitle: 'متابعة وفواتير الطلبات',
+                      onTap: () => _onTabSelect(2),
+                    ),
+                    _buildProfileTile(
+                      icon: Icons.favorite_outline_rounded,
+                      title: 'المفضلة',
+                      subtitle: 'الوجبات والمنتجات المحفوظة',
+                      onTap: () => _onTabSelect(3),
+                    ),
+                    _buildProfileTile(
+                      icon: Icons.headset_mic_outlined,
+                      title: 'المساعدة والدعم الفني',
+                      subtitle: 'تواصل معنا على مدار الساعة',
+                      onTap: () {},
                     ),
                   ],
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildWalletScreen() {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        centerTitle: true,
-        title: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.account_balance_wallet_rounded, color: AppColors.primary),
-            SizedBox(width: 8),
-            Text(
-              'محفظة EIOP Pay والنقاط',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppColors.primary,
-              ),
-            ),
-          ],
-        ),
+  Widget _buildProfileTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: AppColors.primaryGradient,
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.3),
-                    blurRadius: 14,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'رصيد المحفظة المتاح',
-                    style: TextStyle(color: Colors.white70, fontSize: 13),
-                  ),
-                  SizedBox(height: 6),
-                  Text(
-                    '250.00 ج.م',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Icon(Icons.stars_rounded, color: Colors.amber, size: 18),
-                      SizedBox(width: 6),
-                      Text(
-                        '1,420 نقطة مكافآت مسجلة',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
+      child: ListTile(
+        onTap: onTap,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withValues(alpha: 0.08),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            icon,
+            color: AppColors.primary,
+            size: 22,
+          ),
+        ),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(
+            fontSize: 11,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        trailing: Icon(
+          Icons.arrow_forward_ios_rounded,
+          size: 14,
+          color: AppColors.textLight,
         ),
       ),
     );
   }
 }
+
