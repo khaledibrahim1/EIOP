@@ -288,22 +288,20 @@ class _FashionScreenState extends State<FashionScreen> {
                             ),
                             itemBuilder: (context, index) {
                               final item = storeProducts[index];
-                              return GestureDetector(
+                              return MultiServiceProductCard(
+                                id: item.id,
+                                title: item.title,
+                                subtitle: '${item.brand} • ${item.storeName}',
+                                price: item.price,
+                                oldPrice: item.oldPrice,
+                                imagePath: item.imagePath,
+                                accentColor: const Color(0xFFE11D48),
+                                categoryTag: item.brand,
+                                rating: item.rating,
                                 onTap: () {
                                   Navigator.pop(context);
                                   _showProductDetailsModal(item);
                                 },
-                                child: MultiServiceProductCard(
-                                  id: item.id,
-                                  title: item.title,
-                                  subtitle: '${item.brand} • ${item.storeName}',
-                                  price: item.price,
-                                  oldPrice: item.oldPrice,
-                                  imagePath: item.imagePath,
-                                  accentColor: const Color(0xFFE11D48),
-                                  categoryTag: item.brand,
-                                  rating: item.rating,
-                                ),
                               );
                             },
                           ),
@@ -756,19 +754,17 @@ class _FashionScreenState extends State<FashionScreen> {
             ),
             itemBuilder: (context, index) {
               final item = _filteredItems[index];
-              return GestureDetector(
+              return MultiServiceProductCard(
+                id: item.id,
+                title: item.title,
+                subtitle: '${item.brand} • ${item.storeName}',
+                price: item.price,
+                oldPrice: item.oldPrice,
+                imagePath: item.imagePath,
+                accentColor: const Color(0xFFE11D48),
+                categoryTag: item.brand,
+                rating: item.rating,
                 onTap: () => _showProductDetailsModal(item),
-                child: MultiServiceProductCard(
-                  id: item.id,
-                  title: item.title,
-                  subtitle: '${item.brand} • ${item.storeName}',
-                  price: item.price,
-                  oldPrice: item.oldPrice,
-                  imagePath: item.imagePath,
-                  accentColor: const Color(0xFFE11D48),
-                  categoryTag: item.brand,
-                  rating: item.rating,
-                ),
               );
             },
           ),

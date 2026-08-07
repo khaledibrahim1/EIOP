@@ -708,7 +708,16 @@ class _SupermarketScreenState extends State<SupermarketScreen> {
             ),
             itemBuilder: (context, index) {
               final item = products[index];
-              return GestureDetector(
+              return MultiServiceProductCard(
+                id: item.id,
+                title: item.title,
+                subtitle: '${item.storeName} • ${item.unit}',
+                price: item.price,
+                oldPrice: item.oldPrice,
+                imagePath: item.imagePath,
+                accentColor: emeraldColor,
+                categoryTag: item.category,
+                rating: item.rating,
                 onTap: () {
                   final foodAdapter = FoodItem(
                     id: item.id,
@@ -718,7 +727,8 @@ class _SupermarketScreenState extends State<SupermarketScreen> {
                     price: item.price,
                     rating: item.rating,
                     deliveryTime: '15-20 دقيقة',
-                    description: 'منتج بقالة وسوبرماركت طازج: ${item.title} من ${item.storeName}.',
+                    description:
+                        'منتج بقالة وسوبرماركت طازج: ${item.title} من ${item.storeName}.',
                     imagePath: item.imagePath,
                     categoryId: 'supermarket',
                   );
@@ -729,17 +739,6 @@ class _SupermarketScreenState extends State<SupermarketScreen> {
                     ),
                   );
                 },
-                child: MultiServiceProductCard(
-                  id: item.id,
-                  title: item.title,
-                  subtitle: '${item.storeName} • ${item.unit}',
-                  price: item.price,
-                  oldPrice: item.oldPrice,
-                  imagePath: item.imagePath,
-                  accentColor: emeraldColor,
-                  categoryTag: item.category,
-                  rating: item.rating,
-                ),
               );
             },
           ),

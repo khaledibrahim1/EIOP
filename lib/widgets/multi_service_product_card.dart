@@ -50,9 +50,10 @@ class _MultiServiceProductCardState extends State<MultiServiceProductCard> {
       scale: _isPressed ? 0.96 : 1.0,
       duration: const Duration(milliseconds: 150),
       child: GestureDetector(
-        onTapDown: (_) => setState(() => _isPressed = true),
-        onTapUp: (_) => setState(() => _isPressed = false),
-        onTapCancel: () => setState(() => _isPressed = false),
+        behavior: HitTestBehavior.opaque,
+        onTapDown: widget.onTap != null ? (_) => setState(() => _isPressed = true) : null,
+        onTapUp: widget.onTap != null ? (_) => setState(() => _isPressed = false) : null,
+        onTapCancel: widget.onTap != null ? () => setState(() => _isPressed = false) : null,
         onTap: widget.onTap,
         child: Container(
           decoration: BoxDecoration(
