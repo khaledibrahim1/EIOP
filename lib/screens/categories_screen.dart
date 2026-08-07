@@ -174,19 +174,23 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             top: false,
             child: Column(
               children: [
-                // Top Header Container (Light Lime Green Theme)
+                // Top Header Container (Light Lime Green Gradient Theme)
                 Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFD9F99D),
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(24),
-                      bottomRight: Radius.circular(24),
+                    gradient: LinearGradient(
+                      colors: [
+                        const Color(0xFFE5FBC0),
+                        const Color(0xFFD9F99D),
+                        AppColors.background,
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFFD9F99D).withValues(alpha: 0.4),
-                        blurRadius: 14,
+                        color: Colors.black.withValues(alpha: 0.03),
+                        blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
                     ],
