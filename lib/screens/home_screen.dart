@@ -671,7 +671,32 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       shape: BoxShape.circle,
                                                     ),
                                                     constraints:
-                                                                                         // Row 2: Stadium Pill-Shaped White Search Input
+                                                        const BoxConstraints(
+                                                      minWidth: 16,
+                                                      minHeight: 16,
+                                                    ),
+                                                    child: Text(
+                                                      '${appState.totalItemCount}',
+                                                      style: const TextStyle(
+                                                        color: Color(0xFFFF5216),
+                                                        fontSize: 10,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 14),
                                 Container(
                                   height: 46,
                                   padding: const EdgeInsets.symmetric(
