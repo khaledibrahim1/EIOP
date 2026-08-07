@@ -19,6 +19,7 @@ import 'parcel_delivery_screen.dart';
 import 'pharmacy_screen.dart';
 import 'real_estate_screen.dart';
 import 'restaurant_details_screen.dart';
+import 'restaurants_screen.dart';
 import 'supermarket_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -184,7 +185,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onSelectServiceCategory(ServiceCategory cat) {
     switch (cat) {
       case ServiceCategory.food:
-        setState(() => _selectedCatId = '');
+        Navigator.push(
+            context, MaterialPageRoute(builder: (_) => const RestaurantsScreen()));
         break;
       case ServiceCategory.supermarket:
         Navigator.push(
@@ -827,14 +829,19 @@ class _HomeScreenState extends State<HomeScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                'خدمات سريعة بنقرة واحدة',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w900,
-                                  color: AppColors.textPrimary,
+                              Expanded(
+                                child: Text(
+                                  'خدمات سريعة بنقرة واحدة',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w900,
+                                    color: AppColors.textPrimary,
+                                  ),
                                 ),
                               ),
+                              const SizedBox(width: 8),
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 8, vertical: 3),

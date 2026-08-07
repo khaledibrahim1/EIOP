@@ -155,7 +155,7 @@ class AppStateNotifier extends ChangeNotifier {
       phoneNumber: 'طلب خاص',
       totalAmount: fee,
       items: [],
-      captainName: captainName ?? 'كابتن محمود السوهاجي',
+      captainName: captainName ?? 'كابتن محمود السوهاجي (جرجا)',
       captainPhone: captainPhone ?? '01098765432',
       orderTime: DateTime.now(),
     );

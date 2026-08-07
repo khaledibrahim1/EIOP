@@ -1,5 +1,6 @@
 class SupermarketItem {
   final String id;
+  final String? storeId;
   final String title;
   final String category;
   final double price;
@@ -12,6 +13,7 @@ class SupermarketItem {
 
   const SupermarketItem({
     required this.id,
+    this.storeId,
     required this.title,
     required this.category,
     required this.price,
