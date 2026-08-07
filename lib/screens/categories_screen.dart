@@ -174,15 +174,19 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             top: false,
             child: Column(
               children: [
-                // Top Header Container
+                // Top Header Container (Light Lime Green Theme)
                 Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    gradient: AppColors.headerFadeGradient,
+                    color: const Color(0xFFD9F99D),
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(24),
+                      bottomRight: Radius.circular(24),
+                    ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 10,
+                        color: const Color(0xFFD9F99D).withValues(alpha: 0.4),
+                        blurRadius: 14,
                         offset: const Offset(0, 4),
                       ),
                     ],
@@ -190,7 +194,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   child: SafeArea(
                     bottom: false,
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -200,12 +204,12 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
+                                  const Text(
                                     'أقسام الخدمات',
                                     style: TextStyle(
                                       fontSize: 22,
                                       fontWeight: FontWeight.w900,
-                                      color: AppColors.textPrimary,
+                                      color: Color(0xFF1E1E2D),
                                     ),
                                   ),
                                   const SizedBox(height: 2),
@@ -213,21 +217,23 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                     'استكشف أفضل العروض والخدمات بالمدينة',
                                     style: TextStyle(
                                       fontSize: 12,
-                                      color: AppColors.textSecondary,
+                                      color: const Color(0xFF1E1E2D)
+                                          .withValues(alpha: 0.75),
+                                      fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                 ],
                               ),
                               Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary.withValues(alpha: 0.1),
+                                padding: const EdgeInsets.all(9),
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF1E1E2D),
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(
                                   Icons.grid_view_rounded,
-                                  color: AppColors.primary,
-                                  size: 22,
+                                  color: Colors.white,
+                                  size: 20,
                                 ),
                               ),
                             ],
@@ -239,15 +245,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                             height: 46,
                             padding: const EdgeInsets.symmetric(horizontal: 14),
                             decoration: BoxDecoration(
-                              color: AppColors.surface,
+                              color: Colors.white,
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: AppColors.textLight.withValues(alpha: 0.2),
-                                width: 1,
-                              ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.03),
+                                  color: Colors.black.withValues(alpha: 0.06),
                                   blurRadius: 8,
                                   offset: const Offset(0, 3),
                                 ),
@@ -255,9 +257,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                             ),
                             child: Row(
                               children: [
-                                Icon(
+                                const Icon(
                                   Icons.search_rounded,
-                                  color: AppColors.textLight,
+                                  color: Color(0xFF1E1E2D),
                                   size: 20,
                                 ),
                                 const SizedBox(width: 10),
@@ -268,12 +270,16 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                         _searchQuery = val;
                                       });
                                     },
-                                    decoration: InputDecoration(
+                                    style: const TextStyle(
+                                      color: Color(0xFF1E1E2D),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    decoration: const InputDecoration(
                                       hintText:
                                           'ابحث عن قسم، مطعم، صيدلية، إلكترونيات...',
                                       hintStyle: TextStyle(
                                         fontSize: 12,
-                                        color: AppColors.textLight,
+                                        color: Colors.black45,
                                       ),
                                       border: InputBorder.none,
                                       isDense: true,
