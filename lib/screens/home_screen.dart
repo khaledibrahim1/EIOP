@@ -452,10 +452,36 @@ class _HomeScreenState extends State<HomeScreen> {
       price: 140.0,
       rating: 4.9,
       deliveryTime: '15 دقيقة',
-      description: 'سلة متكاملة من المنتجات الغذائية الفازجة والألبان وزيت الزيتون.',
+      description:
+          'سلة متكاملة من المنتجات الغذائية الطازجة والألبان وزيت الزيتون البكر الممتاز.',
       imagePath: 'assets/images/supermarket_basket.png',
-      images: ['assets/images/supermarket_basket.png'],
-      options: [],
+      images: [
+        'assets/images/supermarket_basket.png',
+        'assets/images/cat_supermarket.png',
+      ],
+      options: [
+        FoodOption(
+          id: 'sup_s',
+          title: 'سلة صغيرة (3 كجم)',
+          code: 'S',
+          priceOffset: 0.0,
+          imagePath: 'assets/images/supermarket_basket.png',
+        ),
+        FoodOption(
+          id: 'sup_m',
+          title: 'سلة متوسطة (6 كجم)',
+          code: 'M',
+          priceOffset: 45.0,
+          imagePath: 'assets/images/supermarket_basket.png',
+        ),
+        FoodOption(
+          id: 'sup_l',
+          title: 'سلة عائلية كبرى (10 كجم)',
+          code: 'L',
+          priceOffset: 90.0,
+          imagePath: 'assets/images/cat_supermarket.png',
+        ),
+      ],
       categoryId: 'supermarket',
       isPopular: true,
     ),
@@ -467,25 +493,77 @@ class _HomeScreenState extends State<HomeScreen> {
       price: 65.0,
       rating: 4.8,
       deliveryTime: '20 دقيقة',
-      description: 'عبوة فوار فيتامين C ومستلزمات الوقاية والتوصيل الفوري.',
+      description:
+          'عبوة فوار فيتامين C ومستلزمات الوقاية والمناعة مع توصيل فوري من الصيدلية.',
       imagePath: 'assets/images/pharmacy_vitamins.png',
-      images: ['assets/images/pharmacy_vitamins.png'],
-      options: [],
+      images: [
+        'assets/images/pharmacy_vitamins.png',
+        'assets/images/cat_pharmacy.png',
+      ],
+      options: [
+        FoodOption(
+          id: 'pharm_s',
+          title: 'عبوة فوار 10 أقراص',
+          code: 'S',
+          priceOffset: 0.0,
+          imagePath: 'assets/images/pharmacy_vitamins.png',
+        ),
+        FoodOption(
+          id: 'pharm_m',
+          title: 'عبوة 20 قرص + كمامات',
+          code: 'M',
+          priceOffset: 35.0,
+          imagePath: 'assets/images/pharmacy_vitamins.png',
+        ),
+        FoodOption(
+          id: 'pharm_l',
+          title: 'باكج المناعة الشامل',
+          code: 'L',
+          priceOffset: 75.0,
+          imagePath: 'assets/images/cat_pharmacy.png',
+        ),
+      ],
       categoryId: 'pharmacy',
       isPopular: true,
     ),
     FoodItem(
       id: '7',
-      title: 'سماعة بلوتوث لاسلكية',
+      title: 'سماعة بلوتوث لاسلكية Pro',
       restaurantId: 'rest_elec',
       restaurant: 'تكنو ستور جرجا',
       price: 850.0,
       rating: 4.9,
       deliveryTime: '25 دقيقة',
-      description: 'سماعة بلوتوث أصلية بصوت مجسم وعزل الضوضاء وعمر بطارية طويل.',
+      description:
+          'سماعة بلوتوث أصلية بصوت مجسم وعزل الضوضاء وعمر بطارية يدوم حتى 24 ساعة.',
       imagePath: 'assets/images/electronics_earbuds.png',
-      images: ['assets/images/electronics_earbuds.png'],
-      options: [],
+      images: [
+        'assets/images/electronics_earbuds.png',
+        'assets/images/cat_electronics.png',
+      ],
+      options: [
+        FoodOption(
+          id: 'elec_black',
+          title: 'أسود ملكي',
+          code: 'Black',
+          priceOffset: 0.0,
+          imagePath: 'assets/images/electronics_earbuds.png',
+        ),
+        FoodOption(
+          id: 'elec_white',
+          title: 'أبيض لؤلؤي',
+          code: 'White',
+          priceOffset: 0.0,
+          imagePath: 'assets/images/cat_electronics.png',
+        ),
+        FoodOption(
+          id: 'elec_pro',
+          title: 'إصدار Pro + جراب',
+          code: 'Pro',
+          priceOffset: 120.0,
+          imagePath: 'assets/images/electronics_earbuds.png',
+        ),
+      ],
       categoryId: 'electronics',
       isPopular: true,
     ),
@@ -497,10 +575,43 @@ class _HomeScreenState extends State<HomeScreen> {
       price: 490.0,
       rating: 4.8,
       deliveryTime: '30 دقيقة',
-      description: 'قميص كاجوال رجالي قطن 100% بتصميم صيفي مريح.',
+      description:
+          'قميص كاجوال رجالي قطن مصري 100% بتصميم صيفي مريح وألوان متعددة.',
       imagePath: 'assets/images/fashion_shirt.png',
-      images: ['assets/images/fashion_shirt.png'],
-      options: [],
+      images: [
+        'assets/images/fashion_shirt.png',
+        'assets/images/cat_fashion.png',
+      ],
+      options: [
+        FoodOption(
+          id: 'fas_m',
+          title: 'مقاس M',
+          code: 'M',
+          priceOffset: 0.0,
+          imagePath: 'assets/images/fashion_shirt.png',
+        ),
+        FoodOption(
+          id: 'fas_l',
+          title: 'مقاس L',
+          code: 'L',
+          priceOffset: 0.0,
+          imagePath: 'assets/images/fashion_shirt.png',
+        ),
+        FoodOption(
+          id: 'fas_xl',
+          title: 'مقاس XL',
+          code: 'XL',
+          priceOffset: 0.0,
+          imagePath: 'assets/images/cat_fashion.png',
+        ),
+        FoodOption(
+          id: 'fas_xxl',
+          title: 'مقاس XXL',
+          code: 'XXL',
+          priceOffset: 20.0,
+          imagePath: 'assets/images/fashion_shirt.png',
+        ),
+      ],
       categoryId: 'fashion',
       isPopular: true,
     ),
@@ -512,10 +623,29 @@ class _HomeScreenState extends State<HomeScreen> {
       price: 3500.0,
       rating: 4.9,
       deliveryTime: 'معاينة فورية',
-      description: 'شقة سكنية 140م تشطيب سوبر لوكس بوسط مدينة جرجا بدون وسيط.',
+      description:
+          'شقة سكنية 140م تشطيب سوبر لوكس بوسط مدينة جرجا بدون وسيط. 3 غرف وصالة واسعة.',
       imagePath: 'assets/images/realestate_apartment.png',
-      images: ['assets/images/realestate_apartment.png'],
-      options: [],
+      images: [
+        'assets/images/realestate_apartment.png',
+        'assets/images/cat_realestate.png',
+      ],
+      options: [
+        FoodOption(
+          id: 'real_1y',
+          title: 'عقد إيجار سنة',
+          code: 'سنة',
+          priceOffset: 0.0,
+          imagePath: 'assets/images/realestate_apartment.png',
+        ),
+        FoodOption(
+          id: 'real_furn',
+          title: 'شقة مفروشة بالكامل',
+          code: 'مفروشة',
+          priceOffset: 1500.0,
+          imagePath: 'assets/images/cat_realestate.png',
+        ),
+      ],
       categoryId: 'realEstate',
       isPopular: true,
     ),
@@ -527,10 +657,29 @@ class _HomeScreenState extends State<HomeScreen> {
       price: 5000.0,
       rating: 4.8,
       deliveryTime: 'تقديم مباشر',
-      description: 'فرصة عمل ممتازة بدوام كامل للمحاسبين بمدينة جرجا.',
+      description:
+          'فرصة عمل ممتازة بدوام كامل للمحاسبين بمدينة جرجا. راتب مجزي وحوافز أسبوعية.',
       imagePath: 'assets/images/job_opportunity.png',
-      images: ['assets/images/job_opportunity.png'],
-      options: [],
+      images: [
+        'assets/images/job_opportunity.png',
+        'assets/images/cat_jobs.png',
+      ],
+      options: [
+        FoodOption(
+          id: 'job_ft',
+          title: 'دوام كامل (Full-time)',
+          code: 'Full',
+          priceOffset: 0.0,
+          imagePath: 'assets/images/job_opportunity.png',
+        ),
+        FoodOption(
+          id: 'job_pt',
+          title: 'دوام جزئي (Part-time)',
+          code: 'Part',
+          priceOffset: -1500.0,
+          imagePath: 'assets/images/cat_jobs.png',
+        ),
+      ],
       categoryId: 'jobs',
       isPopular: true,
     ),
@@ -1332,58 +1481,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onDishTap(FoodItem food) {
-    switch (food.categoryId) {
-      case 'realEstate':
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const RealEstateScreen()),
-        );
-        break;
-      case 'jobs':
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const JobsScreen()),
-        );
-        break;
-      case 'parcelDelivery':
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const ParcelDeliveryScreen()),
-        );
-        break;
-      case 'supermarket':
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const SupermarketScreen()),
-        );
-        break;
-      case 'pharmacy':
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const PharmacyScreen()),
-        );
-        break;
-      case 'electronics':
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const ElectronicsScreen()),
-        );
-        break;
-      case 'fashion':
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const FashionScreen()),
-        );
-        break;
-      default:
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => FoodDetailsScreen(food: food),
-          ),
-        );
-        break;
-    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FoodDetailsScreen(food: food),
+      ),
+    );
   }
 
   Widget _buildTalabatCategoryCard({

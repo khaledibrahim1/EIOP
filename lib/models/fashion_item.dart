@@ -1,3 +1,5 @@
+import 'food_item.dart';
+
 class FashionItem {
   final String id;
   final String title;
@@ -32,6 +34,22 @@ class FashionItem {
     this.isNew = false,
     this.isBestSeller = false,
   });
+
+  FoodItem toFoodItem() {
+    return FoodItem(
+      id: id,
+      title: title,
+      restaurantId: 'fashion_store',
+      restaurant: storeName,
+      price: price,
+      rating: rating,
+      deliveryTime: '30-45 دقيقة',
+      description: '$brand • $specs\n\nمتوفر لدى $storeName.',
+      imagePath: imagePath,
+      categoryId: 'fashion',
+      options: availableSizes.map((s) => FoodOption(id: s, title: 'مقاس $s', code: s)).toList(),
+    );
+  }
 }
 
 class FashionStoreModel {

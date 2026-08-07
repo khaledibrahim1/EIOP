@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import '../models/cart_state.dart';
+import '../models/food_item.dart';
 import '../models/supermarket_item.dart';
 import '../models/supermarket_store.dart';
 import '../theme/app_colors.dart';
 import '../widgets/multi_service_product_card.dart';
 import '../widgets/promo_banner.dart';
+import 'food_details_screen.dart';
 import 'supermarket_details_screen.dart';
 
 class SupermarketScreen extends StatefulWidget {
@@ -706,16 +708,38 @@ class _SupermarketScreenState extends State<SupermarketScreen> {
             ),
             itemBuilder: (context, index) {
               final item = products[index];
-              return MultiServiceProductCard(
-                id: item.id,
-                title: item.title,
-                subtitle: '${item.storeName} • ${item.unit}',
-                price: item.price,
-                oldPrice: item.oldPrice,
-                imagePath: item.imagePath,
-                accentColor: emeraldColor,
-                categoryTag: item.category,
-                rating: item.rating,
+              return GestureDetector(
+                onTap: () {
+                  final foodAdapter = FoodItem(
+                    id: item.id,
+                    title: item.title,
+                    restaurantId: 'super_1',
+                    restaurant: item.storeName,
+                    price: item.price,
+                    rating: item.rating,
+                    deliveryTime: '15-20 دقيقة',
+                    description: 'منتج بقالة وسوبرماركت طازج: ${item.title} من ${item.storeName}.',
+                    imagePath: item.imagePath,
+                    categoryId: 'supermarket',
+                  );
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => FoodDetailsScreen(food: foodAdapter),
+                    ),
+                  );
+                },
+                child: MultiServiceProductCard(
+                  id: item.id,
+                  title: item.title,
+                  subtitle: '${item.storeName} • ${item.unit}',
+                  price: item.price,
+                  oldPrice: item.oldPrice,
+                  imagePath: item.imagePath,
+                  accentColor: emeraldColor,
+                  categoryTag: item.category,
+                  rating: item.rating,
+                ),
               );
             },
           ),

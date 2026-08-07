@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import '../models/food_item.dart';
 import '../models/job_item.dart';
 import '../theme/app_colors.dart';
 import '../widgets/job_card.dart';
+import 'food_details_screen.dart';
 import 'main_layout_screen.dart';
 
 class JobsScreen extends StatefulWidget {
@@ -170,417 +172,42 @@ class _JobsScreenState extends State<JobsScreen> {
   }
 
   void _showJobDetailsModal(BuildContext context, JobItem job) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return DefaultTabController(
-          length: 3,
-          child: Container(
-            height: MediaQuery.of(context).size.height * 0.85,
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(28)),
-            ),
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Top Indicator & Navigation Bar
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_rounded, size: 20),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                    Expanded(
-                      child: Text(
-                        job.companyName,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.bookmark_border_rounded,
-                          color: Color(0xFF10B981)),
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('تم حفظ الوظيفة في المفضلة'),
-                            backgroundColor: Color(0xFF10B981),
-                            duration: Duration(seconds: 1),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-
-                // Company Logo & Job Title Header
-                Center(
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          color: job.companyLogoBg.withValues(alpha: 0.12),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          job.companyLogoIcon,
-                          color: job.companyLogoBg,
-                          size: 32,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        job.title,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${job.companyName} • ${job.location}',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // 3 Stats Metrics Box (Matches Screen 2 in UI Kit Image)
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  decoration: BoxDecoration(
-                    color: AppColors.cardBg,
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Expanded(child: _buildMetricStat('الراتب', job.salaryRange)),
-                      Container(
-                          width: 1, height: 28, color: AppColors.textSecondary.withValues(alpha: 0.2)),
-                      Expanded(child: _buildMetricStat('المتقدمين', '${job.applicationsCount} طلب')),
-                      Container(
-                          width: 1, height: 28, color: AppColors.textSecondary.withValues(alpha: 0.2)),
-                      Expanded(child: _buildMetricStat('نوع العمل', job.jobType.split('/')[0])),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 18),
-
-                // Segmented Tab Bar [المتطلبات | عن الشركة | التقييمات]
-                TabBar(
-                  labelColor: const Color(0xFF10B981),
-                  unselectedLabelColor: AppColors.textSecondary,
-                  indicatorColor: const Color(0xFF10B981),
-                  indicatorWeight: 3,
-                  labelStyle: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 13.5),
-                  tabs: const [
-                    Tab(text: 'المتطلبات'),
-                    Tab(text: 'عن الوظيفة'),
-                    Tab(text: 'التقييمات'),
-                  ],
-                ),
-                const SizedBox(height: 14),
-
-                // Tab Content Body
-                Expanded(
-                  child: TabBarView(
-                    children: [
-                      // Tab 1: Requirements & Responsibilities
-                      SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'الشروط والمتطلبات:',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            ...job.requirements.map((req) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 8),
-                                  child: Row(
-                                    children: [
-                                      const Icon(Icons.check_circle_rounded,
-                                          size: 16, color: Color(0xFF10B981)),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Text(
-                                          req,
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            color: AppColors.textPrimary,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                )),
-                            const SizedBox(height: 14),
-                            if (job.responsibilities.isNotEmpty) ...[
-                              Text(
-                                'المهام والمسؤوليات:',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              ...job.responsibilities.map((resp) => Padding(
-                                    padding: const EdgeInsets.only(bottom: 8),
-                                    child: Row(
-                                      children: [
-                                        const Icon(
-                                            Icons.arrow_right_alt_rounded,
-                                            size: 18,
-                                            color: Color(0xFF10B981)),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: Text(
-                                            resp,
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              color: AppColors.textSecondary,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  )),
-                            ],
-                          ],
-                        ),
-                      ),
-
-                      // Tab 2: About Company & Job
-                      SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'وصف الوظيفة:',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              job.description,
-                              style: TextStyle(
-                                fontSize: 13.5,
-                                color: AppColors.textSecondary,
-                                height: 1.5,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: OutlinedButton.icon(
-                                    onPressed: () {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                              'اتصال بالمؤسسة: ${job.contactPhone}'),
-                                          backgroundColor:
-                                              const Color(0xFF10B981),
-                                        ),
-                                      );
-                                    },
-                                    icon: const Icon(Icons.phone_rounded,
-                                        size: 16, color: Color(0xFF10B981)),
-                                    label: const Text(
-                                      'اتصال مباشر',
-                                      style: TextStyle(
-                                        color: Color(0xFF10B981),
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    style: OutlinedButton.styleFrom(
-                                      side: const BorderSide(
-                                          color: Color(0xFF10B981)),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: OutlinedButton.icon(
-                                    onPressed: () {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                              'واتساب: ${job.contactWhatsApp}'),
-                                          backgroundColor:
-                                              const Color(0xFF25D366),
-                                        ),
-                                      );
-                                    },
-                                    icon: const Icon(Icons.chat_rounded,
-                                        size: 16, color: Color(0xFF25D366)),
-                                    label: const Text(
-                                      'مراسلة واتساب',
-                                      style: TextStyle(
-                                        color: Color(0xFF25D366),
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    style: OutlinedButton.styleFrom(
-                                      side: const BorderSide(
-                                          color: Color(0xFF25D366)),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Tab 3: Reviews & Ratings (Matches Donut Chart in UI Kit)
-                      SingleChildScrollView(
-                        child: Column(
-                          children: [
-                            const SizedBox(height: 10),
-                            Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                SizedBox(
-                                  width: 100,
-                                  height: 100,
-                                  child: CircularProgressIndicator(
-                                    value: job.companyReviewPercent / 100,
-                                    strokeWidth: 10,
-                                    backgroundColor: AppColors.cardBg,
-                                    color: const Color(0xFF10B981),
-                                  ),
-                                ),
-                                Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      '${job.companyReviewPercent}%',
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.textPrimary,
-                                      ),
-                                    ),
-                                    const Text(
-                                      'رضا الموظفين',
-                                      style: TextStyle(
-                                          fontSize: 10, color: Colors.grey),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.star_rounded,
-                                    color: Colors.amber, size: 20),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '${job.companyRating} من 5 (ممتاز)',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textPrimary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Sticky Bottom Apply Button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      _showApplyFlowModal(context, job);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF10B981),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: const Text(
-                      'قدّم على هذه الوظيفة الآن',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildMetricStat(String title, String value) {
-    return Column(
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 11,
-            color: AppColors.textSecondary,
-          ),
+    final foodAdapter = FoodItem(
+      id: job.id,
+      title: job.title,
+      restaurantId: 'job_1',
+      restaurant: job.companyName,
+      price: 5000.0,
+      rating: job.companyRating,
+      deliveryTime: 'تقديم مباشر',
+      description:
+          'شركة ${job.companyName} • الموقع: ${job.location}\nالراتب: ${job.salaryRange}\n\nالوصف:\n${job.description}\n\nالشروط والمتطلبات:\n${job.requirements.join('\n• ')}',
+      imagePath: 'assets/images/job_opportunity.png',
+      images: const [
+        'assets/images/job_opportunity.png',
+        'assets/images/cat_jobs.png',
+      ],
+      categoryId: 'jobs',
+      options: const [
+        FoodOption(
+          id: 'j_1',
+          title: 'دوام كامل (Full-time)',
+          code: 'Full',
+          priceOffset: 0.0,
         ),
-        const SizedBox(height: 3),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-          ),
+        FoodOption(
+          id: 'j_2',
+          title: 'دوام جزئي (Part-time)',
+          code: 'Part',
+          priceOffset: -1500.0,
         ),
       ],
+    );
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => FoodDetailsScreen(food: foodAdapter),
+      ),
     );
   }
 
@@ -971,21 +598,21 @@ class _JobsScreenState extends State<JobsScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
+                              Wrap(
+                                crossAxisAlignment: WrapCrossAlignment.center,
                                 children: [
                                   Text(
-                                    "Let's Find a Job",
+                                    "Let's Find a Job ",
                                     style: TextStyle(
-                                      fontSize: 19,
+                                      fontSize: 17,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.textPrimary,
                                     ),
                                   ),
-                                  const SizedBox(width: 5),
                                   const Text(
                                     'With EIOP',
                                     style: TextStyle(
-                                      fontSize: 19,
+                                      fontSize: 17,
                                       fontWeight: FontWeight.bold,
                                       color: Color(0xFF10B981),
                                     ),

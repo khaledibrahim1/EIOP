@@ -5,6 +5,7 @@ import '../models/pharmacy_item.dart';
 import '../models/pharmacy_store.dart';
 import '../theme/app_colors.dart';
 import '../widgets/promo_banner.dart';
+import 'food_details_screen.dart';
 import 'location_picker_screen.dart';
 
 class PharmacyScreen extends StatefulWidget {
@@ -235,113 +236,23 @@ class _PharmacyScreenState extends State<PharmacyScreen> {
   }
 
   void _showImagePreviewDialog(PharmacyItem item) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(24),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        item.title,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close_rounded),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Image.asset(
-                    item.imagePath,
-                    height: 200,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      height: 180,
-                      color: AppColors.cardBg,
-                      child: const Icon(Icons.local_pharmacy,
-                          size: 64, color: Color(0xFF06B6D4)),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 14),
-                Text(
-                  item.description,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: AppColors.textSecondary,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF06B6D4),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                    onPressed: () {
-                      final foodAdapter = FoodItem(
-                        id: item.id,
-                        title: item.title,
-                        restaurantId: 'pharm_1',
-                        restaurant: item.pharmacyName,
-                        price: item.price,
-                        rating: item.rating,
-                        deliveryTime: '15-20 دقيقة',
-                        description: item.description,
-                        imagePath: item.imagePath,
-                        categoryId: 'pharmacy',
-                      );
-                      appState.addToCart(foodAdapter, quantity: 1);
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('تم إضافة ${item.title} للسلة 🛒'),
-                          backgroundColor: const Color(0xFF06B6D4),
-                          duration: const Duration(seconds: 1),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.add_shopping_cart_rounded,
-                        color: Colors.white, size: 18),
-                    label: Text(
-                      'إضافة لسلة الدواء • ${item.price.toStringAsFixed(0)} ج.م',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+    final foodAdapter = FoodItem(
+      id: item.id,
+      title: item.title,
+      restaurantId: 'pharm_1',
+      restaurant: item.pharmacyName,
+      price: item.price,
+      rating: item.rating,
+      deliveryTime: '15-20 دقيقة',
+      description: item.description,
+      imagePath: item.imagePath,
+      categoryId: 'pharmacy',
+    );
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => FoodDetailsScreen(food: foodAdapter),
+      ),
     );
   }
 

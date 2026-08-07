@@ -364,7 +364,7 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen>
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      'تفاصيل الوجبة',
+                      'تفاصيل المنتج',
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
@@ -544,7 +544,7 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'اختر الحجم',
+          'اختر الخيار / المقاس',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
