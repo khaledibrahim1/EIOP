@@ -6,6 +6,7 @@ import 'cart_screen.dart';
 import 'categories_screen.dart';
 import 'favorites_screen.dart';
 import 'home_screen.dart';
+import 'onboarding_screen.dart';
 import 'order_tracking_screen.dart';
 
 class MainLayoutScreen extends StatefulWidget {
@@ -22,6 +23,79 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
     setState(() {
       _currentTabIndex = index;
     });
+  }
+
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Row(
+            children: [
+              Icon(
+                Icons.logout_rounded,
+                color: Colors.redAccent,
+                size: 24,
+              ),
+              SizedBox(width: 10),
+              Text(
+                'تسجيل الخروج',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          content: const Text(
+            'هل أنت متاكد من إرادتك لتسجيل الخروج والعودة لصفحة الترحيب؟',
+            style: TextStyle(
+              fontSize: 13,
+              height: 1.4,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                'إلغاء',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (_) => const OnboardingScreen(),
+                  ),
+                  (route) => false,
+                );
+              },
+              child: const Text(
+                'تسجيل الخروج',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -427,6 +501,13 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
                       subtitle: 'تواصل معنا على مدار الساعة',
                       onTap: () {},
                     ),
+                    _buildProfileTile(
+                      icon: Icons.logout_rounded,
+                      title: 'تسجيل الخروج',
+                      subtitle: 'العودة لصفحة الترحيب الرئيسية',
+                      isDestructive: true,
+                      onTap: _showLogoutDialog,
+                    ),
                   ],
                 ),
               ),
@@ -442,7 +523,11 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
     required String title,
     required String subtitle,
     required VoidCallback onTap,
+    bool isDestructive = false,
   }) {
+    final primaryColor = isDestructive ? Colors.redAccent : AppColors.primary;
+    final titleColor = isDestructive ? Colors.redAccent : AppColors.textPrimary;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
@@ -462,12 +547,12 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.08),
+            color: primaryColor.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(
             icon,
-            color: AppColors.primary,
+            color: primaryColor,
             size: 22,
           ),
         ),
@@ -476,7 +561,7 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+            color: titleColor,
           ),
         ),
         subtitle: Text(
@@ -489,10 +574,11 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
         trailing: Icon(
           Icons.arrow_forward_ios_rounded,
           size: 14,
-          color: AppColors.textLight,
+          color: isDestructive ? Colors.redAccent : AppColors.textLight,
         ),
       ),
     );
   }
 }
+
 

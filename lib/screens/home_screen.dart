@@ -35,6 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String _selectedLocationName = 'مار جرجس (جرجا)';
   String _selectedCatId = '';
   String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
 
   String get _displayLocationName {
     final loc = _selectedLocationName;
@@ -179,6 +180,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _headerColorTimer.cancel();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -695,8 +697,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ],
                                 ),
                                 const SizedBox(height: 14),
-
-                                // Row 2: Stadium Pill-Shaped White Search Input
                                 Container(
                                   height: 46,
                                   padding: const EdgeInsets.symmetric(
@@ -723,16 +723,32 @@ class _HomeScreenState extends State<HomeScreen> {
                                       const SizedBox(width: 10),
                                       Expanded(
                                         child: TextField(
+                                          controller: _searchController,
                                           onChanged: (val) => setState(
                                               () => _searchQuery = val),
-                                          decoration: const InputDecoration(
+                                          decoration: InputDecoration(
                                             hintText:
                                                 'ابحث عن وجبات، سوبرماركت، صيدلية، عقارات...',
-                                            hintStyle: TextStyle(
+                                            hintStyle: const TextStyle(
                                               color: Colors.grey,
                                               fontSize: 12,
                                             ),
                                             border: InputBorder.none,
+                                            suffixIcon: _searchQuery.isNotEmpty
+                                                ? IconButton(
+                                                    icon: const Icon(
+                                                      Icons.clear_rounded,
+                                                      color: Colors.grey,
+                                                      size: 18,
+                                                    ),
+                                                    onPressed: () {
+                                                      setState(() {
+                                                        _searchQuery = '';
+                                                        _searchController.clear();
+                                                      });
+                                                    },
+                                                  )
+                                                : null,
                                           ),
                                         ),
                                       ),
@@ -746,498 +762,565 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
 
-                    // 2. CITY SERVICES CAROUSEL ("ماذا تريد الآن؟" - TALABAT SQUIRCLE CARDS)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      child: SizedBox(
-                        height: 100,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          physics: const BouncingScrollPhysics(),
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                    // IF USER IS SEARCHING: HIDE EVERYTHING AND SHOW ONLY SEARCH RESULTS
+                    if (_searchQuery.trim().isNotEmpty) ...[
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildTalabatCategoryCard(
-                              title: 'مطاعم',
-                              imagePath: 'assets/images/cat_burger.png',
-                              category: ServiceCategory.food,
-                            ),
-                            _buildTalabatCategoryCard(
-                              title: 'سوبر ماركت',
-                              imagePath: 'assets/images/cat_supermarket.png',
-                              category: ServiceCategory.supermarket,
-                            ),
-                            _buildTalabatCategoryCard(
-                              title: 'صيدليات',
-                              imagePath: 'assets/images/cat_pharmacy.png',
-                              category: ServiceCategory.pharmacy,
-                            ),
-                            _buildTalabatCategoryCard(
-                              title: 'مرسول طرود',
-                              imagePath: 'assets/images/cat_parcel.png',
-                              category: ServiceCategory.parcelDelivery,
-                            ),
-                            _buildTalabatCategoryCard(
-                              title: 'إلكترونيات',
-                              imagePath: 'assets/images/cat_electronics.png',
-                              category: ServiceCategory.electronics,
-                            ),
-                            _buildTalabatCategoryCard(
-                              title: 'أزياء وموضة',
-                              imagePath: 'assets/images/cat_fashion.png',
-                              badgeText: 'خصم 15%',
-                              category: ServiceCategory.fashion,
-                            ),
-                            _buildTalabatCategoryCard(
-                              title: 'عقارات',
-                              imagePath: 'assets/images/cat_realestate.png',
-                              category: ServiceCategory.realEstate,
-                            ),
-                            _buildTalabatCategoryCard(
-                              title: 'وظائف اليوم',
-                              imagePath: 'assets/images/cat_jobs.png',
-                              category: ServiceCategory.jobs,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    // 3. HERO PROMO BANNER CAROUSEL
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: PromoBanner(
-                        onTasteNow: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => RestaurantDetailsScreen(
-                                restaurant: _girgaRestaurants[1],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // 4. CITY FAST ACTIONS HUB ("خدمات سريعة بنقرة واحدة بالمدينة ⚡")
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  'خدمات سريعة بنقرة واحدة',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w900,
-                                    color: AppColors.textPrimary,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFFF5216)
-                                      .withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Text(
-                                  'توصيل فوري بالمدينة',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFFFF5216),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-
-                          Row(
-                            children: [
-                              // Action 1: Upload Prescription
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => const PharmacyScreen(),
-                                      ),
-                                    );
-                                  },
-                                  child: _buildCityFeatureCard(
-                                    imagePath: 'assets/images/pharmacy_vitamins.png',
-                                    title: 'رفع روشتة دواء',
-                                    subtitle: 'صيدلية وتوصيل 20 د',
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-
-                              // Action 2: Parcel Courier Express
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            const ParcelDeliveryScreen(),
-                                      ),
-                                    );
-                                  },
-                                  child: _buildCityFeatureCard(
-                                    imagePath: 'assets/images/cat_parcel.png',
-                                    title: 'طلب مرسول طرد',
-                                    subtitle: 'إرسال واستلام أي شيء',
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-
-                          Row(
-                            children: [
-                              // Action 3: Real Estate Deals
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            const RealEstateScreen(),
-                                      ),
-                                    );
-                                  },
-                                  child: _buildCityFeatureCard(
-                                    imagePath:
-                                        'assets/images/realestate_apartment.png',
-                                    title: 'عقارات بدون وسيط',
-                                    subtitle: '12 شقة ومحل جديد',
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-
-                              // Action 4: Jobs & Opportunities
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => const JobsScreen(),
-                                      ),
-                                    );
-                                  },
-                                  child: _buildCityFeatureCard(
-                                    imagePath:
-                                        'assets/images/job_opportunity.png',
-                                    title: 'وظائف اليوم',
-                                    subtitle: 'تقديم مباشر فوراً',
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // 5. EIOP CITY EXPRESS PARCEL BANNER (HOLLOW / RECESSED BORDERED DESIGN)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const ParcelDeliveryScreen(),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          height: 88,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(22),
-                            color: Colors.transparent,
-                            border: Border.all(
-                              color: const Color(0xFFFF5216),
-                              width: 1.5,
-                            ),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 12),
-                            child: Row(
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Expanded(
-                                  child: Row(
+                                  child: Text(
+                                    'نتائج البحث عن "${_searchQuery.trim()}" (${_filteredDishes.length})',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                ),
+                                TextButton.icon(
+                                  onPressed: () {
+                                    setState(() {
+                                      _searchQuery = '';
+                                      _searchController.clear();
+                                    });
+                                  },
+                                  icon: const Icon(
+                                    Icons.close_rounded,
+                                    size: 16,
+                                    color: AppColors.primary,
+                                  ),
+                                  label: const Text(
+                                    'إلغاء البحث',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 14),
+                            if (_filteredDishes.isEmpty)
+                              Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 40),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(10),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFFF5216),
-                                          shape: BoxShape.circle,
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: const Color(0xFFFF5216)
-                                                  .withValues(alpha: 0.35),
-                                              blurRadius: 8,
-                                              offset: const Offset(0, 3),
-                                            ),
-                                          ],
-                                        ),
-                                        child: const Icon(
-                                          Icons.two_wheeler_rounded,
-                                          color: Colors.white,
-                                          size: 22,
+                                      Icon(
+                                        Icons.search_off_rounded,
+                                        size: 64,
+                                        color: AppColors.textLight,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        'لا توجد نتائج تطابق "${_searchQuery.trim()}"',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: AppColors.textSecondary,
+                                          fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Text(
-                                              'مرسول جرجا الشامل',
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                color: AppColors.textPrimary,
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w900,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 3),
-                                            Text(
-                                              'نقل طرود ومفاتيح بالمدينة',
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                color: AppColors.textSecondary,
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                          ],
+                                      const SizedBox(height: 14),
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            _searchQuery = '';
+                                            _searchController.clear();
+                                          });
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: AppColors.primary,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(14),
+                                          ),
+                                        ),
+                                        child: const Text(
+                                          'إعادة عرض جميع الخدمات',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
-                                const SizedBox(width: 10),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            const ParcelDeliveryScreen(),
-                                      ),
-                                    );
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFFFF5216),
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20),
+                              )
+                            else
+                              GridView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                gridDelegate:
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  childAspectRatio: 0.60,
+                                  crossAxisSpacing: 14,
+                                  mainAxisSpacing: 14,
+                                ),
+                                itemCount: _filteredDishes.length,
+                                itemBuilder: (context, index) {
+                                  final food = _filteredDishes[index];
+                                  return FoodCard(
+                                    food: food,
+                                    onTap: () => _onDishTap(food),
+                                    onPlaceOrder: () {
+                                      appState.addToCart(food, quantity: 1);
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                              'تم إضافة "${food.title}" إلى السلة!'),
+                                          backgroundColor:
+                                              const Color(0xFFFF5216),
+                                          duration: const Duration(seconds: 1),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            const SizedBox(height: 20),
+                          ],
+                        ),
+                      ),
+                    ] else ...[
+                      // 2. CITY SERVICES CAROUSEL ("ماذا تريد الآن؟" - TALABAT SQUIRCLE CARDS)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: SizedBox(
+                          height: 100,
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            physics: const BouncingScrollPhysics(),
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            children: [
+                              _buildTalabatCategoryCard(
+                                title: 'مطاعم',
+                                imagePath: 'assets/images/cat_burger.png',
+                                category: ServiceCategory.food,
+                              ),
+                              _buildTalabatCategoryCard(
+                                title: 'سوبر ماركت',
+                                imagePath: 'assets/images/cat_supermarket.png',
+                                category: ServiceCategory.supermarket,
+                              ),
+                              _buildTalabatCategoryCard(
+                                title: 'صيدليات',
+                                imagePath: 'assets/images/cat_pharmacy.png',
+                                category: ServiceCategory.pharmacy,
+                              ),
+                              _buildTalabatCategoryCard(
+                                title: 'مرسول طرود',
+                                imagePath: 'assets/images/cat_parcel.png',
+                                category: ServiceCategory.parcelDelivery,
+                              ),
+                              _buildTalabatCategoryCard(
+                                title: 'إلكترونيات',
+                                imagePath: 'assets/images/cat_electronics.png',
+                                category: ServiceCategory.electronics,
+                              ),
+                              _buildTalabatCategoryCard(
+                                title: 'أزياء وموضة',
+                                imagePath: 'assets/images/cat_fashion.png',
+                                badgeText: 'خصم 15%',
+                                category: ServiceCategory.fashion,
+                              ),
+                              _buildTalabatCategoryCard(
+                                title: 'عقارات',
+                                imagePath: 'assets/images/cat_realestate.png',
+                                category: ServiceCategory.realEstate,
+                              ),
+                              _buildTalabatCategoryCard(
+                                title: 'وظائف اليوم',
+                                imagePath: 'assets/images/cat_jobs.png',
+                                category: ServiceCategory.jobs,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      // 3. HERO PROMO BANNER CAROUSEL
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: PromoBanner(
+                          onTasteNow: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => RestaurantDetailsScreen(
+                                  restaurant: _girgaRestaurants[1],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // 4. CITY FAST ACTIONS HUB ("خدمات سريعة بنقرة واحدة بالمدينة ⚡")
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    'خدمات سريعة بنقرة واحدة',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w900,
+                                      color: AppColors.textPrimary,
                                     ),
-                                    elevation: 2,
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 16, vertical: 10),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFF5216)
+                                        .withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: const Text(
-                                    'اطلب الآن',
+                                    'توصيل فوري بالمدينة',
                                     style: TextStyle(
-                                      fontSize: 11,
+                                      fontSize: 10,
                                       fontWeight: FontWeight.bold,
+                                      color: Color(0xFFFF5216),
                                     ),
                                   ),
                                 ),
                               ],
+                            ),
+                            const SizedBox(height: 12),
+
+                            Row(
+                              children: [
+                                // Action 1: Upload Prescription
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => const PharmacyScreen(),
+                                        ),
+                                      );
+                                    },
+                                    child: _buildCityFeatureCard(
+                                      imagePath: 'assets/images/pharmacy_vitamins.png',
+                                      title: 'رفع روشتة دواء',
+                                      subtitle: 'صيدلية وتوصيل 20 د',
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+
+                                // Action 2: Parcel Courier Express
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const ParcelDeliveryScreen(),
+                                        ),
+                                      );
+                                    },
+                                    child: _buildCityFeatureCard(
+                                      imagePath: 'assets/images/cat_parcel.png',
+                                      title: 'طلب مرسول طرد',
+                                      subtitle: 'إرسال واستلام أي شيء',
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+
+                            Row(
+                              children: [
+                                // Action 3: Real Estate Deals
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const RealEstateScreen(),
+                                        ),
+                                      );
+                                    },
+                                    child: _buildCityFeatureCard(
+                                      imagePath:
+                                          'assets/images/realestate_apartment.png',
+                                      title: 'عقارات بدون وسيط',
+                                      subtitle: '12 شقة ومحل جديد',
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+
+                                // Action 4: Jobs & Opportunities
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => const JobsScreen(),
+                                        ),
+                                      );
+                                    },
+                                    child: _buildCityFeatureCard(
+                                      imagePath:
+                                          'assets/images/job_opportunity.png',
+                                      title: 'وظائف اليوم',
+                                      subtitle: 'تقديم مباشر فوراً',
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // 5. EIOP CITY EXPRESS PARCEL BANNER (HOLLOW / RECESSED BORDERED DESIGN)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const ParcelDeliveryScreen(),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            height: 88,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(22),
+                              color: Colors.transparent,
+                              border: Border.all(
+                                color: const Color(0xFFFF5216),
+                                width: 1.5,
+                              ),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 12),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(10),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFFF5216),
+                                            shape: BoxShape.circle,
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: const Color(0xFFFF5216)
+                                                    .withValues(alpha: 0.35),
+                                                blurRadius: 8,
+                                                offset: const Offset(0, 3),
+                                              ),
+                                            ],
+                                          ),
+                                          child: const Icon(
+                                            Icons.two_wheeler_rounded,
+                                            color: Colors.white,
+                                            size: 22,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                'مرسول جرجا الشامل',
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  color: AppColors.textPrimary,
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w900,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 3),
+                                              Text(
+                                                'نقل طرود ومفاتيح بالمدينة',
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  color: AppColors.textSecondary,
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const ParcelDeliveryScreen(),
+                                        ),
+                                      );
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFFFF5216),
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      elevation: 2,
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 10),
+                                    ),
+                                    child: const Text(
+                                      'اطلب الآن',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 24),
+                      const SizedBox(height: 24),
 
-                    // 6. POPULAR DISHES GRID
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'أبرز خدمات ومنتجات المدينة',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    _selectedCatId = '';
-                                    _searchQuery = '';
-                                  });
-                                },
-                                child: const Text(
-                                  'عرض الكل',
+                      // 6. POPULAR DISHES GRID
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'أبرز خدمات ومنتجات المدينة',
                                   style: TextStyle(
-                                    fontSize: 13,
+                                    fontSize: 18,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFFFF5216),
+                                    color: AppColors.textPrimary,
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-
-                          // Horizontal Category Filter Pills
-                          SizedBox(
-                            height: 38,
-                            child: ListView(
-                              scrollDirection: Axis.horizontal,
-                              physics: const BouncingScrollPhysics(),
-                              children: [
-                                _buildFilterChip('الكل ✨', ''),
-                                _buildFilterChip('🍕 مطاعم', 'food'),
-                                _buildFilterChip('🛒 سوبر ماركت', 'supermarket'),
-                                _buildFilterChip('💊 صيدليات', 'pharmacy'),
-                                _buildFilterChip('📱 إلكترونيات', 'electronics'),
-                                _buildFilterChip('👔 أزياء', 'fashion'),
-                                _buildFilterChip('🏠 عقارات', 'realEstate'),
-                                _buildFilterChip('💼 وظائف', 'jobs'),
+                                GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _selectedCatId = '';
+                                      _searchQuery = '';
+                                    });
+                                  },
+                                  child: const Text(
+                                    'عرض الكل',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFFFF5216),
+                                    ),
+                                  ),
+                                ),
                               ],
                             ),
-                          ),
-                          const SizedBox(height: 14),
+                            const SizedBox(height: 10),
 
-                          GridView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              childAspectRatio: 0.60,
-                              crossAxisSpacing: 14,
-                              mainAxisSpacing: 14,
+                            // Horizontal Category Filter Pills
+                            SizedBox(
+                              height: 38,
+                              child: ListView(
+                                scrollDirection: Axis.horizontal,
+                                physics: const BouncingScrollPhysics(),
+                                children: [
+                                  _buildFilterChip('الكل ✨', ''),
+                                  _buildFilterChip('🍕 مطاعم', 'food'),
+                                  _buildFilterChip('🛒 سوبر ماركت', 'supermarket'),
+                                  _buildFilterChip('💊 صيدليات', 'pharmacy'),
+                                  _buildFilterChip('📱 إلكترونيات', 'electronics'),
+                                  _buildFilterChip('👔 أزياء', 'fashion'),
+                                  _buildFilterChip('🏠 عقارات', 'realEstate'),
+                                  _buildFilterChip('💼 وظائف', 'jobs'),
+                                ],
+                              ),
                             ),
-                            itemCount: _filteredDishes.length,
-                            itemBuilder: (context, index) {
-                              final food = _filteredDishes[index];
-                              return FoodCard(
-                                food: food,
-                                onTap: () {
-                                  switch (food.categoryId) {
-                                    case 'realEstate':
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (_) =>
-                                                const RealEstateScreen()),
-                                      );
-                                      break;
-                                    case 'jobs':
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (_) => const JobsScreen()),
-                                      );
-                                      break;
-                                    case 'parcelDelivery':
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (_) =>
-                                                const ParcelDeliveryScreen()),
-                                      );
-                                      break;
-                                    case 'supermarket':
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (_) =>
-                                                const SupermarketScreen()),
-                                      );
-                                      break;
-                                    case 'pharmacy':
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (_) =>
-                                                const PharmacyScreen()),
-                                      );
-                                      break;
-                                    case 'electronics':
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (_) =>
-                                                const ElectronicsScreen()),
-                                      );
-                                      break;
-                                    case 'fashion':
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (_) =>
-                                                const FashionScreen()),
-                                      );
-                                      break;
-                                    default:
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              FoodDetailsScreen(food: food),
-                                        ),
-                                      );
-                                      break;
-                                  }
-                                },
-                                onPlaceOrder: () {
-                                  appState.addToCart(food, quantity: 1);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content:
-                                          Text('تم إضافة "${food.title}" إلى السلة!'),
-                                      backgroundColor: const Color(0xFFFF5216),
-                                      duration: const Duration(seconds: 1),
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 20),
-                        ],
+                            const SizedBox(height: 14),
+
+                            GridView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                childAspectRatio: 0.60,
+                                crossAxisSpacing: 14,
+                                mainAxisSpacing: 14,
+                              ),
+                              itemCount: _filteredDishes.length,
+                              itemBuilder: (context, index) {
+                                final food = _filteredDishes[index];
+                                return FoodCard(
+                                  food: food,
+                                  onTap: () => _onDishTap(food),
+                                  onPlaceOrder: () {
+                                    appState.addToCart(food, quantity: 1);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content:
+                                            Text('تم إضافة "${food.title}" إلى السلة!'),
+                                        backgroundColor: const Color(0xFFFF5216),
+                                        duration: const Duration(seconds: 1),
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 20),
+                          ],
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
@@ -1246,6 +1329,61 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
+  }
+
+  void _onDishTap(FoodItem food) {
+    switch (food.categoryId) {
+      case 'realEstate':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const RealEstateScreen()),
+        );
+        break;
+      case 'jobs':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const JobsScreen()),
+        );
+        break;
+      case 'parcelDelivery':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ParcelDeliveryScreen()),
+        );
+        break;
+      case 'supermarket':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const SupermarketScreen()),
+        );
+        break;
+      case 'pharmacy':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const PharmacyScreen()),
+        );
+        break;
+      case 'electronics':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ElectronicsScreen()),
+        );
+        break;
+      case 'fashion':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const FashionScreen()),
+        );
+        break;
+      default:
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => FoodDetailsScreen(food: food),
+          ),
+        );
+        break;
+    }
   }
 
   Widget _buildTalabatCategoryCard({
