@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 
@@ -22,6 +23,52 @@ class PromoOfferData {
   });
 }
 
+class PromoOfferStore {
+  static final ValueNotifier<List<PromoOfferData>> offersNotifier =
+      ValueNotifier<List<PromoOfferData>>([
+    const PromoOfferData(
+      badgeText: 'عرض ترحيبي!',
+      title: 'خصم أول طلب مطاعم وسوبرماركت',
+      subtitleText: 'خصم يصل إلى',
+      discountNum: '40',
+      footerNote: 'على جميع الأقسام | كود: EIOP40',
+      buttonText: 'احصل عليه',
+      bgImagePath: 'assets/images/hadramout_cover.png',
+    ),
+    const PromoOfferData(
+      badgeText: 'توصيل سريع!',
+      title: 'مرسول EIOP Express للطرود',
+      subtitleText: 'أجرة التوصيل تبدأ من',
+      discountNum: '15',
+      footerNote: 'نقل أمانات وطرود | في 20 دقيقة',
+      buttonText: 'ارسل طردك',
+      bgImagePath: 'assets/images/delivery_rider.png',
+    ),
+    const PromoOfferData(
+      badgeText: 'صيدليتك ببيتك!',
+      title: 'صور الروشتة ودواك يوصلك',
+      subtitleText: 'خصم على المستلزمات',
+      discountNum: '20',
+      footerNote: 'من أقرب صيدلية | رعاية متكاملة',
+      buttonText: 'ارفع روشتتك',
+      bgImagePath: 'assets/images/cat_coffee.png',
+    ),
+    const PromoOfferData(
+      badgeText: 'بدون وسيط!',
+      title: 'أفضل عقارات وشقق المدينة',
+      subtitleText: 'وفر عمولات حتى',
+      discountNum: '100',
+      footerNote: 'تواصل مباشر مع المالك فوراً',
+      buttonText: 'استكشف العقارات',
+      bgImagePath: 'assets/images/sultan_pizza_cover.png',
+    ),
+  ]);
+
+  static void addOffer(PromoOfferData offer) {
+    offersNotifier.value = [offer, ...offersNotifier.value];
+  }
+}
+
 class PromoBanner extends StatefulWidget {
   final VoidCallback onTasteNow;
 
@@ -36,45 +83,6 @@ class _PromoBannerState extends State<PromoBanner> {
   late Timer _timer;
   int _currentPage = 0;
 
-  final List<PromoOfferData> _offers = const [
-    PromoOfferData(
-      badgeText: 'عرض ترحيبي!',
-      title: 'خصم أول طلب مطاعم وسوبرماركت',
-      subtitleText: 'خصم يصل إلى',
-      discountNum: '40',
-      footerNote: 'على جميع الأقسام | كود: EIOP40',
-      buttonText: 'احصل عليه',
-      bgImagePath: 'assets/images/hadramout_cover.png',
-    ),
-    PromoOfferData(
-      badgeText: 'توصيل سريع!',
-      title: 'مرسول EIOP Express للطرود',
-      subtitleText: 'أجرة التوصيل تبدأ من',
-      discountNum: '15',
-      footerNote: 'نقل أمانات وطرود | في 20 دقيقة',
-      buttonText: 'ارسل طردك',
-      bgImagePath: 'assets/images/delivery_rider.png',
-    ),
-    PromoOfferData(
-      badgeText: 'صيدليتك ببيتك!',
-      title: 'صور الروشتة ودواك يوصلك',
-      subtitleText: 'خصم على المستلزمات',
-      discountNum: '20',
-      footerNote: 'من أقرب صيدلية | رعاية متكاملة',
-      buttonText: 'ارفع روشتتك',
-      bgImagePath: 'assets/images/cat_coffee.png',
-    ),
-    PromoOfferData(
-      badgeText: 'بدون وسيط!',
-      title: 'أفضل عقارات وشقق المدينة',
-      subtitleText: 'وفر عمولات حتى',
-      discountNum: '100',
-      footerNote: 'تواصل مباشر مع المالك فوراً',
-      buttonText: 'استكشف العقارات',
-      bgImagePath: 'assets/images/sultan_pizza_cover.png',
-    ),
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -83,12 +91,15 @@ class _PromoBannerState extends State<PromoBanner> {
     // Auto-slide carousel timer (every 4 seconds)
     _timer = Timer.periodic(const Duration(seconds: 4), (timer) {
       if (_pageController.hasClients) {
-        _currentPage = (_currentPage + 1) % _offers.length;
-        _pageController.animateToPage(
-          _currentPage,
-          duration: const Duration(milliseconds: 600),
-          curve: Curves.easeInOutCubic,
-        );
+        final offersCount = PromoOfferStore.offersNotifier.value.length;
+        if (offersCount > 0) {
+          _currentPage = (_currentPage + 1) % offersCount;
+          _pageController.animateToPage(
+            _currentPage,
+            duration: const Duration(milliseconds: 600),
+            curve: Curves.easeInOutCubic,
+          );
+        }
       }
     });
   }
@@ -100,50 +111,85 @@ class _PromoBannerState extends State<PromoBanner> {
     super.dispose();
   }
 
+  Widget _buildBannerImage(String path) {
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return Image.network(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => Container(
+          color: AppColors.primaryDark,
+        ),
+      );
+    }
+    if (File(path).existsSync()) {
+      return Image.file(
+        File(path),
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => Container(
+          color: AppColors.primaryDark,
+        ),
+      );
+    }
+    return Image.asset(
+      path,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => Container(
+        color: AppColors.primaryDark,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Main Offer Banner Card Carousel
-        SizedBox(
-          height: 175,
-          child: PageView.builder(
-            controller: _pageController,
-            onPageChanged: (index) {
-              setState(() {
-                _currentPage = index;
-              });
-            },
-            itemCount: _offers.length,
-            itemBuilder: (context, index) {
-              final offer = _offers[index];
-              return _buildOfferCard(offer);
-            },
-          ),
-        ),
-        const SizedBox(height: 12),
+    return ValueListenableBuilder<List<PromoOfferData>>(
+      valueListenable: PromoOfferStore.offersNotifier,
+      builder: (context, offers, child) {
+        if (offers.isEmpty) return const SizedBox.shrink();
 
-        // Carousel Page Indicator Dots
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(_offers.length, (index) {
-            final isSelected = _currentPage == index;
-            return AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOutCubic,
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              width: 10,
-              height: 10,
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.primary
-                    : Colors.grey.withValues(alpha: 0.3),
-                shape: BoxShape.circle,
+        return Column(
+          children: [
+            // Main Offer Banner Card Carousel
+            SizedBox(
+              height: 175,
+              child: PageView.builder(
+                controller: _pageController,
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentPage = index;
+                  });
+                },
+                itemCount: offers.length,
+                itemBuilder: (context, index) {
+                  final offer = offers[index];
+                  return _buildOfferCard(offer);
+                },
               ),
-            );
-          }),
-        ),
-      ],
+            ),
+            const SizedBox(height: 12),
+
+            // Carousel Page Indicator Dots
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(offers.length, (index) {
+                final isSelected = _currentPage == index;
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOutCubic,
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? AppColors.primary
+                        : Colors.grey.withValues(alpha: 0.3),
+                    shape: BoxShape.circle,
+                  ),
+                );
+              }),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -165,15 +211,9 @@ class _PromoBannerState extends State<PromoBanner> {
         borderRadius: BorderRadius.circular(22),
         child: Stack(
           children: [
-            // Background Full-Bleed Food Image
+            // Background Full-Bleed Image
             Positioned.fill(
-              child: Image.asset(
-                offer.bgImagePath,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  color: AppColors.primaryDark,
-                ),
-              ),
+              child: _buildBannerImage(offer.bgImagePath),
             ),
 
             // Dark Radial & Linear Overlay for High Text Readability

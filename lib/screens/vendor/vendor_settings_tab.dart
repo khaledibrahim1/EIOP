@@ -5,11 +5,13 @@ import '../onboarding_screen.dart';
 class VendorSettingsTab extends StatelessWidget {
   final String storeName;
   final String categoryTitle;
+  final String searchQuery;
 
   const VendorSettingsTab({
     super.key,
     required this.storeName,
     required this.categoryTitle,
+    this.searchQuery = '',
   });
 
   static const darkForestGreen = Color(0xFF0D2B1D);
@@ -136,7 +138,7 @@ class VendorSettingsTab extends StatelessWidget {
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                    content: Text('تم نسخ رابط متجرك بجرجا بنجاح! 📋🔗')),
+                    content: Text('تم نسخ رابط متجرك بجرجا بنجاح!')),
               );
             },
           ),
@@ -146,7 +148,7 @@ class VendorSettingsTab extends StatelessWidget {
           // 3. ACCOUNT SWITCHERS & LOGOUT
           _buildSettingsTile(
             icon: Icons.shopping_cart_outlined,
-            title: 'التبديل إلى حساب المشتري 🛒',
+            title: 'التبديل إلى حساب المشتري',
             subtitle: 'التصفح والشراء كعميل عادي للتطبيق',
             iconColor: darkForestGreen,
             onTap: () {
@@ -199,8 +201,12 @@ class VendorSettingsTab extends StatelessWidget {
           ),
         ],
       ),
-      child: ListTile(
-        onTap: onTap,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(18),
+        clipBehavior: Clip.antiAlias,
+        child: ListTile(
+          onTap: onTap,
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
@@ -228,6 +234,7 @@ class VendorSettingsTab extends StatelessWidget {
           Icons.arrow_forward_ios_rounded,
           size: 14,
           color: textSubtle,
+        ),
         ),
       ),
     );

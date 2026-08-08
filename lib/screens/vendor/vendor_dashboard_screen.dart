@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../login_screen.dart';
+import '../../models/vendor_store_config.dart';
 import 'vendor_orders_tab.dart';
 import 'vendor_overview_tab.dart';
 import 'vendor_products_tab.dart';
@@ -21,6 +22,11 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
   int _currentTabIndex = 0;
   final TextEditingController _topSearchCtrl = TextEditingController();
 
+  VendorStoreConfig get _storeConfig {
+    final catId = widget.category?.id ?? 'restaurant';
+    return VendorStoreConfig.fromCategoryId(catId);
+  }
+
   static const darkForestGreen = Color(0xFF0D2B1D);
   static const vibrantLimeGreen = Color(0xFFA3E635);
   static const lightBgColor = Color(0xFFF6F8F5);
@@ -35,9 +41,24 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
 
   String get _ownerName {
     if (widget.category != null && widget.category!.isVendor) {
-      return '${widget.category!.title}!';
+      return 'متجر ${widget.category!.title}';
     }
-    return 'Kevin Merico!';
+    return 'متجر البرنس بجرجا';
+  }
+
+  String get _searchHintText {
+    switch (_currentTabIndex) {
+      case 0:
+        return 'ابحث في إحصائيات ومعاملات $_ownerName...';
+      case 1:
+        return 'ابحث في الطلبات برقم الطلب أو الاسم...';
+      case 2:
+        return 'ابحث في قائمة الوجبات والمنتجات المعروضة...';
+      case 3:
+        return 'ابحث في إعدادات الحساب والمتجر...';
+      default:
+        return 'ابحث عن أي شيء في متجرك بجرجا...';
+    }
   }
 
   void _onTabSelect(int index) {
@@ -55,8 +76,9 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
           children: [
             Column(
               children: [
-                // 1. TOP HEADER SECTION MATCHING REFERENCE IMAGE 1
-                Padding(
+                // 1. TOP OWNER HEADER & SEARCH BAR
+                Container(
+                  color: Colors.white,
                   padding:
                       const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                   child: Column(
@@ -64,49 +86,75 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Hello',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: textDark,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Text(
+                                      'مرحباً بك • ',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: textSubtle,
+                                      ),
+                                    ),
+                                    Flexible(
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: _storeConfig.primaryColor
+                                              .withValues(alpha: 0.12),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                        child: Text(
+                                          _storeConfig.storeBadgeText,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                            color: _storeConfig.primaryColor,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              Text(
-                                _ownerName,
-                                style: const TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w900,
-                                  color: textDark,
-                                  letterSpacing: -0.5,
+                                const SizedBox(height: 2),
+                                Text(
+                                  _ownerName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w900,
+                                    color: darkForestGreen,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 2),
-                              const Text(
-                                'Keep manage your sales with care.',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: textSubtle,
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
+                          const SizedBox(width: 8),
                           Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              // Avatar circle
+                              // Avatar circle with dynamic store category icon
                               Container(
                                 width: 40,
                                 height: 40,
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFE2E8F0),
+                                decoration: BoxDecoration(
+                                  color: _storeConfig.primaryColor
+                                      .withValues(alpha: 0.15),
                                   shape: BoxShape.circle,
                                 ),
-                                child: const ClipOval(
-                                  child: Icon(Icons.person_rounded,
-                                      color: darkForestGreen, size: 24),
+                                child: Center(
+                                  child: Icon(_storeConfig.categoryIcon,
+                                      color: _storeConfig.primaryColor,
+                                      size: 20),
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -118,12 +166,13 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(14),
                                   border: Border.all(
-                                      color: Colors.black.withValues(alpha: 0.08)),
+                                      color: Colors.black
+                                          .withValues(alpha: 0.08)),
                                 ),
                                 child: const Icon(
                                   Icons.grid_view_rounded,
                                   color: textDark,
-                                  size: 20,
+                                  size: 18,
                                 ),
                               ),
                             ],
@@ -150,16 +199,26 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
                         ),
                         child: TextField(
                           controller: _topSearchCtrl,
+                          onChanged: (_) => setState(() {}),
                           style:
                               const TextStyle(color: textDark, fontSize: 13),
-                          decoration: const InputDecoration(
-                            hintText: 'Search anything in Siohioma...',
+                          decoration: InputDecoration(
+                            hintText: _searchHintText,
                             hintStyle:
-                                TextStyle(color: textSubtle, fontSize: 12),
-                            suffixIcon: Icon(Icons.search_rounded,
-                                color: textDark, size: 20),
+                                const TextStyle(color: textSubtle, fontSize: 12),
+                            suffixIcon: _topSearchCtrl.text.isNotEmpty
+                                ? IconButton(
+                                    icon: const Icon(Icons.clear_rounded,
+                                        color: textSubtle, size: 18),
+                                    onPressed: () {
+                                      _topSearchCtrl.clear();
+                                      setState(() {});
+                                    },
+                                  )
+                                : const Icon(Icons.search_rounded,
+                                    color: textDark, size: 20),
                             border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(
+                            contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 18, vertical: 12),
                           ),
                         ),
@@ -177,18 +236,22 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
                         categoryId: widget.category?.id ?? 'restaurant',
                         storeName: _ownerName,
                         categoryTitle: widget.category?.title ?? 'مطاعم',
+                        searchQuery: _topSearchCtrl.text,
                         onNavigateToProducts: () => _onTabSelect(2),
                         onNavigateToOrders: () => _onTabSelect(1),
                       ),
                       VendorOrdersTab(
                         categoryId: widget.category?.id ?? 'restaurant',
+                        searchQuery: _topSearchCtrl.text,
                       ),
                       VendorProductsTab(
                         categoryId: widget.category?.id ?? 'restaurant',
+                        searchQuery: _topSearchCtrl.text,
                       ),
                       VendorSettingsTab(
                         storeName: _ownerName,
                         categoryTitle: widget.category?.title ?? 'مطاعم',
+                        searchQuery: _topSearchCtrl.text,
                       ),
                     ],
                   ),

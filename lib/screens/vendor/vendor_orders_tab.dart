@@ -3,10 +3,12 @@ import '../../models/vendor_store_config.dart';
 
 class VendorOrdersTab extends StatefulWidget {
   final String categoryId;
+  final String searchQuery;
 
   const VendorOrdersTab({
     super.key,
     required this.categoryId,
+    this.searchQuery = '',
   });
 
   @override
@@ -15,7 +17,6 @@ class VendorOrdersTab extends StatefulWidget {
 
 class _VendorOrdersTabState extends State<VendorOrdersTab> {
   String _selectedFilter = 'الكل';
-  final TextEditingController _searchCtrl = TextEditingController();
   late VendorStoreConfig _storeConfig;
   late List<Map<String, dynamic>> _allOrders;
 
@@ -33,23 +34,21 @@ class _VendorOrdersTabState extends State<VendorOrdersTab> {
     _allOrders = _storeConfig.getInitialSampleOrders();
   }
 
-  @override
-  void dispose() {
-    _searchCtrl.dispose();
-    super.dispose();
-  }
-
   List<Map<String, dynamic>> get _filteredOrders {
     return _allOrders.where((order) {
       if (_selectedFilter != 'الكل' && order['status'] != _selectedFilter) {
         return false;
       }
-      final query = _searchCtrl.text.trim().toLowerCase();
+      final query = widget.searchQuery.trim().toLowerCase();
       if (query.isNotEmpty) {
-        final id = order['id'].toString().toLowerCase();
-        final name = order['customerName'].toString().toLowerCase();
-        final phone = order['phone'].toString().toLowerCase();
-        return id.contains(query) || name.contains(query) || phone.contains(query);
+        final id = (order['id'] ?? '').toString().toLowerCase();
+        final name = (order['customerName'] ?? '').toString().toLowerCase();
+        final phone = (order['phone'] ?? '').toString().toLowerCase();
+        final items = (order['items'] ?? '').toString().toLowerCase();
+        return id.contains(query) ||
+            name.contains(query) ||
+            phone.contains(query) ||
+            items.contains(query);
       }
       return true;
     }).toList();
@@ -78,38 +77,6 @@ class _VendorOrdersTabState extends State<VendorOrdersTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. PILL SEARCH BAR MATCHING MAIN DASHBOARD
-          Container(
-            height: 46,
-            decoration: BoxDecoration(
-              color: cardWhite,
-              borderRadius: BorderRadius.circular(30),
-              border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            child: TextField(
-              controller: _searchCtrl,
-              onChanged: (_) => setState(() {}),
-              style: const TextStyle(color: textDark, fontSize: 13),
-              decoration: const InputDecoration(
-                hintText: 'ابحث برقم الطلب، اسم العميل، أو رقم الهاتف...',
-                hintStyle: TextStyle(color: textSubtle, fontSize: 12),
-                prefixIcon: Icon(Icons.search_rounded,
-                    color: darkForestGreen, size: 20),
-                border: InputBorder.none,
-                contentPadding:
-                    EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-              ),
-            ),
-          ),
-          const SizedBox(height: 14),
-
           // 2. FILTER CHOICE CHIPS
           SizedBox(
             height: 38,
@@ -349,7 +316,7 @@ class _VendorOrdersTabState extends State<VendorOrdersTab> {
                             icon: const Icon(Icons.takeout_dining_rounded,
                                 color: Colors.white, size: 18),
                             label: const Text(
-                              'جاهز للتسليم للمندوب 📦',
+                              'جاهز للتسليم للمندوب',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
@@ -374,7 +341,7 @@ class _VendorOrdersTabState extends State<VendorOrdersTab> {
                             icon: const Icon(Icons.check_circle_rounded,
                                 color: Colors.white, size: 18),
                             label: const Text(
-                              'تأكيد استلام العميل للطلب ✅',
+                              'تأكيد استلام العميل للطلب',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,

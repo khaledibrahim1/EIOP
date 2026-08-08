@@ -559,10 +559,10 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
       child: Material(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(16),
+        clipBehavior: Clip.antiAlias,
         child: ListTile(
           onTap: onTap,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           leading: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
