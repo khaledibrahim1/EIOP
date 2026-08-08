@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../widgets/custom_clipper.dart';
+import 'login_screen.dart';
 import 'main_layout_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -207,29 +208,64 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                       ),
 
                       // Get Started Action Button
-                      SizedBox(
-                        width: media.size.width * 0.75,
-                        height: 52,
-                        child: ElevatedButton(
-                          onPressed: _onGetStarted,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            elevation: 8,
-                            shadowColor:
-                                AppColors.primary.withValues(alpha: 0.4),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
+                      Column(
+                        children: [
+                          SizedBox(
+                            width: media.size.width * 0.82,
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed: _onGetStarted,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                elevation: 6,
+                                shadowColor:
+                                    AppColors.primary.withValues(alpha: 0.4),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: const Text(
+                                'ابدأ الطلب الآن 🛵',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
                             ),
                           ),
-                          child: const Text(
-                            'ابدأ الطلب الآن',
-                            style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                          const SizedBox(height: 10),
+                          SizedBox(
+                            width: media.size.width * 0.82,
+                            height: 46,
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const LoginScreen(),
+                                  ),
+                                );
+                              },
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(
+                                    color: AppColors.primary, width: 1.5),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              icon: const Icon(Icons.login_rounded,
+                                  color: AppColors.primary, size: 18),
+                              label: const Text(
+                                'تسجيل الدخول / شريك تجاري (مطعم - سوبرماركت)',
+                                style: TextStyle(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primary,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                       ),
                       const SizedBox(height: 10),
                     ],

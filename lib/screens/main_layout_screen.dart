@@ -6,6 +6,7 @@ import 'cart_screen.dart';
 import 'categories_screen.dart';
 import 'favorites_screen.dart';
 import 'home_screen.dart';
+import 'login_screen.dart';
 import 'onboarding_screen.dart';
 import 'order_tracking_screen.dart';
 
@@ -494,6 +495,19 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
                       title: 'المفضلة',
                       subtitle: 'الوجبات والمنتجات المحفوظة',
                       onTap: () => _onTabSelect(3),
+                    ),
+                    _buildProfileTile(
+                      icon: Icons.storefront_rounded,
+                      title: 'تسجيل دخول تاجر (مطعم / سوبر ماركت)',
+                      subtitle: 'الانضمام والتسجيل كشركاء تجاريين بجرجا 🏬',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const LoginScreen(),
+                          ),
+                        );
+                      },
                     ),
                     _buildProfileTile(
                       icon: Icons.headset_mic_outlined,
