@@ -35,9 +35,9 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
 
   String get _ownerName {
     if (widget.category != null && widget.category!.isVendor) {
-      return '${widget.category!.title}!';
+      return 'متجر ${widget.category!.title}';
     }
-    return 'Kevin Merico!';
+    return 'متجر البرنس بجرجا';
   }
 
   void _onTabSelect(int index) {
@@ -68,9 +68,9 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
-                                'Hello',
+                                'مرحباً بك',
                                 style: TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 14,
                                   fontWeight: FontWeight.w600,
                                   color: textDark,
                                 ),
@@ -78,7 +78,7 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
                               Text(
                                 _ownerName,
                                 style: const TextStyle(
-                                  fontSize: 22,
+                                  fontSize: 20,
                                   fontWeight: FontWeight.w900,
                                   color: textDark,
                                   letterSpacing: -0.5,
@@ -86,7 +86,7 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
                               ),
                               const SizedBox(height: 2),
                               const Text(
-                                'Keep manage your sales with care.',
+                                'إدارة ومتابعة مبيعات متجرك بجرجا بكل دقة.',
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: textSubtle,
@@ -105,8 +105,8 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
                                   shape: BoxShape.circle,
                                 ),
                                 child: const ClipOval(
-                                  child: Icon(Icons.person_rounded,
-                                      color: darkForestGreen, size: 24),
+                                  child: Icon(Icons.storefront_rounded,
+                                      color: darkForestGreen, size: 22),
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -153,7 +153,7 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
                           style:
                               const TextStyle(color: textDark, fontSize: 13),
                           decoration: const InputDecoration(
-                            hintText: 'Search anything in Siohioma...',
+                            hintText: 'ابحث عن أي شيء في متجرك بجرجا...',
                             hintStyle:
                                 TextStyle(color: textSubtle, fontSize: 12),
                             suffixIcon: Icon(Icons.search_rounded,

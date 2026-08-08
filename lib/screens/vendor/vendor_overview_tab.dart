@@ -152,7 +152,7 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                         ),
                         const SizedBox(width: 6),
                         const Text(
-                          'Update',
+                          'تحديث مباشر 🔴',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 12,
@@ -167,17 +167,17 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'Feb 12th 2024',
+                  '12 فبراير 2024',
                   style: TextStyle(color: Colors.white38, fontSize: 11),
                 ),
                 const SizedBox(height: 10),
                 const Text(
-                  'Sales revenue increased 40%\nin 1 week',
+                  'ارتفعت أرباح مبيعاتك بنسبة 40%\nخلال أسبوع واحد! 🚀',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 20,
+                    fontSize: 18,
                     fontWeight: FontWeight.w900,
-                    height: 1.25,
+                    height: 1.3,
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -187,16 +187,16 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'See Statistics',
+                        'عرض التحليلات الكاملة',
                         style: TextStyle(
-                          color: Colors.white70,
+                          color: vibrantLimeGreen,
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                       SizedBox(width: 4),
                       Icon(Icons.chevron_right_rounded,
-                          color: Colors.white70, size: 18),
+                          color: vibrantLimeGreen, size: 18),
                     ],
                   ),
                 ),
@@ -210,18 +210,18 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
             children: [
               Expanded(
                 child: _buildIncomeCard(
-                  title: 'Net Income',
-                  amount: '193.000 ج.م',
-                  trend: '+35% from last month',
+                  title: 'صافي الأرباح',
+                  amount: '193,000 ج.م',
+                  trend: '+35% عن الشهر الماضي',
                   isPositive: true,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _buildIncomeCard(
-                  title: 'Total Return',
-                  amount: '32.000 ج.م',
-                  trend: '-24% from last month',
+                  title: 'المرتجعات والطلبات',
+                  amount: '32,000 ج.م',
+                  trend: '-24% عن الشهر الماضي',
                   isPositive: false,
                 ),
               ),
@@ -251,9 +251,9 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
-                      'Sales Report',
+                      'تقرير المبيعات والمنتجات 📊',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 15,
                         fontWeight: FontWeight.bold,
                         color: textDark,
                       ),
@@ -272,7 +272,7 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                               size: 12, color: textSubtle),
                           SizedBox(width: 6),
                           Text(
-                            'January 2024',
+                            'يناير 2024',
                             style: TextStyle(fontSize: 11, color: textDark),
                           ),
                           Icon(Icons.keyboard_arrow_down_rounded,
@@ -284,16 +284,16 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                 ),
                 const SizedBox(height: 20),
 
-                // Horizontal Bar 1: Product Launched (233)
-                _buildBarRow('Product Launched (233)', 0.65, vibrantLimeGreen),
+                // Horizontal Bar 1: المنتجات المعروضة (233)
+                _buildBarRow('المنتجات المعروضة (233)', 0.65, vibrantLimeGreen),
                 const SizedBox(height: 14),
 
-                // Horizontal Bar 2: Ongoing Product (23)
-                _buildBarRow('Ongoing Product (23)', 0.35, const Color(0xFFC0ED76)),
+                // Horizontal Bar 2: طلبات قيد الإعداد (23)
+                _buildBarRow('طلبات قيد الإعداد (23)', 0.35, const Color(0xFFC0ED76)),
                 const SizedBox(height: 14),
 
-                // Horizontal Bar 3: Product Sold (482)
-                _buildBarRow('Product Sold (482)', 0.88, darkForestGreen),
+                // Horizontal Bar 3: المنتجات المباعة (482)
+                _buildBarRow('المنتجات المباعة (482)', 0.88, darkForestGreen),
               ],
             ),
           ),
@@ -320,9 +320,9 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
-                      'Total View Performance',
+                      'إحصائيات تصفح متجرك بجرجا 👁️',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 15,
                         fontWeight: FontWeight.bold,
                         color: textDark,
                       ),
@@ -347,18 +347,18 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                             const AlwaysStoppedAnimation<Color>(vibrantLimeGreen),
                       ),
                     ),
-                    Column(
+                    const Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text(
-                          'Total Count',
+                        Text(
+                          'إجمالي الزيارات',
                           style: TextStyle(fontSize: 11, color: textSubtle),
                         ),
-                        const SizedBox(height: 2),
-                        const Text(
-                          '565K',
+                        SizedBox(height: 2),
+                        Text(
+                          '565 ألف',
                           style: TextStyle(
-                            fontSize: 24,
+                            fontSize: 22,
                             fontWeight: FontWeight.w900,
                             color: textDark,
                           ),
@@ -373,11 +373,11 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildLegendDot(vibrantLimeGreen, 'View Count'),
+                    _buildLegendDot(vibrantLimeGreen, 'عدد الزيارات'),
                     const SizedBox(width: 16),
-                    _buildLegendDot(darkForestGreen, 'Percentage'),
+                    _buildLegendDot(darkForestGreen, 'التفاعل'),
                     const SizedBox(width: 16),
-                    _buildLegendDot(accentOrange, 'Sales'),
+                    _buildLegendDot(accentOrange, 'المبيعات'),
                   ],
                 ),
               ],
@@ -386,18 +386,18 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
           const SizedBox(height: 18),
 
           // 6. TRANSACTIONS / RECENT ORDERS LIST (MATCHING IMAGE 1)
-          Row(
+          const Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Transaction',
+              Text(
+                'أحدث العمليات والطلبات 📝',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 15,
                   fontWeight: FontWeight.bold,
                   color: textDark,
                 ),
               ),
-              const Icon(Icons.more_horiz_rounded, color: textSubtle),
+              Icon(Icons.more_horiz_rounded, color: textSubtle),
             ],
           ),
           const SizedBox(height: 12),
@@ -435,8 +435,8 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                       ),
                       child: Icon(
                         index % 2 == 0
-                            ? Icons.checkroom_rounded
-                            : Icons.videogame_asset_rounded,
+                            ? Icons.fastfood_rounded
+                            : Icons.shopping_bag_rounded,
                         color: darkForestGreen,
                         size: 22,
                       ),
@@ -447,7 +447,7 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            order['customerName'] ?? 'Tinek Detstar T-Shirt',
+                            order['customerName'] ?? 'أحمد محمود',
                             style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
@@ -455,9 +455,9 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                             ),
                           ),
                           const SizedBox(height: 2),
-                          Text(
-                            'Jul 12th 2024',
-                            style: const TextStyle(
+                          const Text(
+                            '12 يوليو 2024',
+                            style: TextStyle(
                               fontSize: 11,
                               color: textSubtle,
                             ),
@@ -469,9 +469,9 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          isCompleted ? 'Completed' : 'Pending',
+                          isCompleted ? 'مكتمل ✅' : 'قيد الإعداد ⏳',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 11,
                             fontWeight: FontWeight.bold,
                             color: isCompleted
                                 ? darkForestGreen
@@ -480,7 +480,7 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          order['id'] ?? 'OJWEJS7ISNC',
+                          order['id'] ?? '#ORD-8921',
                           style: const TextStyle(
                             fontSize: 10,
                             color: textSubtle,

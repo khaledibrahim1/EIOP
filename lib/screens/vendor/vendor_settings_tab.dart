@@ -199,8 +199,12 @@ class VendorSettingsTab extends StatelessWidget {
           ),
         ],
       ),
-      child: ListTile(
-        onTap: onTap,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(18),
+        clipBehavior: Clip.antiAlias,
+        child: ListTile(
+          onTap: onTap,
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
@@ -228,6 +232,7 @@ class VendorSettingsTab extends StatelessWidget {
           Icons.arrow_forward_ios_rounded,
           size: 14,
           color: textSubtle,
+        ),
         ),
       ),
     );
