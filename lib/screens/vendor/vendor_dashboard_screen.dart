@@ -86,55 +86,66 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  const Text(
-                                    'مرحباً بك • ',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: textSubtle,
-                                    ),
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: _storeConfig.primaryColor
-                                          .withValues(alpha: 0.12),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      _storeConfig.storeBadgeText,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Text(
+                                      'مرحباً بك • ',
                                       style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
-                                        color: _storeConfig.primaryColor,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: textSubtle,
                                       ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                _ownerName,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w900,
-                                  color: darkForestGreen,
+                                    Flexible(
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: _storeConfig.primaryColor
+                                              .withValues(alpha: 0.12),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                        child: Text(
+                                          _storeConfig.storeBadgeText,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                            color: _storeConfig.primaryColor,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            ],
+                                const SizedBox(height: 2),
+                                Text(
+                                  _ownerName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w900,
+                                    color: darkForestGreen,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
+                          const SizedBox(width: 8),
                           Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               // Avatar circle with dynamic store category icon
                               Container(
-                                width: 42,
-                                height: 42,
+                                width: 40,
+                                height: 40,
                                 decoration: BoxDecoration(
                                   color: _storeConfig.primaryColor
                                       .withValues(alpha: 0.15),
@@ -143,7 +154,7 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
                                 child: Center(
                                   child: Icon(_storeConfig.categoryIcon,
                                       color: _storeConfig.primaryColor,
-                                      size: 22),
+                                      size: 20),
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -155,12 +166,13 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(14),
                                   border: Border.all(
-                                      color: Colors.black.withValues(alpha: 0.08)),
+                                      color: Colors.black
+                                          .withValues(alpha: 0.08)),
                                 ),
                                 child: const Icon(
                                   Icons.grid_view_rounded,
                                   color: textDark,
-                                  size: 20,
+                                  size: 18,
                                 ),
                               ),
                             ],

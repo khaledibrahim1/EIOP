@@ -2284,21 +2284,28 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    const Icon(Icons.local_offer_rounded,
-                        color: accentOrange, size: 20),
-                    const SizedBox(width: 6),
-                    Text(
-                      'عروض المتجر النشطة (${_myOffers.length}):',
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: textDark,
+                Expanded(
+                  child: Row(
+                    children: [
+                      const Icon(Icons.local_offer_rounded,
+                          color: accentOrange, size: 18),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          'عروض المتجر النشطة (${_myOffers.length}):',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: textDark,
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 8),
                 GestureDetector(
                   onTap: () => _showAddPromoOfferModal(context),
                   child: Container(
@@ -2309,6 +2316,7 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(Icons.add_rounded,
                             color: vibrantLimeGreen, size: 16),
@@ -2593,16 +2601,21 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'قائمة ${_storeConfig.productTerm} (${_filteredProducts.length}):',
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: textDark,
+                Expanded(
+                  child: Text(
+                    'قائمة ${_storeConfig.productTerm} (${_filteredProducts.length}):',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: textDark,
+                    ),
                   ),
                 ),
+                const SizedBox(width: 8),
                 const Text(
-                  'انقر للتفاصيل، التعديل، أو الحذف',
+                  'انقر للتفاصيل أو الحذف',
                   style: TextStyle(fontSize: 10, color: textSubtle),
                 ),
               ],

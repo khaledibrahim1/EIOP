@@ -48,6 +48,201 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
   static const textDark = Color(0xFF0F172A);
   static const textSubtle = Color(0xFF64748B);
 
+  String _getTailoredHeroHeadline() {
+    switch (widget.categoryId) {
+      case 'pharmacy':
+        return 'تم مراجعة وترخيص 14 روشتة طبية اليوم 📜\nنسبة دقة صرف الدواء: 99.4%';
+      case 'supermarket':
+        return 'ارتفع إقبال طلبات البقالة بجرجا بنسبة 45%\nمخزون الألبان والحبوب ممتاز 📦';
+      case 'electronics':
+        return 'تم إصدار 48 شهادة ضمان معتمد 🛡️\nأعلى طلب على الهواتف والسماعات الذكية';
+      case 'fashion':
+        return 'تصدرت قمصان القطن الكاجوال المبيعات 👔\nالمقاس الأكثر طلباً هذا الأسبوع: L & XL';
+      case 'restaurant':
+      default:
+        return 'ارتفعت مبيعات الوجبات العائلية بنسبة 40%\nمتوسط زمن الطهي والتحضير: 18 دقيقة ⏱️';
+    }
+  }
+
+  Widget _buildCategoryOperationalHub() {
+    switch (widget.categoryId) {
+      case 'pharmacy':
+        return _buildOperationalHubCard(
+          title: 'مركز إدارة الروشتات الطبية والعلاج 📜',
+          icon: Icons.medical_services_rounded,
+          color: const Color(0xFF06B6D4),
+          stats: [
+            {'label': 'روشتات جديدة 📜', 'val': '14 روشتة'},
+            {'label': 'دقة المادة الفعالة 💊', 'val': '99.4%'},
+            {'label': 'فحص الصلاحية 🗓️', 'val': '12/2027'},
+          ],
+          note: 'تلقي صور الروشتات من المرضى بجرجا مع صرف وإرفاق الملاحظات الطبية',
+        );
+
+      case 'supermarket':
+        return _buildOperationalHubCard(
+          title: 'مركز متابعة مخزون السلع والتغليف 📦',
+          icon: Icons.inventory_2_rounded,
+          color: const Color(0xFF10B981),
+          stats: [
+            {'label': 'مخزون الأرز والقمح 🌾', 'val': '120 كجم'},
+            {'label': 'عبوات الألبان 🥛', 'val': '65 عبوة'},
+            {'label': 'طلبات التموين 🛒', 'val': '400+ طلب'},
+          ],
+          note: 'تتبع كميات المخزون المتوفرة بالجرام والكيلو مع التغليف السريع للطلبات',
+        );
+
+      case 'electronics':
+        return _buildOperationalHubCard(
+          title: 'مركز الضمان وفحص الأجهزة الذكية 🛡️',
+          icon: Icons.verified_user_rounded,
+          color: const Color(0xFF6366F1),
+          stats: [
+            {'label': 'شهادات الضمان 📜', 'val': '48 شهادة'},
+            {'label': 'نسبة الفحص والتسليم 🛡️', 'val': '100%'},
+            {'label': 'الأجهزة الأكثر طلباً 📱', 'val': '52 جهاز'},
+          ],
+          note: 'طباعة وإرفاق بطاقات الضمان المعتمدة مع السيريال نمبر لكل جهاز إلكتروني',
+        );
+
+      case 'fashion':
+        return _buildOperationalHubCard(
+          title: 'مركز تحليلات الأزياء والمقاسات 👗',
+          icon: Icons.checkroom_rounded,
+          color: const Color(0xFFE11D48),
+          stats: [
+            {'label': 'المقاسات الأكثر طلباً 📏', 'val': 'L & XL'},
+            {'label': 'رضا جودة الخامة 👔', 'val': '96% قطن'},
+            {'label': 'الموديلات المباعة 🛍️', 'val': '145 قطعة'},
+          ],
+          note: 'تحليل الألوان والمقاسات الأكثر إقبالاً بالبوتيك وتوفير التشكيلة المناسبة',
+        );
+
+      case 'restaurant':
+      default:
+        return _buildOperationalHubCard(
+          title: 'مؤشر المطبخ والطهي الحي 🍳',
+          icon: Icons.soup_kitchen_rounded,
+          color: const Color(0xFFEF4444),
+          stats: [
+            {'label': 'متوسط زمن الطهي ⏱️', 'val': '18 دقيقة'},
+            {'label': 'تقييم جودة الوجبات ⭐', 'val': '4.9 / 5'},
+            {'label': 'الوجبات المطلوبة 🍕', 'val': '320 وجبة'},
+          ],
+          note: 'متابعة مراحل إعداد الوجبات الحية بالمطبخ وتجهيزها للتسليم السريع للزبائن',
+        );
+    }
+  }
+
+  Widget _buildOperationalHubCard({
+    required String title,
+    required IconData icon,
+    required Color color,
+    required List<Map<String, String>> stats,
+    required String note,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cardWhite,
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: color, size: 20),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: textDark,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: stats.map((st) {
+              return Expanded(
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: lightBgColor,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                        color: Colors.black.withValues(alpha: 0.04)),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        st['val'] ?? '',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w900,
+                          color: color,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        st['label'] ?? '',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w600,
+                          color: textSubtle,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              const Icon(Icons.info_outline_rounded,
+                  color: textSubtle, size: 14),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  note,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: textSubtle,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -132,7 +327,7 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
           ),
           const SizedBox(height: 16),
 
-          // 2. HERO UPDATE CARD (DARK FOREST GREEN CARD MATCHING IMAGE 1)
+          // 2. STORE CATEGORY TAILORED HERO UPDATE CARD
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
@@ -158,15 +353,15 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                         Container(
                           width: 8,
                           height: 8,
-                          decoration: const BoxDecoration(
-                            color: Colors.redAccent,
+                          decoration: BoxDecoration(
+                            color: _storeConfig.primaryColor,
                             shape: BoxShape.circle,
                           ),
                         ),
                         const SizedBox(width: 6),
-                        const Text(
-                          'تحديث مباشر',
-                          style: TextStyle(
+                        Text(
+                          'تحديث مباشر • ${_storeConfig.storeBadgeText}',
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -174,21 +369,21 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                         ),
                       ],
                     ),
-                    const Icon(Icons.more_horiz_rounded,
-                        color: Colors.white54, size: 20),
+                    Icon(_storeConfig.categoryIcon,
+                        color: vibrantLimeGreen, size: 22),
                   ],
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  '12 فبراير 2024',
+                  'التحديث المباشر اليوم بجرجا',
                   style: TextStyle(color: Colors.white38, fontSize: 11),
                 ),
                 const SizedBox(height: 10),
-                const Text(
-                  'ارتفعت أرباح مبيعاتك بنسبة 40%\nخلال أسبوع واحد',
-                  style: TextStyle(
+                Text(
+                  _getTailoredHeroHeadline(),
+                  style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 18,
+                    fontSize: 17,
                     fontWeight: FontWeight.w900,
                     height: 1.3,
                   ),
@@ -218,7 +413,11 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
           ),
           const SizedBox(height: 16),
 
-          // 3. NET INCOME & TOTAL RETURN CARDS ROW (MATCHING IMAGE 1)
+          // 3. STORE CATEGORY OPERATIONAL HUB (مركز العمليات والإحصائيات لكل متجر)
+          _buildCategoryOperationalHub(),
+          const SizedBox(height: 16),
+
+          // 4. NET INCOME & TOTAL RETURN CARDS ROW
           Row(
             children: [
               Expanded(
@@ -525,7 +724,7 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
     required bool isPositive,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: cardWhite,
         borderRadius: BorderRadius.circular(20),
@@ -543,23 +742,31 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                title,
-                style: const TextStyle(fontSize: 12, color: textSubtle),
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 11, color: textSubtle),
+                ),
               ),
               const Icon(Icons.more_horiz_rounded, color: textSubtle, size: 16),
             ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            amount,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
-              color: textDark,
+          const SizedBox(height: 6),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerRight,
+            child: Text(
+              amount,
+              style: const TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w900,
+                color: textDark,
+              ),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Row(
             children: [
               Icon(
