@@ -8,6 +8,7 @@ import 'favorites_screen.dart';
 import 'home_screen.dart';
 import 'onboarding_screen.dart';
 import 'order_tracking_screen.dart';
+import 'vendor/vendor_dashboard_screen.dart';
 
 class MainLayoutScreen extends StatefulWidget {
   const MainLayoutScreen({super.key});
@@ -494,6 +495,19 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
                       title: 'المفضلة',
                       subtitle: 'الوجبات والمنتجات المحفوظة',
                       onTap: () => _onTabSelect(3),
+                    ),
+                    _buildProfileTile(
+                      icon: Icons.storefront_rounded,
+                      title: 'لوحة تحكم التاجر والمتجر 🏪',
+                      subtitle: 'إدارة الطلبات، المنيو، وإحصائيات المبيعات بجرجا',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const VendorDashboardScreen(),
+                          ),
+                        );
+                      },
                     ),
                     _buildProfileTile(
                       icon: Icons.headset_mic_outlined,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../widgets/custom_clipper.dart';
+import 'login_screen.dart';
 import 'main_layout_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -107,20 +108,63 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                     child: FadeTransition(
                       opacity: _fadeAnim,
                       child: SafeArea(
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 20, bottom: 20),
-                          child: Center(
-                            child: Image.asset(
-                              'assets/images/delivery_rider.png',
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(
-                                Icons.two_wheeler_rounded,
-                                size: 160,
-                                color: Colors.white,
+                        child: Stack(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(top: 20, bottom: 20),
+                              child: Center(
+                                child: Image.asset(
+                                  'assets/images/delivery_rider.png',
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Icon(
+                                    Icons.two_wheeler_rounded,
+                                    size: 160,
+                                    color: Colors.white,
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
+                            // Top Login / Merchant Button
+                            Positioned(
+                              top: 10,
+                              right: 16,
+                              child: GestureDetector(
+                                onTap: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => const LoginScreen(),
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 14, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.25),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(color: Colors.white38),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.login_rounded,
+                                          color: Colors.white, size: 16),
+                                      SizedBox(width: 6),
+                                      Text(
+                                        'تسجيل الدخول',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -206,32 +250,70 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                         ],
                       ),
 
-                      // Get Started Action Button
-                      SizedBox(
-                        width: media.size.width * 0.75,
-                        height: 52,
-                        child: ElevatedButton(
-                          onPressed: _onGetStarted,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            elevation: 8,
-                            shadowColor:
-                                AppColors.primary.withValues(alpha: 0.4),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
+                      // Action Buttons Column
+                      Column(
+                        children: [
+                          // Primary Order Button
+                          SizedBox(
+                            width: media.size.width * 0.85,
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed: _onGetStarted,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                elevation: 6,
+                                shadowColor:
+                                    AppColors.primary.withValues(alpha: 0.35),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: const Text(
+                                'ابدأ الطلب الآن 🛵',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
                             ),
                           ),
-                          child: const Text(
-                            'ابدأ الطلب الآن',
-                            style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                          const SizedBox(height: 10),
+
+                          // Login / Merchant Partner Button
+                          SizedBox(
+                            width: media.size.width * 0.85,
+                            height: 46,
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const LoginScreen(),
+                                  ),
+                                );
+                              },
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(
+                                    color: AppColors.primary, width: 1.5),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              icon: const Icon(Icons.storefront_rounded,
+                                  color: AppColors.primary, size: 18),
+                              label: const Text(
+                                'تسجيل الدخول / شريك تجاري (مطعم - سوبر ماركت)',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primary,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 6),
                     ],
                   ),
                 ),
