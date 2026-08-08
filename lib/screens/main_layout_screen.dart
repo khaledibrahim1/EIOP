@@ -6,7 +6,6 @@ import 'cart_screen.dart';
 import 'categories_screen.dart';
 import 'favorites_screen.dart';
 import 'home_screen.dart';
-import 'login_screen.dart';
 import 'onboarding_screen.dart';
 import 'order_tracking_screen.dart';
 import 'vendor/vendor_dashboard_screen.dart';
