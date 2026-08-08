@@ -9,6 +9,7 @@ import 'home_screen.dart';
 import 'login_screen.dart';
 import 'onboarding_screen.dart';
 import 'order_tracking_screen.dart';
+import 'vendor/vendor_dashboard_screen.dart';
 
 class MainLayoutScreen extends StatefulWidget {
   const MainLayoutScreen({super.key});
@@ -498,13 +499,13 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
                     ),
                     _buildProfileTile(
                       icon: Icons.storefront_rounded,
-                      title: 'تسجيل دخول تاجر (مطعم / سوبر ماركت)',
-                      subtitle: 'الانضمام والتسجيل كشركاء تجاريين بجرجا 🏬',
+                      title: 'لوحة تحكم التاجر والمتجر 🏪',
+                      subtitle: 'إدارة الطلبات، المنيو، وإحصائيات المبيعات بجرجا',
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => const LoginScreen(),
+                            builder: (_) => const VendorDashboardScreen(),
                           ),
                         );
                       },

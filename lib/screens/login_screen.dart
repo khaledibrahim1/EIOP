@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'main_layout_screen.dart';
+import 'vendor/vendor_dashboard_screen.dart';
 
 class StoreCategoryType {
   final String id;
@@ -162,9 +163,17 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
 
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MainLayoutScreen()),
-      );
+      if (_selectedCategory.isVendor) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => VendorDashboardScreen(category: _selectedCategory),
+          ),
+        );
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const MainLayoutScreen()),
+        );
+      }
     });
   }
 
