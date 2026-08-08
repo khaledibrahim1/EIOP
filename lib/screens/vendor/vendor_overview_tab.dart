@@ -5,6 +5,7 @@ class VendorOverviewTab extends StatefulWidget {
   final String categoryId;
   final String storeName;
   final String categoryTitle;
+  final String searchQuery;
   final VoidCallback onNavigateToProducts;
   final VoidCallback onNavigateToOrders;
 
@@ -13,6 +14,7 @@ class VendorOverviewTab extends StatefulWidget {
     required this.categoryId,
     required this.storeName,
     required this.categoryTitle,
+    this.searchQuery = '',
     required this.onNavigateToProducts,
     required this.onNavigateToOrders,
   });
@@ -25,6 +27,17 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
   bool _isStoreOpen = true;
   late VendorStoreConfig _storeConfig;
   late List<Map<String, dynamic>> _liveOrders;
+
+  List<Map<String, dynamic>> get _filteredLiveOrders {
+    final q = widget.searchQuery.trim().toLowerCase();
+    if (q.isEmpty) return _liveOrders;
+    return _liveOrders.where((order) {
+      final name = (order['customerName'] ?? '').toString().toLowerCase();
+      final id = (order['id'] ?? '').toString().toLowerCase();
+      final status = (order['status'] ?? '').toString().toLowerCase();
+      return name.contains(q) || id.contains(q) || status.contains(q);
+    }).toList();
+  }
 
   // Custom Colors matching the reference image
   static const darkForestGreen = Color(0xFF0D2B1D);
@@ -87,8 +100,8 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                     const SizedBox(width: 10),
                     Text(
                       _isStoreOpen
-                          ? 'استقبال الطلبات بجرجا مفتوح 🟢'
-                          : 'المتجر مغلق حالياً 🔴',
+                          ? 'استقبال الطلبات بجرجا مفتوح'
+                          : 'المتجر مغلق حالياً',
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
@@ -106,8 +119,8 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(_isStoreOpen
-                            ? 'تم فتح المتجر لاستقبال طلبات العملاء بجرجا 🚀'
-                            : 'تم إغلاق المتجر مؤقتاً 🛑'),
+                            ? 'تم فتح المتجر لاستقبال طلبات العملاء بجرجا'
+                            : 'تم إغلاق المتجر مؤقتاً'),
                         backgroundColor: darkForestGreen,
                         duration: const Duration(seconds: 2),
                       ),
@@ -152,7 +165,7 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                         ),
                         const SizedBox(width: 6),
                         const Text(
-                          'تحديث مباشر 🔴',
+                          'تحديث مباشر',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 12,
@@ -172,7 +185,7 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                 ),
                 const SizedBox(height: 10),
                 const Text(
-                  'ارتفعت أرباح مبيعاتك بنسبة 40%\nخلال أسبوع واحد! 🚀',
+                  'ارتفعت أرباح مبيعاتك بنسبة 40%\nخلال أسبوع واحد',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -250,12 +263,14 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'تقرير المبيعات والمنتجات 📊',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: textDark,
+                    const Expanded(
+                      child: Text(
+                        'تقرير المبيعات والمنتجات',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: textDark,
+                        ),
                       ),
                     ),
                     Container(
@@ -316,18 +331,20 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
             ),
             child: Column(
               children: [
-                Row(
+                const Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'إحصائيات تصفح متجرك بجرجا 👁️',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: textDark,
+                    Expanded(
+                      child: Text(
+                        'إحصائيات تصفح متجرك بجرجا',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: textDark,
+                        ),
                       ),
                     ),
-                    const Icon(Icons.more_horiz_rounded, color: textSubtle),
+                    Icon(Icons.more_horiz_rounded, color: textSubtle),
                   ],
                 ),
                 const SizedBox(height: 20),
@@ -389,12 +406,14 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
           const Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'أحدث العمليات والطلبات 📝',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: textDark,
+              Expanded(
+                child: Text(
+                  'أحدث العمليات والطلبات',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: textDark,
+                  ),
                 ),
               ),
               Icon(Icons.more_horiz_rounded, color: textSubtle),
@@ -405,10 +424,10 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: _liveOrders.length,
+            itemCount: _filteredLiveOrders.length,
             separatorBuilder: (context, index) => const SizedBox(height: 10),
             itemBuilder: (context, index) {
-              final order = _liveOrders[index];
+              final order = _filteredLiveOrders[index];
               final bool isCompleted = order['status'] == 'المكتملة' || index == 0;
 
               return Container(
@@ -469,7 +488,7 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          isCompleted ? 'مكتمل ✅' : 'قيد الإعداد ⏳',
+                          isCompleted ? 'مكتمل' : 'قيد الإعداد',
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,

@@ -40,6 +40,21 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
     return 'متجر البرنس بجرجا';
   }
 
+  String get _searchHintText {
+    switch (_currentTabIndex) {
+      case 0:
+        return 'ابحث في إحصائيات ومعاملات $_ownerName...';
+      case 1:
+        return 'ابحث في الطلبات برقم الطلب أو الاسم...';
+      case 2:
+        return 'ابحث في قائمة الوجبات والمنتجات المعروضة...';
+      case 3:
+        return 'ابحث في إعدادات الحساب والمتجر...';
+      default:
+        return 'ابحث عن أي شيء في متجرك بجرجا...';
+    }
+  }
+
   void _onTabSelect(int index) {
     setState(() {
       _currentTabIndex = index;
@@ -55,8 +70,9 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
           children: [
             Column(
               children: [
-                // 1. TOP HEADER SECTION MATCHING REFERENCE IMAGE 1
-                Padding(
+                // 1. TOP OWNER HEADER & SEARCH BAR
+                Container(
+                  color: Colors.white,
                   padding:
                       const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                   child: Column(
@@ -78,18 +94,9 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
                               Text(
                                 _ownerName,
                                 style: const TextStyle(
-                                  fontSize: 20,
+                                  fontSize: 18,
                                   fontWeight: FontWeight.w900,
-                                  color: textDark,
-                                  letterSpacing: -0.5,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              const Text(
-                                'إدارة ومتابعة مبيعات متجرك بجرجا بكل دقة.',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: textSubtle,
+                                  color: darkForestGreen,
                                 ),
                               ),
                             ],
@@ -150,16 +157,26 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
                         ),
                         child: TextField(
                           controller: _topSearchCtrl,
+                          onChanged: (_) => setState(() {}),
                           style:
                               const TextStyle(color: textDark, fontSize: 13),
-                          decoration: const InputDecoration(
-                            hintText: 'ابحث عن أي شيء في متجرك بجرجا...',
+                          decoration: InputDecoration(
+                            hintText: _searchHintText,
                             hintStyle:
-                                TextStyle(color: textSubtle, fontSize: 12),
-                            suffixIcon: Icon(Icons.search_rounded,
-                                color: textDark, size: 20),
+                                const TextStyle(color: textSubtle, fontSize: 12),
+                            suffixIcon: _topSearchCtrl.text.isNotEmpty
+                                ? IconButton(
+                                    icon: const Icon(Icons.clear_rounded,
+                                        color: textSubtle, size: 18),
+                                    onPressed: () {
+                                      _topSearchCtrl.clear();
+                                      setState(() {});
+                                    },
+                                  )
+                                : const Icon(Icons.search_rounded,
+                                    color: textDark, size: 20),
                             border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(
+                            contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 18, vertical: 12),
                           ),
                         ),
@@ -177,18 +194,22 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
                         categoryId: widget.category?.id ?? 'restaurant',
                         storeName: _ownerName,
                         categoryTitle: widget.category?.title ?? 'مطاعم',
+                        searchQuery: _topSearchCtrl.text,
                         onNavigateToProducts: () => _onTabSelect(2),
                         onNavigateToOrders: () => _onTabSelect(1),
                       ),
                       VendorOrdersTab(
                         categoryId: widget.category?.id ?? 'restaurant',
+                        searchQuery: _topSearchCtrl.text,
                       ),
                       VendorProductsTab(
                         categoryId: widget.category?.id ?? 'restaurant',
+                        searchQuery: _topSearchCtrl.text,
                       ),
                       VendorSettingsTab(
                         storeName: _ownerName,
                         categoryTitle: widget.category?.title ?? 'مطاعم',
+                        searchQuery: _topSearchCtrl.text,
                       ),
                     ],
                   ),
