@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
 import 'main_layout_screen.dart';
 
 class StoreCategoryType {
@@ -26,7 +25,7 @@ const List<StoreCategoryType> allStoreCategoryTypes = [
     title: 'عميل / مشتري 👤',
     description: 'حساب شخصي لطلب وتصفح الخدمات والتوصيل بجرجا',
     icon: Icons.person_pin_circle_rounded,
-    color: Color(0xFFFF5216),
+    color: Color(0xFF1B3B2B),
     isVendor: false,
   ),
   StoreCategoryType(
@@ -101,38 +100,27 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _authTabController;
-
+class _LoginScreenState extends State<LoginScreen> {
+  bool _isSignUpMode = false;
   StoreCategoryType _selectedCategory = allStoreCategoryTypes.first;
 
   final _formKey = GlobalKey<FormState>();
 
   // Text Controllers
-  final _phoneController = TextEditingController();
+  final _emailPhoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _nameController = TextEditingController();
   final _businessNameController = TextEditingController();
-  final _addressController = TextEditingController();
 
   bool _isPasswordVisible = false;
   bool _isLoading = false;
 
   @override
-  void initState() {
-    super.initState();
-    _authTabController = TabController(length: 2, vsync: this);
-  }
-
-  @override
   void dispose() {
-    _authTabController.dispose();
-    _phoneController.dispose();
+    _emailPhoneController.dispose();
     _passwordController.dispose();
     _nameController.dispose();
     _businessNameController.dispose();
-    _addressController.dispose();
     super.dispose();
   }
 
@@ -141,14 +129,13 @@ class _LoginScreenState extends State<LoginScreen>
 
     setState(() => _isLoading = true);
 
-    Future.delayed(const Duration(milliseconds: 900), () {
+    Future.delayed(const Duration(milliseconds: 800), () {
       if (!mounted) return;
       setState(() => _isLoading = false);
 
-      final isRegister = _authTabController.index == 1;
       final categoryTitle = _selectedCategory.title;
 
-      String successMessage = isRegister
+      String successMessage = _isSignUpMode
           ? 'تم إنشاء حساب $categoryTitle جديد بنجاح! 🎉'
           : 'مرحباً بك مجدداً! تم تسجيل الدخول كـ $categoryTitle 🚀';
 
@@ -166,11 +153,11 @@ class _LoginScreenState extends State<LoginScreen>
             successMessage,
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
-          backgroundColor: _selectedCategory.color,
+          backgroundColor: const Color(0xFF1B3B2B),
           duration: const Duration(seconds: 2),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(16),
           ),
         ),
       );
@@ -183,356 +170,415 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   Widget build(BuildContext context) {
+    // Theme Colors matching the image exactly
+    const pageBgColor = Color(0xFFF7F8F3);
+    const darkGreenColor = Color(0xFF1B3B2B);
+    const limeGreenColor = Color(0xFF86E562);
+    const buttonLightBg = Color(0xFFEFF3EA);
+    const textSubtleColor = Color(0xFF64748B);
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: pageBgColor,
       body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Top Header Row with Skip / Back
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.arrow_back_ios_rounded,
-                          color: AppColors.textPrimary, size: 20),
-                      onPressed: () {
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(
-                              builder: (_) => const MainLayoutScreen()),
-                        );
+        child: Center(
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // 1. TOP ILLUSTATION / BRAND LOGO ICON
+                  Container(
+                    width: 72,
+                    height: 72,
+                    decoration: BoxDecoration(
+                      color: buttonLightBg,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+                    ),
+                    child: Icon(
+                      _selectedCategory.icon,
+                      size: 36,
+                      color: darkGreenColor,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // 2. PAGE TITLE ("Login" / "تسجيل الدخول")
+                  Text(
+                    _isSignUpMode ? 'إنشاء حساب جديد' : 'Login',
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w900,
+                      color: darkGreenColor,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    _isSignUpMode
+                        ? 'أدخل بياناتك للانضمام لتطبيق جرجا أونلاين'
+                        : 'أهلاً بك مجدداً! أدخل بيانات الحساب للدخول',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: textSubtleColor,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 3. STORE / ROLE SELECT DROPDOWN (PILL SHAPED)
+                  Container(
+                    height: 52,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(30),
+                      border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<StoreCategoryType>(
+                        value: _selectedCategory,
+                        isExpanded: true,
+                        dropdownColor: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        icon: const Icon(Icons.keyboard_arrow_down_rounded,
+                            color: darkGreenColor, size: 22),
+                        onChanged: (StoreCategoryType? newValue) {
+                          if (newValue != null) {
+                            setState(() {
+                              _selectedCategory = newValue;
+                            });
+                          }
+                        },
+                        items: allStoreCategoryTypes.map((type) {
+                          return DropdownMenuItem<StoreCategoryType>(
+                            value: type,
+                            child: Row(
+                              children: [
+                                Icon(type.icon, size: 18, color: darkGreenColor),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    type.title,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: darkGreenColor,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // 4. DYNAMIC BUSINESS NAME (If Vendor & Sign Up)
+                  if (_selectedCategory.isVendor && _isSignUpMode) ...[
+                    _buildPillInputField(
+                      controller: _businessNameController,
+                      hintText: 'اسم المتجر / النشاط بجرجا',
+                      icon: Icons.storefront_outlined,
+                      validator: (val) {
+                        if (val == null || val.trim().isEmpty) {
+                          return 'يرجى إدخال اسم المتجر';
+                        }
+                        return null;
                       },
                     ),
-                    TextButton(
+                    const SizedBox(height: 14),
+                  ],
+
+                  // 5. FULL NAME (If Sign Up)
+                  if (_isSignUpMode) ...[
+                    _buildPillInputField(
+                      controller: _nameController,
+                      hintText: 'الاسم بالكامل',
+                      icon: Icons.person_outline_rounded,
+                      validator: (val) {
+                        if (val == null || val.trim().isEmpty) {
+                          return 'يرجى كتابة الاسم';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 14),
+                  ],
+
+                  // 6. EMAIL / PHONE FIELD (PILL SHAPED)
+                  _buildPillInputField(
+                    controller: _emailPhoneController,
+                    hintText: 'Email or Phone Number',
+                    icon: Icons.mail_outline_rounded,
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (val) {
+                      if (val == null || val.trim().isEmpty) {
+                        return 'يرجى إدخال البريد أو رقم الهاتف';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 14),
+
+                  // 7. PASSWORD FIELD (PILL SHAPED)
+                  _buildPillInputField(
+                    controller: _passwordController,
+                    hintText: 'Password',
+                    icon: Icons.lock_outline_rounded,
+                    obscureText: !_isPasswordVisible,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _isPasswordVisible
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                        color: textSubtleColor,
+                        size: 18,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isPasswordVisible = !_isPasswordVisible;
+                        });
+                      },
+                    ),
+                    validator: (val) {
+                      if (val == null || val.length < 4) {
+                        return 'كلمة المرور 4 خانات على الأقل';
+                      }
+                      return null;
+                    },
+                  ),
+
+                  // 8. FORGOT PASSWORD LINK
+                  if (!_isSignUpMode)
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('تم إرسال رابط استعادة كلمة المرور لبريدك 📩'),
+                              backgroundColor: darkGreenColor,
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          'Forgot Password?',
+                          style: TextStyle(
+                            color: textSubtleColor,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 10),
+
+                  // 9. PRIMARY LOGIN BUTTON (DARK GREEN CAPSULE)
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton(
+                      onPressed: _isLoading ? null : _submitAuth,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: darkGreenColor,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      child: _isLoading
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                  color: Colors.white, strokeWidth: 2.5),
+                            )
+                          : Text(
+                              _isSignUpMode ? 'Sign Up' : 'Login',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // 10. DIVIDER ("or")
+                  Row(
+                    children: [
+                      Expanded(
+                          child: Divider(
+                              color: Colors.black.withValues(alpha: 0.1), thickness: 1)),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 14),
+                        child: Text(
+                          'or',
+                          style: TextStyle(
+                            color: textSubtleColor,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                          child: Divider(
+                              color: Colors.black.withValues(alpha: 0.1), thickness: 1)),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  // 11. CONTINUE WITH GOOGLE (LIGHT CAPSULE BUTTON)
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () => _submitAuth(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: buttonLightBg,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.g_mobiledata_rounded,
+                              color: Color(0xFFDB4437), size: 28),
+                          SizedBox(width: 8),
+                          Text(
+                            'Continue with Google',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: darkGreenColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // 12. CONTINUE WITH APPLE / ROLE (LIME GREEN CAPSULE BUTTON)
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () => _submitAuth(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: limeGreenColor,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.apple_rounded,
+                              color: darkGreenColor, size: 22),
+                          SizedBox(width: 8),
+                          Text(
+                            'Continue with Apple',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: darkGreenColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // 13. CONTINUE AS GUEST (LIGHT CAPSULE BUTTON)
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
                       onPressed: () {
                         Navigator.of(context).pushReplacement(
                           MaterialPageRoute(
                               builder: (_) => const MainLayoutScreen()),
                         );
                       },
-                      child: const Text(
-                        'التصفح كزائر 🏃‍♂️',
-                        style: TextStyle(
-                          color: Color(0xFFFF5216),
-                          fontWeight: FontWeight.bold,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: buttonLightBg,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.person_pin_rounded,
+                              color: darkGreenColor, size: 20),
+                          SizedBox(width: 8),
+                          Text(
+                            'Continue As Guest',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: darkGreenColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 14. BOTTOM ACCOUNT SWITCHER LINK
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        _isSignUpMode
+                            ? 'Already have an account? '
+                            : 'Need an account? ',
+                        style: const TextStyle(
+                          color: textSubtleColor,
                           fontSize: 13,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-
-                // Brand Hero Banner
-                Center(
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: _selectedCategory.color.withValues(alpha: 0.12),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                              color: _selectedCategory.color.withValues(alpha: 0.3),
-                              width: 2),
-                        ),
-                        child: Icon(
-                          _selectedCategory.icon,
-                          size: 40,
-                          color: _selectedCategory.color,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      RichText(
-                        textAlign: TextAlign.center,
-                        text: TextSpan(
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.textPrimary,
-                          ),
-                          children: [
-                            const TextSpan(text: 'أهلاً بك في '),
-                            TextSpan(
-                              text: 'جرجا أونلاين 🚀',
-                              style: TextStyle(color: _selectedCategory.color),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'اختر نوع متجرك أو حسابك وسجل دخولك بكل سهولة',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // 1. SELECT DROPDOWN FOR ALL STORE TYPES & ROLES (قائمة المتاجر والأنشطة)
-                Text(
-                  'اختر نوع المتجر / الحساب (Select):',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.cardBg,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                        color: _selectedCategory.color.withValues(alpha: 0.4),
-                        width: 1.5),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 8,
-                        offset: Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<StoreCategoryType>(
-                      value: _selectedCategory,
-                      isExpanded: true,
-                      dropdownColor: AppColors.cardBg,
-                      icon: Icon(Icons.arrow_drop_down_circle_rounded,
-                          color: _selectedCategory.color, size: 24),
-                      onChanged: (StoreCategoryType? newValue) {
-                        if (newValue != null) {
+                      GestureDetector(
+                        onTap: () {
                           setState(() {
-                            _selectedCategory = newValue;
+                            _isSignUpMode = !_isSignUpMode;
                           });
-                        }
-                      },
-                      items: allStoreCategoryTypes
-                          .map<DropdownMenuItem<StoreCategoryType>>((type) {
-                        return DropdownMenuItem<StoreCategoryType>(
-                          value: type,
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(6),
-                                decoration: BoxDecoration(
-                                  color: type.color.withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Icon(type.icon,
-                                    size: 18, color: type.color),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      type.title,
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.textPrimary,
-                                      ),
-                                    ),
-                                    Text(
-                                      type.description,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        color: AppColors.textSecondary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
+                        },
+                        child: Text(
+                          _isSignUpMode ? 'Log in' : 'Sign up',
+                          style: const TextStyle(
+                            color: darkGreenColor,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w900,
                           ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // 2. AUTH MODE TAB (تسجيل الدخول | إنشاء حساب)
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: AppColors.cardBg,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: TabBar(
-                    controller: _authTabController,
-                    onTap: (_) => setState(() {}),
-                    indicator: BoxDecoration(
-                      color: _selectedCategory.color,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    labelColor: Colors.white,
-                    unselectedLabelColor: AppColors.textSecondary,
-                    labelStyle: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 13),
-                    tabs: const [
-                      Tab(text: 'تسجيل الدخول'),
-                      Tab(text: 'حساب جديد'),
+                        ),
+                      ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 20),
-
-                // 3. DYNAMIC FORM FIELDS
-                // Field A: Business / Store Name (Only for Vendors in Register mode)
-                if (_selectedCategory.isVendor &&
-                    _authTabController.index == 1) ...[
-                  _buildInputField(
-                    controller: _businessNameController,
-                    label: 'اسم متجرك بجرجا (${_selectedCategory.title})',
-                    icon: Icons.storefront_rounded,
-                    validator: (val) {
-                      if (val == null || val.trim().isEmpty) {
-                        return 'يرجى كتابة اسم المتجر أو النشاط التجاري';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 14),
                 ],
-
-                // Field B: Owner/User Full Name (In Register Mode)
-                if (_authTabController.index == 1) ...[
-                  _buildInputField(
-                    controller: _nameController,
-                    label: _selectedCategory.isVendor
-                        ? 'اسم صاحب المتجر / المسؤول'
-                        : 'الاسم بالكامل',
-                    icon: Icons.person_outline_rounded,
-                    validator: (val) {
-                      if (val == null || val.trim().isEmpty) {
-                        return 'يرجى كتابة الاسم';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 14),
-                ],
-
-                // Field C: Phone Number (Always required)
-                _buildInputField(
-                  controller: _phoneController,
-                  label: 'رقم الهاتف (مثلاً: 01012345678)',
-                  icon: Icons.phone_android_rounded,
-                  keyboardType: TextInputType.phone,
-                  validator: (val) {
-                    if (val == null || val.trim().length < 8) {
-                      return 'يرجى إدخال رقم هاتف صحيح';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 14),
-
-                // Field D: Branch Address (Only for Vendors)
-                if (_selectedCategory.isVendor) ...[
-                  _buildInputField(
-                    controller: _addressController,
-                    label: 'عنوان الفرع بمدينة جرجا (مثلاً: شارع المحطة)',
-                    icon: Icons.location_on_outlined,
-                  ),
-                  const SizedBox(height: 14),
-                ],
-
-                // Field E: Password (Always required)
-                _buildInputField(
-                  controller: _passwordController,
-                  label: 'كلمة المرور',
-                  icon: Icons.lock_outline_rounded,
-                  obscureText: !_isPasswordVisible,
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _isPasswordVisible
-                          ? Icons.visibility_off_rounded
-                          : Icons.visibility_rounded,
-                      color: Colors.grey,
-                      size: 20,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _isPasswordVisible = !_isPasswordVisible;
-                      });
-                    },
-                  ),
-                  validator: (val) {
-                    if (val == null || val.length < 4) {
-                      return 'كلمة المرور يجب أن تكون 4 خانات على الأقل';
-                    }
-                    return null;
-                  },
-                ),
-
-                const SizedBox(height: 24),
-
-                // 4. SUBMIT ACTION BUTTON
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _submitAuth,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _selectedCategory.color,
-                      elevation: 6,
-                      shadowColor: _selectedCategory.color.withValues(alpha: 0.4),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(
-                                color: Colors.white, strokeWidth: 2.5),
-                          )
-                        : Text(
-                            _authTabController.index == 0
-                                ? 'تسجيل الدخول - ${_selectedCategory.title}'
-                                : 'إنشاء حساب - ${_selectedCategory.title}',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                  ),
-                ),
-                const SizedBox(height: 18),
-
-                // Helper Terms Footer
-                Center(
-                  child: Text(
-                    'بتسجيل الدخول أنت توافق على شروط خدمة وتوصيل جرجا أونلاين 📜',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ),
@@ -540,24 +586,28 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  Widget _buildInputField({
+  Widget _buildPillInputField({
     required TextEditingController controller,
-    required String label,
+    required String hintText,
     required IconData icon,
     TextInputType keyboardType = TextInputType.text,
     bool obscureText = false,
     Widget? suffixIcon,
     String? Function(String?)? validator,
   }) {
+    const darkGreenColor = Color(0xFF1B3B2B);
+    const textSubtleColor = Color(0xFF94A3B8);
+
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.cardBg,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
+        boxShadow: [
           BoxShadow(
-            color: Colors.black12,
-            blurRadius: 6,
-            offset: Offset(0, 2),
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -566,21 +616,26 @@ class _LoginScreenState extends State<LoginScreen>
         keyboardType: keyboardType,
         obscureText: obscureText,
         validator: validator,
-        style: TextStyle(
-          color: AppColors.textPrimary,
+        style: const TextStyle(
+          color: darkGreenColor,
           fontSize: 14,
+          fontWeight: FontWeight.w500,
         ),
         decoration: InputDecoration(
-          labelText: label,
-          labelStyle: TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 12,
+          hintText: hintText,
+          hintStyle: const TextStyle(
+            color: textSubtleColor,
+            fontSize: 13,
           ),
-          prefixIcon: Icon(icon, color: _selectedCategory.color, size: 20),
+          prefixIcon: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Icon(icon, color: textSubtleColor, size: 20),
+          ),
+          prefixIconConstraints: const BoxConstraints(minWidth: 40),
           suffixIcon: suffixIcon,
           border: InputBorder.none,
           contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         ),
       ),
     );
