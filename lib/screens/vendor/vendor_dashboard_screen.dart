@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../login_screen.dart';
+import '../../models/vendor_store_config.dart';
 import 'vendor_orders_tab.dart';
 import 'vendor_overview_tab.dart';
 import 'vendor_products_tab.dart';
@@ -20,6 +21,11 @@ class VendorDashboardScreen extends StatefulWidget {
 class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
   int _currentTabIndex = 0;
   final TextEditingController _topSearchCtrl = TextEditingController();
+
+  VendorStoreConfig get _storeConfig {
+    final catId = widget.category?.id ?? 'restaurant';
+    return VendorStoreConfig.fromCategoryId(catId);
+  }
 
   static const darkForestGreen = Color(0xFF0D2B1D);
   static const vibrantLimeGreen = Color(0xFFA3E635);
@@ -83,14 +89,36 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'مرحباً بك',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: textDark,
-                                ),
+                              Row(
+                                children: [
+                                  const Text(
+                                    'مرحباً بك • ',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: textSubtle,
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: _storeConfig.primaryColor
+                                          .withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      _storeConfig.storeBadgeText,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: _storeConfig.primaryColor,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
+                              const SizedBox(height: 2),
                               Text(
                                 _ownerName,
                                 style: const TextStyle(
@@ -103,17 +131,19 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
                           ),
                           Row(
                             children: [
-                              // Avatar circle
+                              // Avatar circle with dynamic store category icon
                               Container(
-                                width: 40,
-                                height: 40,
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFE2E8F0),
+                                width: 42,
+                                height: 42,
+                                decoration: BoxDecoration(
+                                  color: _storeConfig.primaryColor
+                                      .withValues(alpha: 0.15),
                                   shape: BoxShape.circle,
                                 ),
-                                child: const ClipOval(
-                                  child: Icon(Icons.storefront_rounded,
-                                      color: darkForestGreen, size: 22),
+                                child: Center(
+                                  child: Icon(_storeConfig.categoryIcon,
+                                      color: _storeConfig.primaryColor,
+                                      size: 22),
                                 ),
                               ),
                               const SizedBox(width: 8),
