@@ -2702,6 +2702,11 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isRealEstate = _storeConfig.categoryId == 'real_estate' ||
+        _storeConfig.categoryId == 'realEstate' ||
+        widget.categoryId == 'real_estate' ||
+        widget.categoryId == 'realEstate';
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
@@ -3263,63 +3268,67 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                           ),
                         ),
                         Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Row(
                               children: [
-                                Text(
-                                  isAvail ? 'متوفر' : 'غير متوفر',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    color: isAvail
-                                        ? darkForestGreen
-                                        : Colors.redAccent,
+                                if (!isRealEstate) ...[
+                                  Text(
+                                    isAvail ? 'متوفر' : 'غير متوفر',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: isAvail
+                                          ? darkForestGreen
+                                          : Colors.redAccent,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 4),
+                                  const SizedBox(width: 6),
+                                ],
                                 GestureDetector(
                                   onTap: () => _showEditProductModal(prod),
                                   child: Container(
-                                    padding: const EdgeInsets.all(4),
+                                    padding: const EdgeInsets.all(6),
                                     decoration: BoxDecoration(
                                       color: darkForestGreen.withValues(alpha: 0.1),
                                       shape: BoxShape.circle,
                                     ),
                                     child: const Icon(
                                       Icons.edit_rounded,
-                                      size: 14,
+                                      size: 16,
                                       color: darkForestGreen,
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 4),
+                                const SizedBox(width: 6),
                                 GestureDetector(
                                   onTap: () => _confirmDeleteProduct(prod),
                                   child: Container(
-                                    padding: const EdgeInsets.all(4),
+                                    padding: const EdgeInsets.all(6),
                                     decoration: BoxDecoration(
                                       color: Colors.redAccent.withValues(alpha: 0.1),
                                       shape: BoxShape.circle,
                                     ),
                                     child: const Icon(
                                       Icons.delete_outline_rounded,
-                                      size: 14,
+                                      size: 16,
                                       color: Colors.redAccent,
                                     ),
                                   ),
                                 ),
                               ],
                             ),
-                            Switch.adaptive(
-                              value: isAvail,
-                              activeTrackColor: vibrantLimeGreen,
-                              activeThumbColor: darkForestGreen,
-                              onChanged: (val) {
-                                setState(() {
-                                  prod['isAvailable'] = val;
-                                });
-                              },
-                            ),
+                            if (!isRealEstate)
+                              Switch.adaptive(
+                                value: isAvail,
+                                activeTrackColor: vibrantLimeGreen,
+                                activeThumbColor: darkForestGreen,
+                                onChanged: (val) {
+                                  setState(() {
+                                    prod['isAvailable'] = val;
+                                  });
+                                },
+                              ),
                           ],
                         ),
                       ],
