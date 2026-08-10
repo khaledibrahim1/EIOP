@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/vendor_store_config.dart';
+import '../location_picker_screen.dart';
 
 class VendorOrdersTab extends StatefulWidget {
   final String categoryId;
@@ -57,12 +58,15 @@ class _VendorOrdersTabState extends State<VendorOrdersTab> {
   Color _getStatusColor(String status) {
     switch (status) {
       case 'الجديدة':
+      case 'معاينات جديدة':
         return darkForestGreen;
       case 'قيد التحضير':
+      case 'موعد محدد':
         return const Color(0xFFF59E0B);
       case 'جاهزة للتسليم':
         return const Color(0xFF6366F1);
       case 'المكتملة':
+      case 'معاينات مكتملة':
         return const Color(0xFF10B981);
       default:
         return textSubtle;
@@ -71,6 +75,15 @@ class _VendorOrdersTabState extends State<VendorOrdersTab> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isRealEstate = _storeConfig.categoryId == 'real_estate' ||
+        _storeConfig.categoryId == 'realEstate' ||
+        widget.categoryId == 'real_estate' ||
+        widget.categoryId == 'realEstate';
+
+    final List<String> filterTabs = isRealEstate
+        ? ['الكل', 'معاينات جديدة', 'موعد محدد', 'معاينات مكتملة']
+        : ['الكل', 'الجديدة', 'قيد التحضير', 'جاهزة للتسليم', 'المكتملة'];
+
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
@@ -83,13 +96,7 @@ class _VendorOrdersTabState extends State<VendorOrdersTab> {
             child: ListView(
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),
-              children: [
-                'الكل',
-                'الجديدة',
-                'قيد التحضير',
-                'جاهزة للتسليم',
-                'المكتملة',
-              ].map((tab) {
+              children: filterTabs.map((tab) {
                 final isSelected = _selectedFilter == tab;
                 return Padding(
                   padding: const EdgeInsets.only(left: 8),
@@ -263,7 +270,9 @@ class _VendorOrdersTabState extends State<VendorOrdersTab> {
                               color: Colors.black.withValues(alpha: 0.05)),
                         ),
                         child: Text(
-                          'محتويات الطلب: ${order['items']}',
+                          isRealEstate
+                              ? 'تفاصيل المعاينة والعقار: ${order['items']}'
+                              : 'محتويات الطلب: ${order['items']}',
                           style: const TextStyle(
                             fontSize: 12,
                             color: textDark,
@@ -271,10 +280,134 @@ class _VendorOrdersTabState extends State<VendorOrdersTab> {
                           ),
                         ),
                       ),
+                      if (isRealEstate) ...[
+                        const SizedBox(height: 10),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4285F4).withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: const Color(0xFF4285F4).withValues(alpha: 0.25),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF4285F4),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.map_rounded,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      order['mapLocation'] != null
+                                          ? 'موقع المعاينة على الخريطة 📍'
+                                          : 'لوكيشن العقار عبر Google Maps 🌐',
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1E293B),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      order['mapLocation'] ??
+                                          'لم يتم إرسال موقع الخريطة الدقيق للمشتري بعد',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        color: textSubtle,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              InkWell(
+                                onTap: () async {
+                                  final selectedLoc =
+                                      await Navigator.push<String>(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          LocationPickerScreen(
+                                        currentLocation:
+                                            order['address'] ?? 'جرجا',
+                                      ),
+                                    ),
+                                  );
+                                  if (selectedLoc != null &&
+                                      selectedLoc.isNotEmpty) {
+                                    setState(() {
+                                      order['mapLocation'] = selectedLoc;
+                                    });
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                              'تم إرسال لوكيشن المعاينة عبر Google Maps للمشتري: $selectedLoc 📍'),
+                                          backgroundColor:
+                                              const Color(0xFF4285F4),
+                                          behavior: SnackBarBehavior.floating,
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12)),
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
+                                borderRadius: BorderRadius.circular(10),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF4285F4),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.send_rounded,
+                                          color: Colors.white, size: 12),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        order['mapLocation'] != null
+                                            ? 'تعديل/إعادة إرسال'
+                                            : 'إرسال اللوكيشن',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 14),
 
                       // STORE SPECIFIC STATUS UPDATE BUTTONS
-                      if (order['status'] == 'الجديدة')
+                      if (order['status'] == 'الجديدة' ||
+                          order['status'] == 'معاينات جديدة')
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton.icon(
@@ -286,12 +419,19 @@ class _VendorOrdersTabState extends State<VendorOrdersTab> {
                               padding: const EdgeInsets.symmetric(vertical: 12),
                             ),
                             onPressed: () {
-                              setState(() => order['status'] = 'قيد التحضير');
+                              setState(() => order['status'] =
+                                  isRealEstate ? 'موعد محدد' : 'قيد التحضير');
                             },
-                            icon: const Icon(Icons.check_circle_outline_rounded,
-                                color: vibrantLimeGreen, size: 18),
+                            icon: Icon(
+                                isRealEstate
+                                    ? Icons.event_available_rounded
+                                    : Icons.check_circle_outline_rounded,
+                                color: vibrantLimeGreen,
+                                size: 18),
                             label: Text(
-                              _storeConfig.orderActionLabel,
+                              isRealEstate
+                                  ? 'تأكيد وحجز موعد المعاينة 🏠'
+                                  : _storeConfig.orderActionLabel,
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
@@ -299,25 +439,36 @@ class _VendorOrdersTabState extends State<VendorOrdersTab> {
                             ),
                           ),
                         )
-                      else if (order['status'] == 'قيد التحضير')
+                      else if (order['status'] == 'قيد التحضير' ||
+                          order['status'] == 'موعد محدد')
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton.icon(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF6366F1),
+                              backgroundColor: isRealEstate
+                                  ? const Color(0xFF10B981)
+                                  : const Color(0xFF6366F1),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(14),
                               ),
                               padding: const EdgeInsets.symmetric(vertical: 12),
                             ),
                             onPressed: () {
-                              setState(() => order['status'] = 'جاهزة للتسليم');
+                              setState(() => order['status'] = isRealEstate
+                                  ? 'معاينات مكتملة'
+                                  : 'جاهزة للتسليم');
                             },
-                            icon: const Icon(Icons.takeout_dining_rounded,
-                                color: Colors.white, size: 18),
-                            label: const Text(
-                              'جاهز للتسليم للمندوب',
-                              style: TextStyle(
+                            icon: Icon(
+                                isRealEstate
+                                    ? Icons.task_alt_rounded
+                                    : Icons.takeout_dining_rounded,
+                                color: Colors.white,
+                                size: 18),
+                            label: Text(
+                              isRealEstate
+                                  ? 'إتمام المعاينة بنجاح ✅'
+                                  : 'جاهز للتسليم للمندوب',
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
                               ),
