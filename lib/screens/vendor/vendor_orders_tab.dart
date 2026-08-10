@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
 import '../../models/vendor_store_config.dart';
 import '../location_picker_screen.dart';
 
@@ -103,120 +101,176 @@ class _VendorOrdersTabState extends State<VendorOrdersTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // PARCEL MERCHANT LIVE GOOGLE MAPS CANVAS BANNER
-          if (isParcel) ...[
-            Container(
-              height: 180,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(22),
-                border: Border.all(
-                    color: const Color(0xFF4285F4).withValues(alpha: 0.3)),
-                boxShadow: const [
-                  BoxShadow(color: Colors.black26, blurRadius: 10)
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(22),
-                child: Stack(
-                  children: [
-                    FlutterMap(
-                      options: MapOptions(
-                        initialCenter: const LatLng(26.3385, 31.8912),
-                        initialZoom: 15.0,
+          // 1. TOP SUMMARY METRIC CARDS ROW (إجمالي طلبات اليوم وإجمالي المبلغ)
+          Row(
+            children: [
+              // Total Orders Today Card
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: cardWhite,
+                    borderRadius: BorderRadius.circular(20),
+                    border:
+                        Border.all(color: Colors.black.withValues(alpha: 0.05)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.03),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
-                      children: [
-                        TileLayer(
-                          urlTemplate:
-                              'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=ar&key=AIzaSyBJGpJhzzL5VqwseWSl9AwVbStK83Ztzis',
-                          userAgentPackageName: 'com.girga.food',
-                        ),
-                        PolylineLayer(
-                          polylines: [
-                            Polyline(
-                              points: const [
-                                LatLng(26.3385, 31.8912),
-                                LatLng(26.3400, 31.8890),
-                                LatLng(26.3420, 31.8870),
-                              ],
-                              strokeWidth: 5.0,
-                              color: const Color(0xFFA3E635),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: vibrantLimeGreen.withValues(alpha: 0.15),
+                              shape: BoxShape.circle,
                             ),
-                          ],
-                        ),
-                        MarkerLayer(
-                          markers: [
-                            const Marker(
-                              point: LatLng(26.3385, 31.8912),
-                              width: 32,
-                              height: 32,
-                              child: Icon(Icons.my_location_rounded,
-                                  color: Color(0xFFA3E635), size: 26),
+                            child: const Icon(Icons.shopping_bag_rounded,
+                                color: darkForestGreen, size: 20),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF10B981)
+                                  .withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                            const Marker(
-                              point: LatLng(26.3420, 31.8870),
-                              width: 32,
-                              height: 32,
-                              child: Icon(Icons.location_on_rounded,
-                                  color: Colors.redAccent, size: 26),
-                            ),
-                            const Marker(
-                              point: LatLng(26.3400, 31.8890),
-                              width: 90,
-                              height: 30,
-                              child: Card(
-                                color: Color(0xFF0B1120),
-                                child: Center(
-                                  child: Text(
-                                    '🛵 AB6299ZG',
-                                    style: TextStyle(
-                                      color: Color(0xFFA3E635),
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                            child: const Row(
+                              children: [
+                                Icon(Icons.arrow_upward_rounded,
+                                    color: Color(0xFF10B981), size: 10),
+                                Text(
+                                  '+12%',
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF10B981),
                                   ),
                                 ),
-                              ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    Positioned(
-                      top: 10,
-                      right: 10,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF0B1120).withValues(alpha: 0.9),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                              color: const Color(0xFF4285F4).withValues(alpha: 0.5)),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.radar_rounded,
-                                color: Color(0xFFA3E635), size: 14),
-                            SizedBox(width: 6),
-                            Text(
-                              'تتبع مسار الشحنات المباشر على Google Maps 🌐',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        '18 طلب',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                          color: darkForestGreen,
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 2),
+                      const Text(
+                        'إجمالي طلبات اليوم 📦',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: textSubtle,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-          ],
+              const SizedBox(width: 12),
+
+              // Total Revenue Today Card
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: cardWhite,
+                    borderRadius: BorderRadius.circular(20),
+                    border:
+                        Border.all(color: Colors.black.withValues(alpha: 0.05)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.03),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF4285F4)
+                                  .withValues(alpha: 0.15),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                                Icons.account_balance_wallet_rounded,
+                                color: Color(0xFF4285F4),
+                                size: 20),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF4285F4)
+                                  .withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(Icons.trending_up_rounded,
+                                    color: Color(0xFF4285F4), size: 10),
+                                Text(
+                                  '+24%',
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF4285F4),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        '1,450.0 ج.م',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                          color: darkForestGreen,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      const Text(
+                        'إجمالي المبلغ المحصل 💰',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: textSubtle,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
           // 2. FILTER CHOICE CHIPS
           SizedBox(
             height: 38,
@@ -405,6 +459,72 @@ class _VendorOrdersTabState extends State<VendorOrdersTab> {
                             color: textDark,
                             height: 1.4,
                           ),
+                        ),
+                      ),
+
+                      // STAR RATING & CUSTOMER REVIEW BOX (تقييم النجوم)
+                      const SizedBox(height: 10),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFFBEB),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                              color: const Color(0xFFFCD34D)
+                                  .withValues(alpha: 0.8)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: List.generate(5, (starIdx) {
+                                    final ratingVal =
+                                        ((order['rating'] ?? 5.0) as num)
+                                            .toDouble();
+                                    return Icon(
+                                      starIdx < ratingVal.floor()
+                                          ? Icons.star_rounded
+                                          : Icons.star_half_rounded,
+                                      color: const Color(0xFFF59E0B),
+                                      size: 16,
+                                    );
+                                  }),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF59E0B)
+                                        .withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    'تقييم ${order['rating'] ?? 5.0} ⭐',
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w900,
+                                      color: Color(0xFFB45309),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              order['review'] ??
+                                  'خدمة ممتازة وتوصيل راقي جداً بجرجا، التعامل راقي والتغليف رائع! ⭐⭐⭐⭐⭐',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: Color(0xFF78350F),
+                                fontWeight: FontWeight.w600,
+                                height: 1.3,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       if (isRealEstate) ...[

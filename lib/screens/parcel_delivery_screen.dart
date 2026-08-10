@@ -437,34 +437,49 @@ class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen>
                                   _driverAnimController.value,
                         ),
                         width: 120,
-                        height: 60,
+                        height: 70,
                         alignment: Alignment.center,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: vibrantLime,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: const [
-                              BoxShadow(color: Colors.black38, blurRadius: 8),
-                            ],
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.directions_car_rounded,
-                                  color: darkBgColor, size: 16),
-                              SizedBox(width: 4),
-                              Text(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: vibrantLime,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: const [
+                                  BoxShadow(
+                                      color: Colors.black38, blurRadius: 8),
+                                ],
+                              ),
+                              child: const Text(
                                 'AB6299ZG • 3 min',
                                 style: TextStyle(
                                   color: darkBgColor,
-                                  fontSize: 10,
+                                  fontSize: 9,
                                   fontWeight: FontWeight.w900,
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(height: 2),
+                            Image.asset(
+                              'assets/images/delivery_rider.png',
+                              width: 44,
+                              height: 44,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: const BoxDecoration(
+                                  color: darkBgColor,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.two_wheeler_rounded,
+                                    color: vibrantLime, size: 26),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
 
