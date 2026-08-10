@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import '../models/cart_state.dart';
-import '../theme/app_colors.dart';
 import 'location_picker_screen.dart';
 
 class ParcelDeliveryScreen extends StatefulWidget {
@@ -12,12 +14,24 @@ class ParcelDeliveryScreen extends StatefulWidget {
 
 class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen>
     with SingleTickerProviderStateMixin {
-  // Service Type: 0 = ارسل طرد, 1 = اشترِ لي (مرسول), 2 = مستندات وأوراق
-  int _selectedServiceType = 0;
+  static const String _googleApiKey = 'AIzaSyBJGpJhzzL5VqwseWSl9AwVbStK83Ztzis';
 
-  // Package / Ride Option: 0 = مرسول عادي, 1 = اكسبريس سريع, 2 = سيارة حمولات
+  // Map & Location state
+  final MapController _mapController = MapController();
+  LatLng _currentCenter = const LatLng(26.3385, 31.8912); // Girga Center
+  final double _currentZoom = 15.8;
+  String _mapType = 'm'; // Google Maps roadmap / hybrid
+
+  // Service Mode: 0 = Driver / توصيل 🚗, 1 = Package / طرد 📦
+  int _selectedMode = 1;
+
+  // Service Type: 0 = ارسل طرد, 1 = اشترِ لي (مرسول), 2 = مستندات وأوراق
+  final int _selectedServiceType = 0;
+
+  // Package / Ride Option: 0 = Standard (مرسول عادي), 1 = Express (اكسبريس), 2 = Cargo (حمولات)
   int _selectedOptionIndex = 1;
 
+  // Address Controllers
   final TextEditingController _pickupController =
       TextEditingController(text: 'شارع المحطة - بجوار البنك الأهلي (جرجا)');
   final TextEditingController _dropoffController =
@@ -26,30 +40,96 @@ class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen>
   final TextEditingController _recipientNameController = TextEditingController();
   final TextEditingController _recipientPhoneController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
-  final TextEditingController _couponController = TextEditingController();
 
-  // Interactive Map Animation & Pan/Zoom Controls
+  // Coordinates
+  LatLng _pickupPoint = const LatLng(26.3385, 31.8912);
+  LatLng _dropoffPoint = const LatLng(26.3420, 31.8870);
+
+  // Accepted Order State & Route Simulation
+  bool _isOrderAccepted = false;
+  bool _isSearchingCaptain = false;
+  Map<String, String>? _acceptedCaptain;
+
   late AnimationController _driverAnimController;
   final DraggableScrollableController _sheetController =
       DraggableScrollableController();
-  Offset _mapPanOffset = Offset.zero;
-  double _mapZoomScale = 1.0;
-  bool _isLocatingMap = false;
 
-  // Options & Flags
-  bool _isFragile = false;
-  bool _payOnDelivery = false;
-  bool _showMoreDetails = false;
-  String? _attachedPhotoName;
-  bool _isUploadingPhoto = false;
-  double _discount = 0.0;
+  // Styling Constants matching dark design mockup
+  static const darkBgColor = Color(0xFF0B1120);
+  static const darkCardColor = Color(0xFF121A2D);
+  static const vibrantLime = Color(0xFFA3E635);
+  static const googleBlue = Color(0xFF4285F4);
+  static const textWhite = Colors.white;
+  static const textMuted = Color(0xFF94A3B8);
+
+  // Active Available Orders Plotted on Map
+  final List<Map<String, dynamic>> _mapOrders = [
+    {
+      'id': '#PRCL-901',
+      'title': 'طرد مستندات وأوراق أمانة 📜',
+      'pickupName': 'شارع المحطة (جرجا)',
+      'dropoffName': 'ميدان النهضة',
+      'pickup': const LatLng(26.3385, 31.8912),
+      'dropoff': const LatLng(26.3420, 31.8870),
+      'price': 25.0,
+      'eta': '5 دقائق',
+    },
+    {
+      'id': '#PRCL-714',
+      'title': 'طلب شراء أدوية ومستلزمات 💊',
+      'pickupName': 'شارع المستشفى العام',
+      'dropoffName': 'شارع البحر',
+      'pickup': const LatLng(26.3365, 31.8965),
+      'dropoff': const LatLng(26.3390, 31.8850),
+      'price': 30.0,
+      'eta': '8 دقائق',
+    },
+    {
+      'id': '#PRCL-550',
+      'title': 'شحنة ملابس وأقمشة 👕',
+      'pickupName': 'شارع الأهرام التجاري',
+      'dropoffName': 'شارع المطار',
+      'pickup': const LatLng(26.3350, 31.8950),
+      'dropoff': const LatLng(26.3310, 31.8820),
+      'price': 35.0,
+      'eta': '10 دقائق',
+    },
+  ];
+
+  // Ride & Package Option Specifications
+  final List<Map<String, dynamic>> _rideOptions = const [
+    {
+      'title': 'Standard (مرسول عادي)',
+      'subtitle': '3 min • حمولة شخصية',
+      'price': 20.0,
+      'tag': '',
+      'icon': Icons.two_wheeler_outlined,
+      'seats': 1,
+    },
+    {
+      'title': 'Comfort (اكسبريس سريع)',
+      'subtitle': '3 min • الأكثر طلبًا ⚡',
+      'price': 25.0,
+      'tag': 'الأسرع',
+      'icon': Icons.bolt_outlined,
+      'seats': 2,
+    },
+    {
+      'title': 'Luxury (سيارة حمولات)',
+      'subtitle': '5 min • حمولة كبيرة',
+      'price': 35.0,
+      'tag': 'كبير',
+      'icon': Icons.local_shipping_outlined,
+      'seats': 4,
+    },
+  ];
 
   @override
   void initState() {
     super.initState();
     _driverAnimController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 7),
+      duration: const Duration(seconds: 8),
     )..repeat();
   }
 
@@ -57,728 +137,612 @@ class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen>
   void dispose() {
     _driverAnimController.dispose();
     _sheetController.dispose();
+    _mapController.dispose();
     _pickupController.dispose();
     _dropoffController.dispose();
     _errandDetailsController.dispose();
     _recipientNameController.dispose();
     _recipientPhoneController.dispose();
     _notesController.dispose();
-    _couponController.dispose();
     super.dispose();
   }
 
+  void _swapLocations() {
+    setState(() {
+      final tempText = _pickupController.text;
+      _pickupController.text = _dropoffController.text;
+      _dropoffController.text = tempText;
+
+      final tempPoint = _pickupPoint;
+      _pickupPoint = _dropoffPoint;
+      _dropoffPoint = tempPoint;
+    });
+  }
+
+  void _pickLocation(bool isPickup) async {
+    final currentText =
+        isPickup ? _pickupController.text : _dropoffController.text;
+    final result = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => LocationPickerScreen(
+          currentLocation:
+              currentText.isNotEmpty ? currentText : 'شارع المحطة - جرجا',
+        ),
+      ),
+    );
+
+    if (result != null && mounted) {
+      setState(() {
+        if (isPickup) {
+          _pickupController.text = result;
+        } else {
+          _dropoffController.text = result;
+        }
+      });
+    }
+  }
+
   void _recenterMap() {
-    setState(() => _isLocatingMap = true);
-    Future.delayed(const Duration(milliseconds: 600), () {
-      if (!mounted) return;
-      setState(() {
-        _isLocatingMap = false;
-        _mapPanOffset = Offset.zero;
-        _mapZoomScale = 1.0;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تم ضبط التمركز على موقعك في جرجا 🎯'),
-          duration: Duration(seconds: 1),
-        ),
-      );
-    });
+    _mapController.move(_pickupPoint, 16.5);
   }
-
-  // Option Specifications
-  final List<Map<String, dynamic>> _rideOptions = const [
-    {
-      'title': 'مرسول عادي',
-      'subtitle': '12-15 دقيقة • حمولة صغيرة',
-      'price': 20.0,
-      'tag': '',
-      'icon': Icons.two_wheeler_outlined,
-    },
-    {
-      'title': 'اكسبريس سريع',
-      'subtitle': '5-10 دقائق • الأكثر طلباً',
-      'price': 25.0,
-      'tag': 'الأسرع',
-      'icon': Icons.bolt_outlined,
-    },
-    {
-      'title': 'سيارة حمولات',
-      'subtitle': '15-20 دقيقة • حمولة كبيرة',
-      'price': 35.0,
-      'tag': 'كبير',
-      'icon': Icons.local_shipping_outlined,
-    },
-  ];
-
-  double get _calculatedFee {
-    double baseFee = _rideOptions[_selectedOptionIndex]['price'] as double;
-    if (_selectedServiceType == 1) baseFee += 5.0; // اشترِ لي
-    if (_isFragile) baseFee += 5.0;
-
-    double finalFee = baseFee - _discount;
-    return finalFee < 15.0 ? 15.0 : finalFee;
-  }
-
-  void _pickPickupLocationOnMap() async {
-    final result = await Navigator.push<String>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => LocationPickerScreen(
-          currentLocation: _pickupController.text,
-        ),
-      ),
-    );
-    if (result != null && mounted) {
-      setState(() {
-        _pickupController.text = result;
-      });
-    }
-  }
-
-  void _pickDropoffLocationOnMap() async {
-    final result = await Navigator.push<String>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => LocationPickerScreen(
-          currentLocation: _dropoffController.text.isNotEmpty
-              ? _dropoffController.text
-              : 'ميدان النهضة - جرجا',
-        ),
-      ),
-    );
-    if (result != null && mounted) {
-      setState(() {
-        _dropoffController.text = result;
-      });
-    }
-  }
-
-  void _simulatePhotoUpload() {
-    setState(() => _isUploadingPhoto = true);
-    Future.delayed(const Duration(milliseconds: 700), () {
-      if (!mounted) return;
-      setState(() {
-        _isUploadingPhoto = false;
-        _attachedPhotoName = 'صورة_الشحنة_المرفقة.jpg';
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تم إرفاق صورة الشحنة بنجاح'),
-          backgroundColor: Color(0xFF0EA5E9),
-        ),
-      );
-    });
-  }
-
-  void _applyCoupon() {
-    final code = _couponController.text.trim().toUpperCase();
-    if (code == 'EIOP10' || code == 'EXPRESS') {
-      setState(() => _discount = 10.0);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تم تطبيق خصم 10 جنيهات بنجاح'),
-          backgroundColor: Color(0xFF10B981),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('كوبون غير صالح. جرب EIOP10'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  final List<Map<String, String>> _availableCaptains = const [
-    {
-      'name': 'كابتن محمود السوهاجي',
-      'phone': '01098765432',
-      'vehicle': 'دراجة نارية هوائية سريعة',
-      'rating': '4.9 ★ (140 رحلة)',
-      'eta': 'خلال 5 دقائق',
-    },
-    {
-      'name': 'كابتن أحمد علي عبد الرحيم',
-      'phone': '01123456789',
-      'vehicle': 'سكوتير مرسول اكسبريس',
-      'rating': '4.95 ★ (230 رحلة)',
-      'eta': 'خلال 4 دقائق',
-    },
-    {
-      'name': 'كابتن مصطفى طه الفولي',
-      'phone': '01234567890',
-      'vehicle': 'دراجة نارية سوداء',
-      'rating': '4.85 ★ (95 رحلة)',
-      'eta': 'خلال 7 دقائق',
-    },
-    {
-      'name': 'كابتن كريم حسن (جرجا)',
-      'phone': '01512345678',
-      'vehicle': 'تروسيكل شحنات أمانات',
-      'rating': '4.9 ★ (310 رحلة)',
-      'eta': 'خلال 8 دقائق',
-    },
-  ];
 
   void _submitParcelOrder() {
     if (_dropoffController.text.trim().isEmpty && _selectedServiceType != 1) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('برجاء تحديد عنوان تسليم الشحنة أولاً'),
-          backgroundColor: Colors.red,
+          content: Text('برجاء تحديد موقع تسليم الشحنة أولاً 📍'),
+          backgroundColor: Colors.redAccent,
         ),
       );
       return;
     }
 
-    final categoryDesc = _selectedServiceType == 1
-        ? 'مرسول: ${_errandDetailsController.text.isNotEmpty ? _errandDetailsController.text : "طلب شراء خاص"}'
-        : _rideOptions[_selectedOptionIndex]['title'];
+    setState(() {
+      _isSearchingCaptain = true;
+    });
 
-    final randomCaptain = _availableCaptains[
-        DateTime.now().millisecondsSinceEpoch % _availableCaptains.length];
+    // Simulate searching captain for 1.5s then accept & show route on map
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (!mounted) return;
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return Dialog(
-              backgroundColor: const Color(0xFF0F172A),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: FutureBuilder(
-                  future: Future.delayed(const Duration(milliseconds: 1400)),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState != ConnectionState.done) {
-                      return Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const SizedBox(height: 10),
-                          const SizedBox(
-                            width: 46,
-                            height: 46,
-                            child: CircularProgressIndicator(
-                              color: Color(0xFFD4FF00),
-                              strokeWidth: 3,
-                            ),
-                          ),
-                          const SizedBox(height: 18),
-                          const Text(
-                            'جاري البحث عن أقرب كابتن مرسول...',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          const Text(
-                            'إرسال الطلب لكافة الكباتن القريبين بمدينة جرجا',
-                            style:
-                                TextStyle(color: Colors.white60, fontSize: 11),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 10),
-                        ],
-                      );
-                    }
+      final captain = {
+        'name': 'كابتن محمود السوهاجي',
+        'phone': '01098765432',
+        'vehicle': 'Honda CRV • أسود',
+        'plate': 'AB6299ZG',
+        'rating': '4.9 ★',
+        'eta': '3 min',
+        'safety': '98% user safety rating',
+      };
 
-                    // MATCHED & ACCEPTED BY CAPTAIN
-                    appState.placeParcelOrder(
-                      pickup: _pickupController.text,
-                      dropoff: _dropoffController.text.isNotEmpty
-                          ? _dropoffController.text
-                          : 'حسب توجيه العميل',
-                      category: categoryDesc,
-                      fee: _calculatedFee,
-                      captainName: randomCaptain['name'],
-                      captainPhone: randomCaptain['phone'],
-                    );
+      appState.placeParcelOrder(
+        pickup: _pickupController.text,
+        dropoff: _dropoffController.text.isNotEmpty
+            ? _dropoffController.text
+            : 'حسب التوجيه',
+        category: _rideOptions[_selectedOptionIndex]['title'],
+        fee: _rideOptions[_selectedOptionIndex]['price'],
+        captainName: captain['name'],
+        captainPhone: captain['phone'],
+      );
 
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF10B981),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.check_rounded,
-                              color: Colors.white, size: 26),
-                        ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          'تم قبول طلبك وتأكيد الكابتن!',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 14),
+      setState(() {
+        _isSearchingCaptain = false;
+        _isOrderAccepted = true;
+        _acceptedCaptain = captain;
+      });
 
-                        // ACCEPTED CAPTAIN DETAILS CARD
-                        Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(
-                              color: const Color(0xFFD4FF00)
-                                  .withValues(alpha: 0.3),
-                            ),
-                          ),
-                          child: Column(
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 42,
-                                    height: 42,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFD4FF00)
-                                          .withValues(alpha: 0.2),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(
-                                      Icons.person_rounded,
-                                      color: Color(0xFFD4FF00),
-                                      size: 22,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          randomCaptain['name']!,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          '${randomCaptain['vehicle']} • ${randomCaptain['rating']}',
-                                          style: const TextStyle(
-                                            color: Colors.white70,
-                                            fontSize: 11,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const Divider(color: Colors.white12, height: 18),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Row(
-                                    children: [
-                                      const Icon(Icons.access_time_rounded,
-                                          color: Color(0xFFD4FF00), size: 14),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        'وصول للاستلام ${randomCaptain['eta']}',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Text(
-                                    '${_calculatedFee.toStringAsFixed(0)} ج.م',
-                                    style: const TextStyle(
-                                      color: Color(0xFFD4FF00),
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w900,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 18),
+      // Move camera to fit both pickup & dropoff route
+      _mapController.move(
+        LatLng(
+          (_pickupPoint.latitude + _dropoffPoint.latitude) / 2,
+          (_pickupPoint.longitude + _dropoffPoint.longitude) / 2,
+        ),
+        15.2,
+      );
 
-                        SizedBox(
-                          width: double.infinity,
-                          height: 48,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFD4FF00),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                            onPressed: () {
-                              Navigator.pop(context);
-                              Navigator.pop(context);
-                            },
-                            child: const Text(
-                              'متابعة وتتبع الكابتن مباشرة',
-                              style: TextStyle(
-                                color: Color(0xFF0F172A),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('تم قبول الطلب ورسم مسار التوصيل المباشر على الخريطة 🗺️⚡'),
+          backgroundColor: vibrantLime,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    });
+  }
+
+  List<LatLng> get _routePoints {
+    return [
+      _pickupPoint,
+      LatLng(
+        (_pickupPoint.latitude * 0.6 + _dropoffPoint.latitude * 0.4),
+        (_pickupPoint.longitude * 0.7 + _dropoffPoint.longitude * 0.3),
+      ),
+      LatLng(
+        (_pickupPoint.latitude * 0.3 + _dropoffPoint.latitude * 0.7),
+        (_pickupPoint.longitude * 0.4 + _dropoffPoint.longitude * 0.6),
+      ),
+      _dropoffPoint,
+    ];
   }
 
   @override
   Widget build(BuildContext context) {
+    final googleTileUrl =
+        'https://mt1.google.com/vt/lyrs=$_mapType&x={x}&y={y}&z={z}&hl=ar&key=$_googleApiKey';
+
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        top: false,
-        child: Stack(
-          children: [
-            // 1. FULL-SCREEN INTERACTIVE VECTOR MAP CANVAS (BACKGROUND)
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 65,
-              child: GestureDetector(
-                onScaleUpdate: (details) {
-                  setState(() {
-                    _mapPanOffset += details.focalPointDelta;
-                    if (details.scale != 1.0) {
-                      _mapZoomScale =
-                          (_mapZoomScale * details.scale).clamp(0.7, 2.8);
-                    }
-                  });
+      backgroundColor: darkBgColor,
+      body: Stack(
+        children: [
+          // =========================================================
+          // 1. FULL-SCREEN ALWAYS ACTIVE GOOGLE MAP CANVAS (BACKGROUND)
+          // =========================================================
+          Positioned.fill(
+            child: FlutterMap(
+              mapController: _mapController,
+              options: MapOptions(
+                initialCenter: _currentCenter,
+                initialZoom: _currentZoom,
+                onPositionChanged: (pos, hasGesture) {
+                  if (hasGesture) {
+                    setState(() {
+                      _currentCenter = pos.center;
+                    });
+                  }
                 },
-                child: Stack(
-                  children: [
-                    // Animated Interactive Vector Map Canvas Painter
-                    AnimatedBuilder(
-                      animation: _driverAnimController,
-                      builder: (context, child) {
-                        return CustomPaint(
-                          size: Size.infinite,
-                          painter: _ParcelRouteMapPainter(
-                            driverProgress: _driverAnimController.value,
-                            panOffset: _mapPanOffset,
-                            zoomScale: _mapZoomScale,
-                          ),
-                        );
-                      },
-                    ),
+              ),
+              children: [
+                TileLayer(
+                  urlTemplate: googleTileUrl,
+                  userAgentPackageName: 'com.girga.food',
+                  maxZoom: 20,
+                ),
 
-                    // Map Dark Overlay Gradient
-                    Positioned.fill(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.black.withValues(alpha: 0.5),
-                              Colors.transparent,
-                              Colors.black.withValues(alpha: 0.25),
-                            ],
-                          ),
-                        ),
+                // LIVE ROUTE POLYLINE (Drawn on Google Map when accepted!)
+                if (_isOrderAccepted)
+                  PolylineLayer(
+                    polylines: [
+                      Polyline(
+                        points: _routePoints,
+                        strokeWidth: 6.0,
+                        color: vibrantLime,
+                        borderColor: darkBgColor,
+                        borderStrokeWidth: 2.0,
                       ),
-                    ),
+                    ],
+                  ),
 
-                    // FLOATING MAP ZOOM & GPS CONTROLS (RIGHT SIDE)
-                    Positioned(
-                      left: 14,
-                      bottom: 85,
+                // MARKERS LAYER ON MAP
+                MarkerLayer(
+                  markers: [
+                    // PICKUP MARKER 🟢
+                    Marker(
+                      point: _pickupPoint,
+                      width: 140,
+                      height: 70,
+                      alignment: Alignment.topCenter,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Zoom In (+) Button
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _mapZoomScale =
-                                    (_mapZoomScale + 0.25).clamp(0.7, 2.8);
-                              });
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF0F172A),
-                                shape: BoxShape.circle,
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Colors.black26,
-                                    blurRadius: 6,
-                                  ),
-                                ],
-                              ),
-                              child: const Icon(Icons.add_rounded,
-                                  color: Color(0xFFD4FF00), size: 18),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          // Zoom Out (-) Button
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _mapZoomScale =
-                                    (_mapZoomScale - 0.25).clamp(0.7, 2.8);
-                              });
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF0F172A),
-                                shape: BoxShape.circle,
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Colors.black26,
-                                    blurRadius: 6,
-                                  ),
-                                ],
-                              ),
-                              child: const Icon(Icons.remove_rounded,
-                                  color: Color(0xFFD4FF00), size: 18),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          // GPS Recenter Button
-                          GestureDetector(
-                            onTap: _recenterMap,
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF0F172A),
-                                shape: BoxShape.circle,
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Colors.black26,
-                                    blurRadius: 6,
-                                  ),
-                                ],
-                              ),
-                              child: _isLocatingMap
-                                  ? const SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Color(0xFFD4FF00),
-                                      ),
-                                    )
-                                  : const Icon(Icons.my_location_rounded,
-                                      color: Color(0xFFD4FF00), size: 18),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                  // TOP FLOATING BAR (BACK BUTTON & STATUS)
-                  SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 10),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              if (Navigator.canPop(context))
-                                GestureDetector(
-                                  onTap: () => Navigator.pop(context),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: Colors.black.withValues(alpha: 0.4),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(
-                                      Icons.arrow_back_rounded,
-                                      color: Colors.white,
-                                      size: 20,
-                                    ),
-                                  ),
-                                ),
-                              const SizedBox(width: 10),
-                              const Text(
-                                'حجز وتأكيد التوصيل',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                  shadows: [
-                                    Shadow(color: Colors.black, blurRadius: 4),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 5),
+                                horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.5),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.2),
-                              ),
+                              color: darkBgColor,
+                              borderRadius: BorderRadius.circular(10),
+                              border:
+                                  Border.all(color: vibrantLime, width: 1.5),
                             ),
-                            child: Row(
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                Container(
-                                  width: 7,
-                                  height: 7,
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFF10B981),
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                const Text(
-                                  'مندوبون متوفرون',
+                                Icon(Icons.my_location_rounded,
+                                    color: vibrantLime, size: 12),
+                                SizedBox(width: 4),
+                                Text(
+                                  'الاستلام 🟢',
                                   style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
+                                    color: textWhite,
                                     fontSize: 10,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Container(
+                            width: 16,
+                            height: 16,
+                            decoration: BoxDecoration(
+                              color: vibrantLime,
+                              shape: BoxShape.circle,
+                              border:
+                                  Border.all(color: darkBgColor, width: 3),
+                              boxShadow: const [
+                                BoxShadow(
+                                    color: Colors.black45, blurRadius: 6),
                               ],
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ),
 
-                  // FLOATING ADDRESS CARD ON TOP OF MAP
-                  Positioned(
-                    top: 80,
-                    left: 16,
-                    right: 16,
-                    child: Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E293B).withValues(alpha: 0.92),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.25),
-                            blurRadius: 14,
-                            offset: const Offset(0, 6),
+                    // DROPOFF MARKER 🔴
+                    Marker(
+                      point: _dropoffPoint,
+                      width: 140,
+                      height: 70,
+                      alignment: Alignment.topCenter,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: darkBgColor,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                  color: const Color(0xFFEF4444), width: 1.5),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.location_on_rounded,
+                                    color: Color(0xFFEF4444), size: 12),
+                                SizedBox(width: 4),
+                                Text(
+                                  'التسليم 🔴',
+                                  style: TextStyle(
+                                    color: textWhite,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Container(
+                            width: 16,
+                            height: 16,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEF4444),
+                              shape: BoxShape.circle,
+                              border:
+                                  Border.all(color: darkBgColor, width: 3),
+                              boxShadow: const [
+                                BoxShadow(
+                                    color: Colors.black45, blurRadius: 6),
+                              ],
+                            ),
                           ),
                         ],
                       ),
-                      child: Column(
-                        children: [
-                          // Pickup Row
-                          Row(
+                    ),
+
+                    // LIVE DRIVER MARKER ALONG THE ROUTE WHEN ACCEPTED 🛵
+                    if (_isOrderAccepted)
+                      Marker(
+                        point: LatLng(
+                          _pickupPoint.latitude +
+                              (_dropoffPoint.latitude - _pickupPoint.latitude) *
+                                  _driverAnimController.value,
+                          _pickupPoint.longitude +
+                              (_dropoffPoint.longitude - _pickupPoint.longitude) *
+                                  _driverAnimController.value,
+                        ),
+                        width: 120,
+                        height: 60,
+                        alignment: Alignment.center,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: vibrantLime,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: const [
+                              BoxShadow(color: Colors.black38, blurRadius: 8),
+                            ],
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Container(
-                                width: 10,
-                                height: 10,
+                              Icon(Icons.directions_car_rounded,
+                                  color: darkBgColor, size: 16),
+                              SizedBox(width: 4),
+                              Text(
+                                'AB6299ZG • 3 min',
+                                style: TextStyle(
+                                  color: darkBgColor,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                    // OTHER ACTIVE PARCEL ORDERS PLOTTED ON MAP
+                    if (!_isOrderAccepted)
+                      ..._mapOrders.map((ord) {
+                        return Marker(
+                          point: ord['pickup'] as LatLng,
+                          width: 130,
+                          height: 50,
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _pickupController.text = ord['pickupName'];
+                                _dropoffController.text = ord['dropoffName'];
+                                _pickupPoint = ord['pickup'];
+                                _dropoffPoint = ord['dropoff'];
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: darkCardColor,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                    color: googleBlue.withValues(alpha: 0.8)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.inventory_2_rounded,
+                                      color: googleBlue, size: 14),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      '${ord['id']} • ${(ord['price'] as double).toStringAsFixed(0)}ج',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: textWhite,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      }),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // Map Dark Vignette Overlay
+          Positioned.fill(
+            child: IgnorePointer(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      darkBgColor.withValues(alpha: 0.75),
+                      Colors.transparent,
+                      darkBgColor.withValues(alpha: 0.4),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // Map Floating Control Buttons (GPS Recenter & Layer Toggle)
+          Positioned(
+            right: 16,
+            top: MediaQuery.of(context).padding.top + 190,
+            child: Column(
+              children: [
+                FloatingActionButton.small(
+                  heroTag: 'btn_gps_delivery',
+                  backgroundColor: darkCardColor,
+                  onPressed: _recenterMap,
+                  child: const Icon(Icons.my_location_rounded,
+                      color: vibrantLime),
+                ),
+                const SizedBox(height: 8),
+                FloatingActionButton.small(
+                  heroTag: 'btn_map_layer_delivery',
+                  backgroundColor: darkCardColor,
+                  onPressed: () {
+                    setState(() {
+                      _mapType = _mapType == 'm' ? 'y' : 'm';
+                    });
+                  },
+                  child: Icon(
+                    _mapType == 'y'
+                        ? Icons.satellite_alt_rounded
+                        : Icons.layers_rounded,
+                    color: vibrantLime,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // =========================================================
+          // 2. TOP FLOATING BAR (Dark Mockup Header & Input Capsule)
+          // =========================================================
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Top Row: Back button, Avatar & Header Title
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          if (Navigator.canPop(context))
+                            GestureDetector(
+                              onTap: () => Navigator.pop(context),
+                              child: Container(
+                                padding: const EdgeInsets.all(10),
                                 decoration: const BoxDecoration(
-                                  color: Color(0xFFD4FF00),
+                                  color: darkCardColor,
                                   shape: BoxShape.circle,
                                 ),
+                                child: const Icon(Icons.arrow_back_rounded,
+                                    color: textWhite, size: 20),
+                              ),
+                            ),
+                          const SizedBox(width: 12),
+                          const Text(
+                            'Where do you want to go?',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w900,
+                              color: textWhite,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: vibrantLime, width: 2),
+                        ),
+                        child: const CircleAvatar(
+                          radius: 18,
+                          backgroundColor: Color(0xFFFEF08A),
+                          child: Text('👦🏻', style: TextStyle(fontSize: 18)),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // DUAL INPUT CAPSULE WITH SWAP ICON (MATCHING MOCKUP IMAGE)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: darkCardColor.withValues(alpha: 0.95),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.08)),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black45,
+                          blurRadius: 16,
+                          offset: Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        // Pickup Location Input Row
+                        GestureDetector(
+                          onTap: () => _pickLocation(true),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF1E293B),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.location_on_rounded,
+                                    color: vibrantLime, size: 16),
                               ),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
-                                  _pickupController.text,
+                                  _pickupController.text.isNotEmpty
+                                      ? _pickupController.text
+                                      : 'Add a pick-up location',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
+                                    color: textWhite,
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: _pickPickupLocationOnMap,
-                                child: const Text(
-                                  'تغيير',
-                                  style: TextStyle(
-                                    color: Color(0xFFD4FF00),
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 6),
-                            child: Divider(color: Colors.white12, height: 1),
-                          ),
-                          // Dropoff Row
-                          Row(
+                        ),
+
+                        // Divider with Swap Center Icon 🔄
+                        Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            const Divider(color: Colors.white12, height: 18),
+                            GestureDetector(
+                              onTap: _swapLocations,
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: darkBgColor,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                      color: Colors.white24, width: 1),
+                                ),
+                                child: const Icon(
+                                  Icons.swap_vert_rounded,
+                                  color: vibrantLime,
+                                  size: 16,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        // Dropoff Location Input Row
+                        GestureDetector(
+                          onTap: () => _pickLocation(false),
+                          child: Row(
                             children: [
                               Container(
-                                width: 10,
-                                height: 10,
+                                padding: const EdgeInsets.all(6),
                                 decoration: const BoxDecoration(
-                                  color: Color(0xFFEF4444),
+                                  color: Color(0xFF1E293B),
                                   shape: BoxShape.circle,
                                 ),
+                                child: const Icon(Icons.location_on_rounded,
+                                    color: Color(0xFFEF4444), size: 16),
                               ),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
                                   _dropoffController.text.isNotEmpty
                                       ? _dropoffController.text
-                                      : 'حدد موقع تسليم الشحنة...',
+                                      : 'Add your destination',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
+                                    color: _dropoffController.text.isNotEmpty
+                                        ? textWhite
+                                        : textMuted,
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
-                                    color: _dropoffController.text.isNotEmpty
-                                        ? Colors.white
-                                        : Colors.white54,
-                                  ),
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: _pickDropoffLocationOnMap,
-                                child: const Text(
-                                  'تحديد',
-                                  style: TextStyle(
-                                    color: Color(0xFF0EA5E9),
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -786,571 +750,51 @@ class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen>
             ),
           ),
 
-            // 2. DRAGGABLE & PULLABLE SLIDING BOTTOM SHEET
-            DraggableScrollableSheet(
-              controller: _sheetController,
-              initialChildSize: 0.64,
-              minChildSize: 0.14,
-              maxChildSize: 0.92,
-              snap: true,
-              snapSizes: const [0.14, 0.64, 0.92],
-              builder: (context, scrollController) {
-                return Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(28)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.18),
-                        blurRadius: 20,
-                        offset: const Offset(0, -6),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      // A. SCROLLABLE CONTENT WITH CONTROLLER
-                      Expanded(
-                        child: SingleChildScrollView(
-                          controller: scrollController,
-                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
-                          physics: const BouncingScrollPhysics(),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Top Sheet Handle Indicator Bar (Tap to toggle pull-down)
-                              GestureDetector(
-                                onTap: () {
-                                  if (_sheetController.isAttached) {
-                                    final target = _sheetController.size > 0.3
-                                        ? 0.14
-                                        : 0.64;
-                                    _sheetController.animateTo(
-                                      target,
-                                      duration:
-                                          const Duration(milliseconds: 300),
-                                      curve: Curves.easeOut,
-                                    );
-                                  }
-                                },
-                                child: Container(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 8),
-                                  color: Colors.transparent,
-                                  width: double.infinity,
-                                  child: Center(
-                                    child: Container(
-                                      width: 48,
-                                      height: 5,
-                                      decoration: BoxDecoration(
-                                        color:
-                                            Colors.grey.withValues(alpha: 0.4),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-
-                            // SERVICE TYPE SWITCHER TABS
-                            Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: BoxDecoration(
-                                color: AppColors.cardBg,
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Row(
-                                children: [
-                                  _buildServiceTypeTab(
-                                      0, 'ارسل طرد', Icons.inventory_2_outlined),
-                                  _buildServiceTypeTab(
-                                      1, 'اشترِ لي (مرسول)', Icons.shopping_bag_outlined),
-                                  _buildServiceTypeTab(
-                                      2, 'مستندات وأوراق', Icons.article_outlined),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-
-                            // ERRAND SPECIAL FIELD IF SELECTED
-                            if (_selectedServiceType == 1) ...[
-                              Text(
-                                'تفاصيل طلب الشراء وقضاء الحاجة:',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: AppColors.cardBg,
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: TextField(
-                                  controller: _errandDetailsController,
-                                  maxLines: 2,
-                                  decoration: const InputDecoration(
-                                    hintText:
-                                        'اكتب الأغراض المطلوب شراؤها والمحل المراد الشراء منه...',
-                                    hintStyle: TextStyle(fontSize: 12),
-                                    border: InputBorder.none,
-                                    contentPadding: EdgeInsets.all(12),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                            ],
-
-                            // RIDE / PARCEL OPTION SELECTION CARDS
-                            Text(
-                              'خيارات المرسول وسرعة التوصيل:',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-
-                            Column(
-                              children: List.generate(_rideOptions.length, (index) {
-                                final option = _rideOptions[index];
-                                final isSelected = _selectedOptionIndex == index;
-                                return GestureDetector(
-                                  onTap: () {
-                                    setState(() => _selectedOptionIndex = index);
-                                  },
-                                  child: AnimatedContainer(
-                                    duration: const Duration(milliseconds: 200),
-                                    margin: const EdgeInsets.only(bottom: 10),
-                                    padding: const EdgeInsets.all(14),
-                                    decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? const Color(0xFF0F172A)
-                                          : AppColors.cardBg,
-                                      borderRadius: BorderRadius.circular(18),
-                                      border: Border.all(
-                                        color: isSelected
-                                            ? const Color(0xFFD4FF00)
-                                            : Colors.transparent,
-                                        width: 1.5,
-                                      ),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.all(10),
-                                          decoration: BoxDecoration(
-                                            color: isSelected
-                                                ? const Color(0xFFD4FF00)
-                                                    .withValues(alpha: 0.15)
-                                                : Colors.grey.withValues(alpha: 0.1),
-                                            borderRadius: BorderRadius.circular(12),
-                                          ),
-                                          child: Icon(
-                                            option['icon'] as IconData,
-                                            color: isSelected
-                                                ? const Color(0xFFD4FF00)
-                                                : AppColors.textSecondary,
-                                            size: 22,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Row(
-                                                children: [
-                                                  Text(
-                                                    option['title'] as String,
-                                                    style: TextStyle(
-                                                      fontSize: 13,
-                                                      fontWeight: FontWeight.bold,
-                                                      color: isSelected
-                                                          ? Colors.white
-                                                          : AppColors.textPrimary,
-                                                    ),
-                                                  ),
-                                                  if ((option['tag'] as String)
-                                                      .isNotEmpty) ...[
-                                                    const SizedBox(width: 8),
-                                                    Container(
-                                                      padding:
-                                                          const EdgeInsets.symmetric(
-                                                              horizontal: 6,
-                                                              vertical: 2),
-                                                      decoration: BoxDecoration(
-                                                        color: const Color(0xFFD4FF00),
-                                                        borderRadius:
-                                                            BorderRadius.circular(6),
-                                                      ),
-                                                      child: Text(
-                                                        option['tag'] as String,
-                                                        style: const TextStyle(
-                                                          fontSize: 9,
-                                                          fontWeight: FontWeight.bold,
-                                                          color: Color(0xFF0F172A),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ],
-                                              ),
-                                              const SizedBox(height: 2),
-                                              Text(
-                                                option['subtitle'] as String,
-                                                style: TextStyle(
-                                                  fontSize: 11,
-                                                  color: isSelected
-                                                      ? Colors.white60
-                                                      : AppColors.textSecondary,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        Text(
-                                          '${(option['price'] as double).toStringAsFixed(0)} ج.م',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w900,
-                                            color: isSelected
-                                                ? const Color(0xFFD4FF00)
-                                                : AppColors.textPrimary,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              }),
-                            ),
-                            const SizedBox(height: 14),
-
-                            // CAPTAIN RECOMMENDATION & TRIP METRICS CARD (MOCKUP STYLE)
-                            Container(
-                              padding: const EdgeInsets.all(14),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF0F172A),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Column(
-                                children: [
-                                  Row(
-                                    children: [
-                                      Container(
-                                        width: 42,
-                                        height: 42,
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFD4FF00)
-                                              .withValues(alpha: 0.15),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: const Icon(
-                                          Icons.radar_rounded,
-                                          color: Color(0xFFD4FF00),
-                                          size: 22,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      const Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              '12 كابتن مرسول متوفرون بجرجا ⚡',
-                                              style: TextStyle(
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                            SizedBox(height: 2),
-                                            Text(
-                                              'يتم تأكيد وتحديد السائق فور طلبك مباشرة',
-                                              style: TextStyle(
-                                                fontSize: 11,
-                                                color: Colors.white70,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const Divider(color: Colors.white12, height: 20),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                    children: [
-                                      _buildMetricItem('المسافة', '3.2 كم'),
-                                      Container(
-                                          width: 1, height: 20, color: Colors.white12),
-                                      _buildMetricItem('الوقت', '12 دقيقة'),
-                                      Container(
-                                          width: 1, height: 20, color: Colors.white12),
-                                      _buildMetricItem(
-                                          'السعر', '${_calculatedFee.toStringAsFixed(0)} ج.م'),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 14),
-
-                            // COLLAPSIBLE RECIPIENT & OPTIONS EXPANDER
-                            GestureDetector(
-                              onTap: () {
-                                setState(() => _showMoreDetails = !_showMoreDetails);
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 14, vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: AppColors.cardBg,
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'بيانات المستلم والشحنة (اختياري)',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.textSecondary,
-                                      ),
-                                    ),
-                                    Icon(
-                                      _showMoreDetails
-                                          ? Icons.keyboard_arrow_up_rounded
-                                          : Icons.keyboard_arrow_down_rounded,
-                                      color: AppColors.textSecondary,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-
-                            if (_showMoreDetails) ...[
-                              const SizedBox(height: 10),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: AppColors.cardBg,
-                                        borderRadius: BorderRadius.circular(14),
-                                      ),
-                                      child: TextField(
-                                        controller: _recipientNameController,
-                                        decoration: const InputDecoration(
-                                          hintText: 'اسم المستلم',
-                                          hintStyle: TextStyle(fontSize: 11),
-                                          prefixIcon: Icon(Icons.person_outline_rounded,
-                                              size: 18),
-                                          border: InputBorder.none,
-                                          contentPadding: EdgeInsets.all(10),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: AppColors.cardBg,
-                                        borderRadius: BorderRadius.circular(14),
-                                      ),
-                                      child: TextField(
-                                        controller: _recipientPhoneController,
-                                        keyboardType: TextInputType.phone,
-                                        decoration: const InputDecoration(
-                                          hintText: 'رقم هاتف المستلم',
-                                          hintStyle: TextStyle(fontSize: 11),
-                                          prefixIcon: Icon(
-                                              Icons.phone_android_rounded,
-                                              size: 18),
-                                          border: InputBorder.none,
-                                          contentPadding: EdgeInsets.all(10),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              // Notes field
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: AppColors.cardBg,
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                                child: TextField(
-                                  controller: _notesController,
-                                  maxLines: 2,
-                                  decoration: const InputDecoration(
-                                    hintText: 'ملاحظات إضافية للمندوب (اختياري)...',
-                                    hintStyle: TextStyle(fontSize: 11),
-                                    prefixIcon: Icon(Icons.notes_rounded, size: 18),
-                                    border: InputBorder.none,
-                                    contentPadding: EdgeInsets.all(10),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              // Photo upload & Promo Coupon Row
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: OutlinedButton.icon(
-                                      style: OutlinedButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(vertical: 8),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                      ),
-                                      onPressed: _simulatePhotoUpload,
-                                      icon: _isUploadingPhoto
-                                          ? const SizedBox(
-                                              width: 14,
-                                              height: 14,
-                                              child: CircularProgressIndicator(strokeWidth: 2),
-                                            )
-                                          : Icon(
-                                              _attachedPhotoName != null
-                                                  ? Icons.check_circle_rounded
-                                                  : Icons.add_a_photo_outlined,
-                                              size: 16,
-                                              color: const Color(0xFF0EA5E9),
-                                            ),
-                                      label: Text(
-                                        _attachedPhotoName ?? 'إرفاق صورة الشحنة',
-                                        style: const TextStyle(
-                                            color: Color(0xFF0EA5E9), fontSize: 10),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          child: Container(
-                                            height: 38,
-                                            decoration: BoxDecoration(
-                                              color: AppColors.cardBg,
-                                              borderRadius: BorderRadius.circular(12),
-                                            ),
-                                            child: TextField(
-                                              controller: _couponController,
-                                              decoration: const InputDecoration(
-                                                hintText: 'كوبون الخصم',
-                                                hintStyle: TextStyle(fontSize: 10),
-                                                border: InputBorder.none,
-                                                contentPadding: EdgeInsets.symmetric(
-                                                    horizontal: 8, vertical: 8),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 4),
-                                        ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: const Color(0xFF0EA5E9),
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 8, vertical: 8),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(10),
-                                            ),
-                                          ),
-                                          onPressed: _applyCoupon,
-                                          child: const Text('تطبيق',
-                                              style: TextStyle(
-                                                  color: Colors.white, fontSize: 10)),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              CheckboxListTile(
-                                contentPadding: EdgeInsets.zero,
-                                title: const Text('قابل للكسر / التعامل بحذر',
-                                    style: TextStyle(fontSize: 11)),
-                                value: _isFragile,
-                                activeColor: const Color(0xFF0EA5E9),
-                                onChanged: (val) {
-                                  setState(() => _isFragile = val ?? false);
-                                },
-                              ),
-                              CheckboxListTile(
-                                contentPadding: EdgeInsets.zero,
-                                title: const Text('طلب الدفع عند الاستلام (COD)',
-                                    style: TextStyle(fontSize: 11)),
-                                value: _payOnDelivery,
-                                activeColor: const Color(0xFF0EA5E9),
-                                onChanged: (val) {
-                                  setState(() => _payOnDelivery = val ?? false);
-                                },
-                              ),
-                            ],
-                          ],
-                        ),
+          // =========================================================
+          // 3. DRAGGABLE BOTTOM SHEET (MATCHING MOCKUP DESIGN STATES)
+          // =========================================================
+          DraggableScrollableSheet(
+            controller: _sheetController,
+            initialChildSize: _isOrderAccepted ? 0.46 : 0.52,
+            minChildSize: 0.16,
+            maxChildSize: 0.88,
+            snap: true,
+            snapSizes: const [0.16, 0.46, 0.88],
+            builder: (context, scrollController) {
+              return Container(
+                decoration: BoxDecoration(
+                  color: darkCardColor,
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(32)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.5),
+                      blurRadius: 24,
+                      offset: const Offset(0, -8),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    // Sheet Handle Drag Indicator
+                    Container(
+                      margin: const EdgeInsets.only(top: 10, bottom: 6),
+                      width: 42,
+                      height: 4.5,
+                      decoration: BoxDecoration(
+                        color: Colors.white24,
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
 
-                    // B. FIXED STICKY ELECTRIC NEON LIME CTA BUTTON BAR
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        border: Border(
-                          top: BorderSide(
-                            color: Colors.grey.withValues(alpha: 0.1),
-                          ),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.04),
-                            blurRadius: 8,
-                            offset: const Offset(0, -3),
-                          ),
-                        ],
-                      ),
-                      child: SafeArea(
-                        top: false,
-                        child: SizedBox(
-                          width: double.infinity,
-                          height: 52,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFD4FF00),
-                              elevation: 4,
-                              shadowColor:
-                                  const Color(0xFFD4FF00).withValues(alpha: 0.4),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(28),
-                              ),
-                            ),
-                            onPressed: _submitParcelOrder,
-                            child: const Text(
-                              'تأكيد وحجز التوصيل',
-                              style: TextStyle(
-                                color: Color(0xFF0F172A),
-                                fontSize: 16,
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
-                          ),
-                        ),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        controller: scrollController,
+                        physics: const BouncingScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(18, 4, 18, 16),
+                        child: _isOrderAccepted
+                            ? _buildAcceptedOrderSheetContent()
+                            : _buildBookingSheetContent(),
                       ),
                     ),
                   ],
@@ -1358,280 +802,427 @@ class _ParcelDeliveryScreenState extends State<ParcelDeliveryScreen>
               );
             },
           ),
-          ],
-        ),
+        ],
       ),
     );
   }
 
-  Widget _buildServiceTypeTab(int index, String title, IconData icon) {
-    final isSelected = _selectedServiceType == index;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() => _selectedServiceType = index);
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
-          padding: const EdgeInsets.symmetric(vertical: 9),
+  // =========================================================
+  // UNACCEPTED STATE: BOOKING & MODE SELECTION SHEET CONTENT
+  // =========================================================
+  Widget _buildBookingSheetContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Mode Selector Pills (Driver vs Package)
+        Container(
+          padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF0F172A) : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
+            color: darkBgColor,
+            borderRadius: BorderRadius.circular(20),
           ),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  icon,
-                  size: 15,
-                  color: isSelected
-                      ? const Color(0xFFD4FF00)
-                      : AppColors.textSecondary,
-                ),
-                const SizedBox(width: 5),
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: isSelected ? Colors.white : AppColors.textSecondary,
+          child: Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => _selectedMode = 0),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      color:
+                          _selectedMode == 0 ? vibrantLime : Colors.transparent,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.directions_car_rounded,
+                            color: _selectedMode == 0 ? darkBgColor : textWhite,
+                            size: 18),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Driver',
+                          style: TextStyle(
+                            color:
+                                _selectedMode == 0 ? darkBgColor : textWhite,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ],
-            ),
+              ),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => _selectedMode = 1),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      color:
+                          _selectedMode == 1 ? vibrantLime : Colors.transparent,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.inventory_2_rounded,
+                            color: _selectedMode == 1 ? darkBgColor : textWhite,
+                            size: 18),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Package',
+                          style: TextStyle(
+                            color:
+                                _selectedMode == 1 ? darkBgColor : textWhite,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
-      ),
-    );
-  }
+        const SizedBox(height: 16),
 
-  Widget _buildMetricItem(String label, String value) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 10, color: Colors.white54),
+        // CAR & RIDE OPTION HORIZONTAL CARDS (MATCHING MOCKUP IMAGE)
+        SizedBox(
+          height: 125,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            itemCount: _rideOptions.length,
+            separatorBuilder: (context, index) => const SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              final opt = _rideOptions[index];
+              final isSel = _selectedOptionIndex == index;
+              return GestureDetector(
+                onTap: () => setState(() => _selectedOptionIndex = index),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 145,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isSel ? vibrantLime : darkBgColor,
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(
+                      color: isSel
+                          ? vibrantLime
+                          : Colors.white.withValues(alpha: 0.08),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            opt['title'].toString().split(' ')[0],
+                            style: TextStyle(
+                              color: isSel ? darkBgColor : textWhite,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                          Icon(
+                            opt['icon'] as IconData,
+                            color: isSel ? darkBgColor : vibrantLime,
+                            size: 20,
+                          ),
+                        ],
+                      ),
+                      Text(
+                        opt['subtitle'].toString(),
+                        style: TextStyle(
+                          color: isSel ? darkBgColor.withValues(alpha: 0.8) : textMuted,
+                          fontSize: 10,
+                        ),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.person_rounded,
+                                  size: 12,
+                                  color: isSel
+                                      ? darkBgColor
+                                      : textMuted),
+                              const SizedBox(width: 2),
+                              Text(
+                                '${opt['seats']}',
+                                style: TextStyle(
+                                  color: isSel
+                                      ? darkBgColor
+                                      : textMuted,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            '\$${(opt['price'] as double).toStringAsFixed(0)}',
+                            style: TextStyle(
+                              color: isSel ? darkBgColor : textWhite,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
         ),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+        const SizedBox(height: 18),
+
+        // SUBMIT & CONFIRM BUTTON
+        SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: vibrantLime,
+              elevation: 4,
+              shadowColor: vibrantLime.withValues(alpha: 0.4),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(26),
+              ),
+            ),
+            onPressed: _isSearchingCaptain ? null : _submitParcelOrder,
+            child: _isSearchingCaptain
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      color: darkBgColor,
+                      strokeWidth: 2.5,
+                    ),
+                  )
+                : const Text(
+                    'تأكيد وحجز التوصيل ⚡',
+                    style: TextStyle(
+                      color: darkBgColor,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
           ),
         ),
       ],
     );
   }
-}
 
-// Custom Map Canvas Painter for Parcel Delivery Screen Header
-// Custom Map Canvas Painter for Parcel Delivery Screen Header
-class _ParcelRouteMapPainter extends CustomPainter {
-  final double driverProgress;
-  final Offset panOffset;
-  final double zoomScale;
+  // =========================================================
+  // ACCEPTED STATE SHEET CONTENT (MATCHING IMAGE 2 & 3 IN MOCKUP)
+  // =========================================================
+  Widget _buildAcceptedOrderSheetContent() {
+    final cap = _acceptedCaptain ?? {};
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Arrival Notification Banner
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: vibrantLime,
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'The driver will arrive in',
+                style: TextStyle(
+                  color: darkBgColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: darkBgColor,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  cap['eta'] ?? '3 min',
+                  style: const TextStyle(
+                    color: vibrantLime,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
 
-  _ParcelRouteMapPainter({
-    required this.driverProgress,
-    required this.panOffset,
-    required this.zoomScale,
-  });
+        // Driver Info Card (Matching Screenshot)
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: darkBgColor,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+          ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  const CircleAvatar(
+                    radius: 20,
+                    backgroundColor: Color(0xFFFEF08A),
+                    child: Text('👨🏻‍✈️', style: TextStyle(fontSize: 20)),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          cap['name'] ?? 'كابتن محمود السوهاجي',
+                          style: const TextStyle(
+                            color: textWhite,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          cap['vehicle'] ?? 'Honda CRV',
+                          style: const TextStyle(
+                            color: textMuted,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: textWhite,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      cap['plate'] ?? 'AB6299ZG',
+                      style: const TextStyle(
+                        color: darkBgColor,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    canvas.save();
-    // Apply pan & zoom relative to center
-    canvas.translate(size.width / 2 + panOffset.dx, size.height / 2 + panOffset.dy);
-    canvas.scale(zoomScale);
-    canvas.translate(-size.width / 2, -size.height / 2);
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.star_rounded,
+                          color: Color(0xFFF59E0B), size: 16),
+                      const SizedBox(width: 4),
+                      Text(
+                        cap['rating'] ?? '4.9 ★',
+                        style: const TextStyle(
+                          color: textWhite,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    '\$${_rideOptions[_selectedOptionIndex]['price']}',
+                    style: const TextStyle(
+                      color: vibrantLime,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 18,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
 
-    // Light Map Ground
-    final bgPaint = Paint()..color = const Color(0xFFE2E8F0);
-    canvas.drawRect(
-        Rect.fromLTWH(
-            -size.width * 0.5, -size.height * 0.5, size.width * 2, size.height * 2),
-        bgPaint);
-
-    // Minor Streets
-    final roadPaint = Paint()
-      ..color = Colors.white
-      ..strokeWidth = 12
-      ..style = PaintingStyle.stroke;
-
-    // Main Avenue
-    final mainRoadPaint = Paint()
-      ..color = const Color(0xFFCBD5E1)
-      ..strokeWidth = 22
-      ..style = PaintingStyle.stroke;
-
-    // Nile River Curve
-    final riverPaint = Paint()
-      ..color = const Color(0xFFBFDBFE)
-      ..strokeWidth = 38
-      ..style = PaintingStyle.stroke;
-
-    final riverPath = Path()
-      ..moveTo(size.width * 0.88, -50)
-      ..cubicTo(
-        size.width * 0.95,
-        size.height * 0.4,
-        size.width * 0.82,
-        size.height * 0.7,
-        size.width * 0.9,
-        size.height + 50,
-      );
-    canvas.drawPath(riverPath, riverPaint);
-
-    // Draw Girga Street Network
-    final path1 = Path()
-      ..moveTo(-50, size.height * 0.35)
-      ..lineTo(size.width + 50, size.height * 0.42);
-
-    final path2 = Path()
-      ..moveTo(size.width * 0.45, -50)
-      ..lineTo(size.width * 0.52, size.height + 50);
-
-    final path3 = Path()
-      ..moveTo(-50, size.height * 0.7)
-      ..lineTo(size.width + 50, size.height * 0.65);
-
-    canvas.drawPath(path1, mainRoadPaint);
-    canvas.drawPath(path2, roadPaint);
-    canvas.drawPath(path3, roadPaint);
-
-    // DRAW STREET NAMES & LANDMARKS
-    _drawText(canvas, 'شارع المحطة', Offset(size.width * 0.12, size.height * 0.30),
-        Colors.black54, 10, true);
-    _drawText(canvas, 'ميدان النهضة', Offset(size.width * 0.60, size.height * 0.68),
-        Colors.black54, 10, true);
-    _drawText(canvas, 'شارع الأهرام', Offset(size.width * 0.48, size.height * 0.15),
-        Colors.black45, 9, false);
-    _drawText(canvas, 'طريق الكورنيش', Offset(size.width * 0.78, size.height * 0.45),
-        Colors.blue.shade700, 9, true);
-
-    // DRAW ROUTE POLYLINE (From Pickup to Dropoff)
-    final routePath = Path()
-      ..moveTo(size.width * 0.25, size.height * 0.38)
-      ..lineTo(size.width * 0.45, size.height * 0.38)
-      ..lineTo(size.width * 0.45, size.height * 0.62)
-      ..lineTo(size.width * 0.72, size.height * 0.62);
-
-    final routeLinePaint = Paint()
-      ..color = const Color(0xFF0F172A)
-      ..strokeWidth = 6
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawPath(routePath, routeLinePaint);
-
-    // PICKUP GREEN DOT 🟢 & BADGE
-    final startOffset = Offset(size.width * 0.25, size.height * 0.38);
-    final startCirclePaint = Paint()..color = const Color(0xFFD4FF00);
-    final startBorderPaint = Paint()
-      ..color = const Color(0xFF0F172A)
-      ..strokeWidth = 3
-      ..style = PaintingStyle.stroke;
-
-    canvas.drawCircle(startOffset, 10, startCirclePaint);
-    canvas.drawCircle(startOffset, 10, startBorderPaint);
-    _drawBadge(canvas, 'الاستلام 🟢', Offset(startOffset.dx, startOffset.dy - 22),
-        const Color(0xFF0F172A), Colors.white);
-
-    // DROPOFF RED DOT 🔴 & BADGE
-    final endOffset = Offset(size.width * 0.72, size.height * 0.62);
-    final endCirclePaint = Paint()..color = const Color(0xFFEF4444);
-
-    canvas.drawCircle(endOffset, 10, endCirclePaint);
-    canvas.drawCircle(endOffset, 10, startBorderPaint);
-    _drawBadge(canvas, 'التسليم 🔴', Offset(endOffset.dx, endOffset.dy - 22),
-        const Color(0xFFEF4444), Colors.white);
-
-    // LIVE MOVING COURIER MOTORCYCLE MARKER 🛵
-    final pathMetrics = routePath.computeMetrics().first;
-    final currentDistance = pathMetrics.length * driverProgress;
-    final tangent = pathMetrics.getTangentForOffset(currentDistance);
-    if (tangent != null) {
-      final currentPos = tangent.position;
-
-      // Pulse ring around driver position
-      final pulsePaint = Paint()
-        ..color = const Color(0xFF0EA5E9).withValues(alpha: 0.25)
-        ..style = PaintingStyle.fill;
-      canvas.drawCircle(currentPos, 22, pulsePaint);
-
-      // Driver icon circle background
-      final driverBgPaint = Paint()..color = const Color(0xFF0F172A);
-      canvas.drawCircle(currentPos, 14, driverBgPaint);
-      final driverBorderPaint = Paint()
-        ..color = const Color(0xFFD4FF00)
-        ..strokeWidth = 2.5
-        ..style = PaintingStyle.stroke;
-      canvas.drawCircle(currentPos, 14, driverBorderPaint);
-
-      // Draw Driver Badge
-      _drawBadge(canvas, 'كابتن مرسول 🛵',
-          Offset(currentPos.dx, currentPos.dy + 24), const Color(0xFF0EA5E9), Colors.white);
-    }
-
-    canvas.restore();
-  }
-
-  void _drawBadge(
-      Canvas canvas, String text, Offset center, Color bg, Color textColor) {
-    final textSpan = TextSpan(
-      text: text,
-      style: TextStyle(
-        color: textColor,
-        fontSize: 9,
-        fontWeight: FontWeight.bold,
-      ),
+        // Action Buttons Row (Chat with Driver & Call)
+        Row(
+          children: [
+            Expanded(
+              child: SizedBox(
+                height: 48,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: vibrantLime,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                  ),
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('فتح الدردشة المباشرة مع الكابتن 💬'),
+                        backgroundColor: googleBlue,
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.chat_bubble_rounded,
+                      color: darkBgColor, size: 18),
+                  label: const Text(
+                    'Chat with driver',
+                    style: TextStyle(
+                      color: darkBgColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            GestureDetector(
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('جاري الاتصال بالكابتن: ${cap['phone']} 📞'),
+                    backgroundColor: vibrantLime,
+                  ),
+                );
+              },
+              child: Container(
+                width: 48,
+                height: 48,
+                decoration: const BoxDecoration(
+                  color: darkBgColor,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.phone_rounded,
+                    color: vibrantLime, size: 20),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
-    final textPainter = TextPainter(
-      text: textSpan,
-      textDirection: TextDirection.rtl,
-    );
-    textPainter.layout();
-
-    final bgRect = Rect.fromCenter(
-      center: center,
-      width: textPainter.width + 12,
-      height: textPainter.height + 6,
-    );
-    final bgPaint = Paint()..color = bg;
-    canvas.drawRRect(
-        RRect.fromRectAndRadius(bgRect, const Radius.circular(8)), bgPaint);
-    textPainter.paint(
-        canvas,
-        Offset(
-            center.dx - textPainter.width / 2, center.dy - textPainter.height / 2));
-  }
-
-  void _drawText(Canvas canvas, String text, Offset offset, Color color,
-      double fontSize, bool bold) {
-    final textSpan = TextSpan(
-      text: text,
-      style: TextStyle(
-        color: color,
-        fontSize: fontSize,
-        fontWeight: bold ? FontWeight.bold : FontWeight.normal,
-      ),
-    );
-    final textPainter = TextPainter(
-      text: textSpan,
-      textDirection: TextDirection.rtl,
-    );
-    textPainter.layout();
-    textPainter.paint(canvas, offset);
-  }
-
-  @override
-  bool shouldRepaint(covariant _ParcelRouteMapPainter oldDelegate) {
-    return oldDelegate.driverProgress != driverProgress ||
-        oldDelegate.panOffset != panOffset ||
-        oldDelegate.zoomScale != zoomScale;
   }
 }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import '../../models/vendor_store_config.dart';
 import '../location_picker_screen.dart';
 
@@ -59,14 +61,17 @@ class _VendorOrdersTabState extends State<VendorOrdersTab> {
     switch (status) {
       case 'الجديدة':
       case 'معاينات جديدة':
+      case 'طلبات جديدة':
         return darkForestGreen;
       case 'قيد التحضير':
       case 'موعد محدد':
-        return const Color(0xFFF59E0B);
+      case 'قيد التوصيل':
+        return const Color(0xFF4285F4);
       case 'جاهزة للتسليم':
         return const Color(0xFF6366F1);
       case 'المكتملة':
       case 'معاينات مكتملة':
+      case 'تم التسليم':
         return const Color(0xFF10B981);
       default:
         return textSubtle;
@@ -80,9 +85,17 @@ class _VendorOrdersTabState extends State<VendorOrdersTab> {
         widget.categoryId == 'real_estate' ||
         widget.categoryId == 'realEstate';
 
-    final List<String> filterTabs = isRealEstate
-        ? ['الكل', 'معاينات جديدة', 'موعد محدد', 'معاينات مكتملة']
-        : ['الكل', 'الجديدة', 'قيد التحضير', 'جاهزة للتسليم', 'المكتملة'];
+    final bool isParcel = _storeConfig.categoryId == 'parcel' ||
+        _storeConfig.categoryId == 'parcelDelivery' ||
+        widget.categoryId == 'parcel' ||
+        widget.categoryId == 'parcelDelivery' ||
+        widget.categoryId == 'delivery';
+
+    final List<String> filterTabs = isParcel
+        ? ['الكل', 'طلبات جديدة', 'قيد التوصيل', 'تم التسليم']
+        : isRealEstate
+            ? ['الكل', 'معاينات جديدة', 'موعد محدد', 'معاينات مكتملة']
+            : ['الكل', 'الجديدة', 'قيد التحضير', 'جاهزة للتسليم', 'المكتملة'];
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
@@ -90,6 +103,120 @@ class _VendorOrdersTabState extends State<VendorOrdersTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // PARCEL MERCHANT LIVE GOOGLE MAPS CANVAS BANNER
+          if (isParcel) ...[
+            Container(
+              height: 180,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(
+                    color: const Color(0xFF4285F4).withValues(alpha: 0.3)),
+                boxShadow: const [
+                  BoxShadow(color: Colors.black26, blurRadius: 10)
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(22),
+                child: Stack(
+                  children: [
+                    FlutterMap(
+                      options: MapOptions(
+                        initialCenter: const LatLng(26.3385, 31.8912),
+                        initialZoom: 15.0,
+                      ),
+                      children: [
+                        TileLayer(
+                          urlTemplate:
+                              'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=ar&key=AIzaSyBJGpJhzzL5VqwseWSl9AwVbStK83Ztzis',
+                          userAgentPackageName: 'com.girga.food',
+                        ),
+                        PolylineLayer(
+                          polylines: [
+                            Polyline(
+                              points: const [
+                                LatLng(26.3385, 31.8912),
+                                LatLng(26.3400, 31.8890),
+                                LatLng(26.3420, 31.8870),
+                              ],
+                              strokeWidth: 5.0,
+                              color: const Color(0xFFA3E635),
+                            ),
+                          ],
+                        ),
+                        MarkerLayer(
+                          markers: [
+                            const Marker(
+                              point: LatLng(26.3385, 31.8912),
+                              width: 32,
+                              height: 32,
+                              child: Icon(Icons.my_location_rounded,
+                                  color: Color(0xFFA3E635), size: 26),
+                            ),
+                            const Marker(
+                              point: LatLng(26.3420, 31.8870),
+                              width: 32,
+                              height: 32,
+                              child: Icon(Icons.location_on_rounded,
+                                  color: Colors.redAccent, size: 26),
+                            ),
+                            const Marker(
+                              point: LatLng(26.3400, 31.8890),
+                              width: 90,
+                              height: 30,
+                              child: Card(
+                                color: Color(0xFF0B1120),
+                                child: Center(
+                                  child: Text(
+                                    '🛵 AB6299ZG',
+                                    style: TextStyle(
+                                      color: Color(0xFFA3E635),
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    Positioned(
+                      top: 10,
+                      right: 10,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0B1120).withValues(alpha: 0.9),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                              color: const Color(0xFF4285F4).withValues(alpha: 0.5)),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.radar_rounded,
+                                color: Color(0xFFA3E635), size: 14),
+                            SizedBox(width: 6),
+                            Text(
+                              'تتبع مسار الشحنات المباشر على Google Maps 🌐',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
           // 2. FILTER CHOICE CHIPS
           SizedBox(
             height: 38,
@@ -407,31 +534,41 @@ class _VendorOrdersTabState extends State<VendorOrdersTab> {
 
                       // STORE SPECIFIC STATUS UPDATE BUTTONS
                       if (order['status'] == 'الجديدة' ||
-                          order['status'] == 'معاينات جديدة')
+                          order['status'] == 'معاينات جديدة' ||
+                          order['status'] == 'طلبات جديدة')
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton.icon(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: darkForestGreen,
+                              backgroundColor: isParcel
+                                  ? const Color(0xFF0B1120)
+                                  : darkForestGreen,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(14),
                               ),
                               padding: const EdgeInsets.symmetric(vertical: 12),
                             ),
                             onPressed: () {
-                              setState(() => order['status'] =
-                                  isRealEstate ? 'موعد محدد' : 'قيد التحضير');
+                              setState(() => order['status'] = isParcel
+                                  ? 'قيد التوصيل'
+                                  : isRealEstate
+                                      ? 'موعد محدد'
+                                      : 'قيد التحضير');
                             },
                             icon: Icon(
-                                isRealEstate
-                                    ? Icons.event_available_rounded
-                                    : Icons.check_circle_outline_rounded,
-                                color: vibrantLimeGreen,
+                                isParcel
+                                    ? Icons.navigation_rounded
+                                    : isRealEstate
+                                        ? Icons.event_available_rounded
+                                        : Icons.check_circle_outline_rounded,
+                                color: const Color(0xFFA3E635),
                                 size: 18),
                             label: Text(
-                              isRealEstate
-                                  ? 'تأكيد وحجز موعد المعاينة 🏠'
-                                  : _storeConfig.orderActionLabel,
+                              isParcel
+                                  ? 'قبول واستلام الشحنة ورسم المسار ⚡'
+                                  : isRealEstate
+                                      ? 'تأكيد وحجز موعد المعاينة 🏠'
+                                      : _storeConfig.orderActionLabel,
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
@@ -440,34 +577,43 @@ class _VendorOrdersTabState extends State<VendorOrdersTab> {
                           ),
                         )
                       else if (order['status'] == 'قيد التحضير' ||
-                          order['status'] == 'موعد محدد')
+                          order['status'] == 'موعد محدد' ||
+                          order['status'] == 'قيد التوصيل')
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton.icon(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: isRealEstate
-                                  ? const Color(0xFF10B981)
-                                  : const Color(0xFF6366F1),
+                              backgroundColor: isParcel
+                                  ? const Color(0xFF4285F4)
+                                  : isRealEstate
+                                      ? const Color(0xFF10B981)
+                                      : const Color(0xFF6366F1),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(14),
                               ),
                               padding: const EdgeInsets.symmetric(vertical: 12),
                             ),
                             onPressed: () {
-                              setState(() => order['status'] = isRealEstate
-                                  ? 'معاينات مكتملة'
-                                  : 'جاهزة للتسليم');
+                              setState(() => order['status'] = isParcel
+                                  ? 'تم التسليم'
+                                  : isRealEstate
+                                      ? 'معاينات مكتملة'
+                                      : 'جاهزة للتسليم');
                             },
                             icon: Icon(
-                                isRealEstate
+                                isParcel
                                     ? Icons.task_alt_rounded
-                                    : Icons.takeout_dining_rounded,
+                                    : isRealEstate
+                                        ? Icons.task_alt_rounded
+                                        : Icons.takeout_dining_rounded,
                                 color: Colors.white,
                                 size: 18),
                             label: Text(
-                              isRealEstate
-                                  ? 'إتمام المعاينة بنجاح ✅'
-                                  : 'جاهز للتسليم للمندوب',
+                              isParcel
+                                  ? 'تأكيد تسليم الطرد للعميل بنجاح ✅'
+                                  : isRealEstate
+                                      ? 'إتمام المعاينة بنجاح ✅'
+                                      : 'جاهز للتسليم للمندوب',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,

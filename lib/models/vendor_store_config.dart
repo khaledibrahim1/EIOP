@@ -481,6 +481,59 @@ class VendorStoreConfig {
 
 
 
+      case 'parcel':
+      case 'parcelDelivery':
+        return [
+          {
+            'id': '#PRCL-901',
+            'customerName': 'كابتن أحمد حسني',
+            'phone': '01011223344',
+            'address': 'استلام: شارع المحطة (جرجا) ➔ تسليم: ميدان النهضة',
+            'items': 'طرد: مستندات وأوراق أمانة قانونية (شحنة اكسبريس عاجلة ⚡)',
+            'total': 25.0,
+            'time': 'منذ 3 دقائق',
+            'status': 'طلبات جديدة',
+            'pickupLat': 26.3385,
+            'pickupLng': 31.8912,
+            'dropoffLat': 26.3420,
+            'dropoffLng': 31.8870,
+            'captain': 'كابتن محمود السوهاجي',
+            'plate': 'AB6299ZG',
+          },
+          {
+            'id': '#PRCL-714',
+            'customerName': 'عمر خالد (صيدلية النور)',
+            'phone': '01155443322',
+            'address': 'استلام: شارع المستشفى العام ➔ تسليم: شارع البحر',
+            'items': 'طرد: أدوية ومستلزمات طبية معقمة (التعامل بحذر ⚠️)',
+            'total': 30.0,
+            'time': 'منذ 15 دقيقة',
+            'status': 'قيد التوصيل',
+            'pickupLat': 26.3365,
+            'pickupLng': 31.8965,
+            'dropoffLat': 26.3390,
+            'dropoffLng': 31.8850,
+            'captain': 'كابتن مصطفى طه',
+            'plate': 'EG4410XY',
+          },
+          {
+            'id': '#PRCL-550',
+            'customerName': 'مؤسسة الشروق',
+            'phone': '01288776655',
+            'address': 'استلام: شارع الأهرام التجاري ➔ تسليم: شارع المطار',
+            'items': 'شحنة: ملابس وأقمشة ومستلزمات أمانات 📦',
+            'total': 45.0,
+            'time': 'أمس',
+            'status': 'تم التسليم',
+            'pickupLat': 26.3350,
+            'pickupLng': 31.8950,
+            'dropoffLat': 26.3310,
+            'dropoffLng': 31.8820,
+            'captain': 'كابتن كريم حسن',
+            'plate': 'SU8821AB',
+          },
+        ];
+
       case 'restaurant':
       default:
         return [
