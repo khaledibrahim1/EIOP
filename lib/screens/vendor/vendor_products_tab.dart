@@ -1636,11 +1636,15 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                               final dur = installmentDurationCtrl.text.trim();
                               final amt = installmentAmountCtrl.text.trim();
                               final downP = downPaymentCtrl.text.trim();
+                              final amtStr = amt.isNotEmpty ? '$amt ج.م' : '';
+                              final durStr = dur.isNotEmpty ? dur : 'فترة ميسرة';
+                              final downPStr = downP.isNotEmpty ? '(مقدم $downP ج.م)' : '';
                               badgeText =
-                                  '$selectedPropertyType • تقسيط $selectedInstallmentType ${amt.isNotEmpty ? amt + " ج.م" : ""} على ${dur.isNotEmpty ? dur : "فترة ميسرة"} ${downP.isNotEmpty ? "(مقدم " + downP + " ج.م)" : ""}';
+                                  '$selectedPropertyType • تقسيط $selectedInstallmentType $amtStr على $durStr $downPStr'.trim();
                             } else {
+                              final extraStr = badgeText.isNotEmpty ? '• $badgeText' : '';
                               badgeText =
-                                  '$selectedPropertyType • عقد $selectedContractType ${badgeText.isNotEmpty ? "• " + badgeText : ""}';
+                                  '$selectedPropertyType • عقد $selectedContractType $extraStr'.trim();
                             }
                           } else if (badgeText.isEmpty) {
                             badgeText = 'متوفر بالفرع';
@@ -2581,11 +2585,15 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                               final dur = installmentDurationCtrl.text.trim();
                               final amt = installmentAmountCtrl.text.trim();
                               final downP = downPaymentCtrl.text.trim();
+                              final amtStr = amt.isNotEmpty ? '$amt ج.م' : '';
+                              final durStr = dur.isNotEmpty ? dur : 'فترة ميسرة';
+                              final downPStr = downP.isNotEmpty ? '(مقدم $downP ج.م)' : '';
                               badgeText =
-                                  '$selectedPropertyType • تقسيط $selectedInstallmentType ${amt.isNotEmpty ? amt + " ج.م" : ""} على ${dur.isNotEmpty ? dur : "فترة ميسرة"} ${downP.isNotEmpty ? "(مقدم " + downP + " ج.م)" : ""}';
+                                  '$selectedPropertyType • تقسيط $selectedInstallmentType $amtStr على $durStr $downPStr'.trim();
                             } else {
+                              final extraStr = badgeText.isNotEmpty ? '• $badgeText' : '';
                               badgeText =
-                                  '$selectedPropertyType • عقد $selectedContractType ${badgeText.isNotEmpty ? "• " + badgeText : ""}';
+                                  '$selectedPropertyType • عقد $selectedContractType $extraStr'.trim();
                             }
                           } else if (badgeText.isEmpty) {
                             badgeText = 'متوفر بالفرع';
