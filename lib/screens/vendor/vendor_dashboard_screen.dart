@@ -43,17 +43,17 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
     if (widget.category != null && widget.category!.isVendor) {
       return 'متجر ${widget.category!.title}';
     }
-    return 'متجر البرنس بجرجا';
+    return 'متجر ${_storeConfig.storeTypeTitle}';
   }
 
   String get _searchHintText {
     switch (_currentTabIndex) {
       case 0:
-        return 'ابحث في إحصائيات ومعاملات $_ownerName...';
+        return 'ابحث في إحصائيات ومعاملات ${_storeConfig.storeTypeTitle}...';
       case 1:
         return 'ابحث في الطلبات برقم الطلب أو الاسم...';
       case 2:
-        return 'ابحث في قائمة الوجبات والمنتجات المعروضة...';
+        return 'ابحث في قائمة ${_storeConfig.productTerm} المعروضة...';
       case 3:
         return 'ابحث في إعدادات الحساب والمتجر...';
       default:
@@ -69,6 +69,12 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final catId = widget.category?.id ?? 'restaurant';
+    final bool isParcelOverview = (catId == 'parcel' ||
+            catId == 'parcelDelivery' ||
+            catId == 'delivery') &&
+        _currentTabIndex == 0;
+
     return Scaffold(
       backgroundColor: lightBgColor,
       body: SafeArea(
@@ -76,11 +82,12 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
           children: [
             Column(
               children: [
-                // 1. TOP OWNER HEADER & SEARCH BAR
-                Container(
-                  color: Colors.white,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                // 1. TOP OWNER HEADER & SEARCH BAR (Hidden for Full Screen Parcel Map View)
+                if (!isParcelOverview)
+                  Container(
+                    color: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 18, vertical: 12),
                   child: Column(
                     children: [
                       Row(

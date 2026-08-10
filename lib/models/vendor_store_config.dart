@@ -115,20 +115,21 @@ class VendorStoreConfig {
         );
 
       case 'real_estate':
+      case 'realEstate':
         return const VendorStoreConfig(
           categoryId: 'real_estate',
           storeTypeTitle: 'عقارات وأراضي',
           primaryColor: Color(0xFF8B5CF6),
-          categoryIcon: Icons.apartment_rounded,
-          storeBadgeText: 'مكتب عقارات 🏠',
-          productTerm: 'العقارات والوحدات',
+          categoryIcon: Icons.landscape_rounded,
+          storeBadgeText: 'مكتب عقارات وأراضي 🏗️',
+          productTerm: 'العقارات والأراضي',
           salesStatLabel: 'معاينة وطلب',
           orderActionLabel: 'تأكيد موعد المعاينة 🏠',
-          addProductTitle: 'إضافة عقار / وحدة جديدة',
-          fieldLabelTitle: 'عنوان وصف العقار بجرجا',
-          extraField1Label: 'المساحة بالمتر المربع (م²)',
-          extraField2Label: 'نوع العقد (إيجار / بيع)',
-          quickCategoryTags: ['الكل', 'شقق تمليك', 'شقق إيجار', 'مشاريع وأراضي', 'محلات تجارية'],
+          addProductTitle: 'إضافة عقار / قطعة أرض جديدة',
+          fieldLabelTitle: 'عنوان وصف العقار/الأرض بجرجا',
+          extraField1Label: 'المساحة (م² / قراريط)',
+          extraField2Label: 'نوع العقد (إيجار / بيع / مباني / زراعي)',
+          quickCategoryTags: ['الكل', 'أراضي مباني', 'أراضي زراعية', 'شقق تمليك', 'شقق إيجار', 'محلات تجارية'],
         );
 
       case 'jobs':
@@ -303,6 +304,51 @@ class VendorStoreConfig {
           },
         ];
 
+      case 'real_estate':
+      case 'realEstate':
+        return [
+          {
+            'id': 're1',
+            'title': 'قطعة أرض مباني متميزة بجرجا (175 م²)',
+            'price': 1450000.0,
+            'oldPrice': 1550000.0,
+            'category': 'أراضي مباني',
+            'badge': 'المساحة: 175 م² 📐 • كاملة المرافق',
+            'isAvailable': true,
+            'imagePath': 'assets/images/cat_realestate.png',
+          },
+          {
+            'id': 're2',
+            'title': 'أرض استثمارية/زراعية بجرجا (5 قراريط)',
+            'price': 650000.0,
+            'oldPrice': null,
+            'category': 'أراضي زراعية',
+            'badge': 'المساحة: 5 قراريط 🌾 • واجهة على طريق رئيسي',
+            'isAvailable': true,
+            'imagePath': 'assets/images/cat_realestate.png',
+          },
+          {
+            'id': 're3',
+            'title': 'شقة تمليك فاخرة سوبر لوكس شارع المحطة',
+            'price': 850000.0,
+            'oldPrice': 920000.0,
+            'category': 'شقق تمليك',
+            'badge': 'المساحة: 140 م² 🏢 • 3 غرف نوم',
+            'isAvailable': true,
+            'imagePath': 'assets/images/realestate_apartment.png',
+          },
+          {
+            'id': 're4',
+            'title': 'محل تجاري حيوي الشارع التجاري الرئيسي',
+            'price': 1200000.0,
+            'oldPrice': null,
+            'category': 'محلات تجارية',
+            'badge': 'المساحة: 65 م² 🏪 • واجهة زجاجية',
+            'isAvailable': true,
+            'imagePath': 'assets/images/cat_realestate.png',
+          },
+        ];
+
       case 'restaurant':
       default:
         return [
@@ -342,6 +388,41 @@ class VendorStoreConfig {
 
   List<Map<String, dynamic>> getInitialSampleOrders() {
     switch (categoryId) {
+      case 'real_estate':
+      case 'realEstate':
+        return [
+          {
+            'id': '#LAND-901',
+            'customerName': 'أحمد محمود',
+            'phone': '01012345678',
+            'address': 'جرجا - شارع المحطة، بجوار البنك الأهلي',
+            'items': 'معاينة: أرض مباني 175م² بجرجا (شارع المطار) - عقد تمليك',
+            'total': 250000.0,
+            'time': 'منذ 5 دقائق',
+            'status': 'معاينات جديدة',
+          },
+          {
+            'id': '#REAL-804',
+            'customerName': 'عمر خالد',
+            'phone': '01155443322',
+            'address': 'جرجا - بحري النفق الرئيسي',
+            'items': 'معاينة وتفاصيل تقسيط: شقة سكنية 120م² برج الأطباء - تقسيط شهري 5,000 ج.م',
+            'total': 750000.0,
+            'time': 'منذ ساعتين',
+            'status': 'موعد محدد',
+          },
+          {
+            'id': '#LAND-712',
+            'customerName': 'محمود عبد الفتاح',
+            'phone': '01288776655',
+            'address': 'جرجا - طريق سوهاج الزراعي',
+            'items': 'استفسار معاينة: أرض زراعية 5 قراريط بحري جرجا',
+            'total': 450000.0,
+            'time': 'أمس',
+            'status': 'معاينات مكتملة',
+          },
+        ];
+
       case 'pharmacy':
         return [
           {
@@ -395,6 +476,61 @@ class VendorStoreConfig {
             'total': 380.0,
             'time': 'منذ 20 دقيقة',
             'status': 'الجديدة',
+          },
+        ];
+
+
+
+      case 'parcel':
+      case 'parcelDelivery':
+        return [
+          {
+            'id': '#PRCL-901',
+            'customerName': 'كابتن أحمد حسني',
+            'phone': '01011223344',
+            'address': 'استلام: شارع المحطة (جرجا) ➔ تسليم: ميدان النهضة',
+            'items': 'طرد: مستندات وأوراق أمانة قانونية (شحنة اكسبريس عاجلة ⚡)',
+            'total': 25.0,
+            'time': 'منذ 3 دقائق',
+            'status': 'طلبات جديدة',
+            'pickupLat': 26.3385,
+            'pickupLng': 31.8912,
+            'dropoffLat': 26.3420,
+            'dropoffLng': 31.8870,
+            'captain': 'كابتن محمود السوهاجي',
+            'plate': 'AB6299ZG',
+          },
+          {
+            'id': '#PRCL-714',
+            'customerName': 'عمر خالد (صيدلية النور)',
+            'phone': '01155443322',
+            'address': 'استلام: شارع المستشفى العام ➔ تسليم: شارع البحر',
+            'items': 'طرد: أدوية ومستلزمات طبية معقمة (التعامل بحذر ⚠️)',
+            'total': 30.0,
+            'time': 'منذ 15 دقيقة',
+            'status': 'قيد التوصيل',
+            'pickupLat': 26.3365,
+            'pickupLng': 31.8965,
+            'dropoffLat': 26.3390,
+            'dropoffLng': 31.8850,
+            'captain': 'كابتن مصطفى طه',
+            'plate': 'EG4410XY',
+          },
+          {
+            'id': '#PRCL-550',
+            'customerName': 'مؤسسة الشروق',
+            'phone': '01288776655',
+            'address': 'استلام: شارع الأهرام التجاري ➔ تسليم: شارع المطار',
+            'items': 'شحنة: ملابس وأقمشة ومستلزمات أمانات 📦',
+            'total': 45.0,
+            'time': 'أمس',
+            'status': 'تم التسليم',
+            'pickupLat': 26.3350,
+            'pickupLng': 31.8950,
+            'dropoffLat': 26.3310,
+            'dropoffLng': 31.8820,
+            'captain': 'كابتن كريم حسن',
+            'plate': 'SU8821AB',
           },
         ];
 

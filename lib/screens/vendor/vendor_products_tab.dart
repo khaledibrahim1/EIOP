@@ -21,16 +21,29 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
   late VendorStoreConfig _storeConfig;
   late List<Map<String, dynamic>> _myProducts;
 
-  final List<PromoOfferData> _myOffers = [
-    const PromoOfferData(
-      badgeText: 'عرض خاص 🔥',
-      title: 'خصم 30% على الوجبات العائلية والميكس',
-      subtitleText: 'خصم يصل إلى',
-      discountNum: '30',
-      footerNote: 'على جميع الأطباق | كود: EIOP30',
-      buttonText: 'احصل عليه',
-      bgImagePath: 'assets/images/hadramout_cover.png',
-    ),
+  final List<PromoOfferData> _myOffers = [];
+
+  static const List<String> realEstatePropertyTypes = [
+    'عمارة',
+    'شقة',
+    'أرض',
+    'محل',
+    'فيلا',
+    'قصر',
+    'دوار',
+    'شاليه',
+    'مشروع',
+  ];
+
+  static const List<String> realEstateContractTypes = [
+    'تمليك',
+    'إيجار',
+    'تقسيط',
+  ];
+
+  static const List<String> realEstateInstallmentTypes = [
+    'شهري',
+    'سنوي',
   ];
 
   static const darkForestGreen = Color(0xFF0D2B1D);
@@ -54,11 +67,113 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
 
   List<String> get sampleImages => _deviceGalleryImages;
 
+  String _selectedCategoryTag = 'الكل';
+
   @override
   void initState() {
     super.initState();
     _storeConfig = VendorStoreConfig.fromCategoryId(widget.categoryId);
     _myProducts = _storeConfig.getInitialSampleProducts();
+    _initCategoryOffers();
+  }
+
+  void _initCategoryOffers() {
+    _myOffers.clear();
+    switch (widget.categoryId) {
+      case 'real_estate':
+      case 'realEstate':
+        // Start with no promo offers for real estate by default ("لا يوجد عروض")
+        break;
+      case 'pharmacy':
+        _myOffers.add(
+          const PromoOfferData(
+            badgeText: 'عرض الصيدلية 💊',
+            title: 'خصم 20% على المستلزمات الطبية والفيتامينات',
+            subtitleText: 'خصم يصل إلى',
+            discountNum: '20',
+            footerNote: 'على المستحضرات والفيتامينات | كود: PHARM20',
+            buttonText: 'اطلب الآن',
+            bgImagePath: 'assets/images/pharmacy_panadol.png',
+          ),
+        );
+        break;
+      case 'supermarket':
+        _myOffers.add(
+          const PromoOfferData(
+            badgeText: 'عروض السوبرماركت 🛒',
+            title: 'خصم 15% على كرتونة جهينة والأرز الفاخر',
+            subtitleText: 'خصم يصل إلى',
+            discountNum: '15',
+            footerNote: 'على جميع السلع الأساسية | كود: MARKET15',
+            buttonText: 'اطلب السلع',
+            bgImagePath: 'assets/images/supermarket_milk.png',
+          ),
+        );
+        break;
+      default:
+        _myOffers.add(
+          const PromoOfferData(
+            badgeText: 'عرض خاص 🔥',
+            title: 'خصم 30% على الوجبات العائلية والميكس',
+            subtitleText: 'خصم يصل إلى',
+            discountNum: '30',
+            footerNote: 'على جميع الأطباق | كود: EIOP30',
+            buttonText: 'احصل عليه',
+            bgImagePath: 'assets/images/hadramout_cover.png',
+          ),
+        );
+        break;
+    }
+  }
+
+  Widget _buildDropdownField({
+    required String label,
+    required String value,
+    required List<String> items,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: textDark,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+          decoration: BoxDecoration(
+            color: lightBgColor,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: items.contains(value) ? value : items.first,
+              isExpanded: true,
+              icon: const Icon(Icons.keyboard_arrow_down_rounded,
+                  color: darkForestGreen),
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: textDark,
+              ),
+              items: items.map((item) {
+                return DropdownMenuItem<String>(
+                  value: item,
+                  child: Text(item),
+                );
+              }).toList(),
+              onChanged: onChanged,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   // Opens Native OS File Dialog Explorer (Windows OpenFileDialog)
@@ -516,14 +631,52 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
   }
 
   List<Map<String, dynamic>> get _filteredProducts {
+    List<Map<String, dynamic>> list = List.from(_myProducts);
+
     final q = widget.searchQuery.trim().toLowerCase();
-    if (q.isEmpty) return _myProducts;
-    return _myProducts.where((p) {
-      final title = (p['title'] ?? '').toString().toLowerCase();
-      final cat = (p['category'] ?? '').toString().toLowerCase();
-      final badge = (p['badge'] ?? '').toString().toLowerCase();
-      return title.contains(q) || cat.contains(q) || badge.contains(q);
-    }).toList();
+    if (q.isNotEmpty) {
+      list = list.where((p) {
+        final title = (p['title'] ?? '').toString().toLowerCase();
+        final cat = (p['category'] ?? '').toString().toLowerCase();
+        final badge = (p['badge'] ?? '').toString().toLowerCase();
+        return title.contains(q) || cat.contains(q) || badge.contains(q);
+      }).toList();
+    }
+
+    if (_selectedCategoryTag != 'الكل') {
+      final tag = _selectedCategoryTag;
+      list = list.where((p) {
+        final cat = (p['category'] ?? '').toString();
+        final title = (p['title'] ?? '').toString();
+        final badge = (p['badge'] ?? '').toString();
+        final propType = (p['propertyType'] ?? '').toString();
+
+        if (cat == tag || propType == tag) return true;
+
+        if (tag.contains('أراضي') || tag.contains('أرض')) {
+          return cat.contains('أرض') || title.contains('أرض') || badge.contains('أرض');
+        }
+        if (tag.contains('شقق') || tag.contains('شقة')) {
+          return cat.contains('شقة') || title.contains('شقة') || badge.contains('شقة');
+        }
+        if (tag.contains('محلات') || tag.contains('محل')) {
+          return cat.contains('محل') || title.contains('محل') || badge.contains('محل');
+        }
+        if (tag.contains('فلل') || tag.contains('فيلا')) {
+          return cat.contains('فيلا') || title.contains('فيلا') || badge.contains('فيلا');
+        }
+        if (tag.contains('عمارات') || tag.contains('عمارة')) {
+          return cat.contains('عمارة') || title.contains('عمارة') || badge.contains('عمارة');
+        }
+        if (tag.contains('مشاريع') || tag.contains('مشروع')) {
+          return cat.contains('مشروع') || title.contains('مشروع') || badge.contains('مشروع');
+        }
+
+        return cat.contains(tag) || title.contains(tag) || badge.contains(tag);
+      }).toList();
+    }
+
+    return list;
   }
 
   Widget _buildProductImageWidget(String path, {double size = 64}) {
@@ -933,6 +1086,11 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
 
   // EDIT PRODUCT MODAL SHEET
   void _showEditProductModal(Map<String, dynamic> prod) {
+    final bool isRealEstate = _storeConfig.categoryId == 'real_estate' ||
+        _storeConfig.categoryId == 'realEstate' ||
+        widget.categoryId == 'real_estate' ||
+        widget.categoryId == 'realEstate';
+
     final titleCtrl = TextEditingController(text: prod['title']);
     final priceCtrl = TextEditingController(text: prod['price']?.toString());
     final oldPriceCtrl = TextEditingController(
@@ -940,13 +1098,24 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
     final extra1Ctrl = TextEditingController(text: prod['badge'] ?? '');
     final optionInputCtrl = TextEditingController();
 
+    // Real Estate tailored fields
+    String selectedPropertyType = prod['propertyType'] ?? 'شقة';
+    String selectedContractType = prod['contractType'] ?? 'تمليك';
+    String selectedInstallmentType = prod['installmentType'] ?? 'شهري';
+    final installmentDurationCtrl = TextEditingController(
+        text: prod['installmentDuration'] ?? '3 سنوات');
+    final installmentAmountCtrl = TextEditingController(
+        text: prod['installmentAmount']?.toString() ?? '5000');
+    final downPaymentCtrl = TextEditingController(
+        text: prod['downPayment']?.toString() ?? '100000');
+
     bool hasDiscount = prod['oldPrice'] != null;
     List<String> optionsList = prod['options'] != null
         ? List<String>.from(prod['options'])
         : [];
     List<String> productPhotos = prod['images'] != null && (prod['images'] as List).isNotEmpty
         ? List<String>.from(prod['images'])
-        : [prod['imagePath'] ?? _deviceGalleryImages.first];
+        : [prod['imagePath'] ?? (isRealEstate ? 'assets/images/cat_realestate.png' : _deviceGalleryImages.first)];
 
     showModalBottomSheet(
       context: context,
@@ -956,7 +1125,7 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
         return StatefulBuilder(
           builder: (context, setModalState) {
             return Container(
-              height: MediaQuery.of(context).size.height * 0.85,
+              height: MediaQuery.of(context).size.height * 0.88,
               padding: EdgeInsets.only(
                 top: 20,
                 left: 20,
@@ -1010,7 +1179,7 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                       children: [
                         Expanded(
                           child: Text(
-                            'صور الوجبة المرفقة (${productPhotos.length} / 5):',
+                            'صور ${_storeConfig.productTerm} المرفقة (${productPhotos.length} / 5):',
                             style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
@@ -1183,6 +1352,112 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                     ),
                     const SizedBox(height: 14),
 
+                    // REAL ESTATE TAILORED SELECT DROPDOWNS
+                    if (isRealEstate) ...[
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildDropdownField(
+                              label: 'نوع العقار 🏠:',
+                              value: selectedPropertyType,
+                              items: realEstatePropertyTypes,
+                              onChanged: (val) {
+                                if (val != null) {
+                                  setModalState(() => selectedPropertyType = val);
+                                }
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _buildDropdownField(
+                              label: 'نوع العقد 📝:',
+                              value: selectedContractType,
+                              items: realEstateContractTypes,
+                              onChanged: (val) {
+                                if (val != null) {
+                                  setModalState(() => selectedContractType = val);
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+
+                      // CONDITIONAL INSTALLMENT FORM FIELDS
+                      if (selectedContractType == 'تقسيط') ...[
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: lightBgColor,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(
+                                color: darkForestGreen.withValues(alpha: 0.15)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Row(
+                                children: [
+                                  Icon(Icons.payments_rounded,
+                                      color: darkForestGreen, size: 18),
+                                  SizedBox(width: 6),
+                                  Text(
+                                    'تفاصيل وحساب التقسيط 💳:',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: darkForestGreen,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              _buildDropdownField(
+                                label: 'نظام التقسيط (شهري / سنوي):',
+                                value: selectedInstallmentType,
+                                items: realEstateInstallmentTypes,
+                                onChanged: (val) {
+                                  if (val != null) {
+                                    setModalState(
+                                        () => selectedInstallmentType = val);
+                                  }
+                                },
+                              ),
+                              const SizedBox(height: 10),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildModalTextField(
+                                      controller: installmentDurationCtrl,
+                                      label: 'مدة التقسيط (كم سنة/شهر)',
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: _buildModalTextField(
+                                      controller: installmentAmountCtrl,
+                                      label:
+                                          'مبلغ القسط الـ$selectedInstallmentType (ج.م)',
+                                      keyboardType: TextInputType.number,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              _buildModalTextField(
+                                controller: downPaymentCtrl,
+                                label: 'المقدم / الدفعة الأولى (ج.م - اختياري)',
+                                keyboardType: TextInputType.number,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                      ],
+                    ],
+
                     // 3. DISCOUNT TOGGLE SWITCH
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -1204,7 +1479,7 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                                 SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    'تفعيل خصم على هذه الوجبة / السلعة؟',
+                                    'تفعيل خصم خاص؟',
                                     style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.bold,
@@ -1254,7 +1529,7 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                     else
                       _buildModalTextField(
                         controller: priceCtrl,
-                        label: 'السعر (ج.م)',
+                        label: isRealEstate ? 'السعر الإجمالي (ج.م)' : 'السعر (ج.م)',
                         keyboardType: TextInputType.number,
                       ),
 
@@ -1276,7 +1551,9 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                         Expanded(
                           child: _buildModalTextField(
                             controller: optionInputCtrl,
-                            label: 'مثلاً: حجم دبل (+15 ج.م) أو بدون بصل',
+                            label: isRealEstate
+                                ? 'مثلاً: تشطيب سوبر لوكس أو شامل الجراج'
+                                : 'مثلاً: حجم دبل (+15 ج.م)',
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -1365,8 +1642,8 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
 
                           if (t.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('يرجى إدخال اسم الوجبة / المنتج!'),
+                              SnackBar(
+                                content: Text('يرجى إدخال ${_storeConfig.fieldLabelTitle}!'),
                                 backgroundColor: Colors.redAccent,
                               ),
                             );
@@ -1383,14 +1660,39 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                             return;
                           }
 
-                          final badgeText = extra1Ctrl.text.trim().isNotEmpty
-                              ? extra1Ctrl.text.trim()
-                              : 'متوفر بالفرع';
+                          String badgeText = extra1Ctrl.text.trim();
+                          if (isRealEstate) {
+                            if (selectedContractType == 'تقسيط') {
+                              final dur = installmentDurationCtrl.text.trim();
+                              final amt = installmentAmountCtrl.text.trim();
+                              final downP = downPaymentCtrl.text.trim();
+                              final amtStr = amt.isNotEmpty ? '$amt ج.م' : '';
+                              final durStr = dur.isNotEmpty ? dur : 'فترة ميسرة';
+                              final downPStr = downP.isNotEmpty ? '(مقدم $downP ج.م)' : '';
+                              badgeText =
+                                  '$selectedPropertyType • تقسيط $selectedInstallmentType $amtStr على $durStr $downPStr'.trim();
+                            } else {
+                              final extraStr = badgeText.isNotEmpty ? '• $badgeText' : '';
+                              badgeText =
+                                  '$selectedPropertyType • عقد $selectedContractType $extraStr'.trim();
+                            }
+                          } else if (badgeText.isEmpty) {
+                            badgeText = 'متوفر بالفرع';
+                          }
 
                           setState(() {
                             prod['title'] = t;
                             prod['price'] = p;
                             prod['oldPrice'] = (oldP != null && oldP > 0) ? oldP : null;
+                            if (isRealEstate) {
+                              prod['category'] = selectedPropertyType;
+                              prod['propertyType'] = selectedPropertyType;
+                              prod['contractType'] = selectedContractType;
+                              prod['installmentType'] = selectedInstallmentType;
+                              prod['installmentDuration'] = installmentDurationCtrl.text.trim();
+                              prod['installmentAmount'] = _parsePrice(installmentAmountCtrl.text);
+                              prod['downPayment'] = _parsePrice(downPaymentCtrl.text);
+                            }
                             prod['badge'] = badgeText;
                             prod['options'] = List<String>.from(optionsList);
                             prod['imagePath'] = productPhotos.first;
@@ -1729,6 +2031,11 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
   }
 
   void _showAddProductModal() {
+    final bool isRealEstate = _storeConfig.categoryId == 'real_estate' ||
+        _storeConfig.categoryId == 'realEstate' ||
+        widget.categoryId == 'real_estate' ||
+        widget.categoryId == 'realEstate';
+
     final titleCtrl = TextEditingController();
     final priceCtrl = TextEditingController();
     final oldPriceCtrl = TextEditingController();
@@ -1736,7 +2043,17 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
     final extra2Ctrl = TextEditingController();
     final optionInputCtrl = TextEditingController();
 
-    List<String> productPhotos = [_deviceGalleryImages.first];
+    // Real Estate tailored selects & fields
+    String selectedPropertyType = 'شقة';
+    String selectedContractType = 'تمليك';
+    String selectedInstallmentType = 'شهري';
+    final installmentDurationCtrl = TextEditingController(text: '3 سنوات');
+    final installmentAmountCtrl = TextEditingController(text: '5000');
+    final downPaymentCtrl = TextEditingController(text: '100000');
+
+    List<String> productPhotos = [
+      isRealEstate ? 'assets/images/cat_realestate.png' : _deviceGalleryImages.first
+    ];
     bool hasDiscount = false;
     List<String> optionsList = [];
 
@@ -1748,7 +2065,7 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
         return StatefulBuilder(
           builder: (context, setModalState) {
             return Container(
-              height: MediaQuery.of(context).size.height * 0.85,
+              height: MediaQuery.of(context).size.height * 0.88,
               padding: EdgeInsets.only(
                 top: 20,
                 left: 20,
@@ -1802,7 +2119,7 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                       children: [
                         Expanded(
                           child: Text(
-                            'صور الوجبة المرفقة (${productPhotos.length} / 5):',
+                            'صور ${_storeConfig.productTerm} المرفقة (${productPhotos.length} / 5):',
                             style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
@@ -1979,6 +2296,112 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                     ),
                     const SizedBox(height: 14),
 
+                    // REAL ESTATE TAILORED SELECT DROPDOWNS
+                    if (isRealEstate) ...[
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildDropdownField(
+                              label: 'نوع العقار 🏠:',
+                              value: selectedPropertyType,
+                              items: realEstatePropertyTypes,
+                              onChanged: (val) {
+                                if (val != null) {
+                                  setModalState(() => selectedPropertyType = val);
+                                }
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _buildDropdownField(
+                              label: 'نوع العقد 📝:',
+                              value: selectedContractType,
+                              items: realEstateContractTypes,
+                              onChanged: (val) {
+                                if (val != null) {
+                                  setModalState(() => selectedContractType = val);
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+
+                      // CONDITIONAL INSTALLMENT FORM FIELDS
+                      if (selectedContractType == 'تقسيط') ...[
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: lightBgColor,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(
+                                color: darkForestGreen.withValues(alpha: 0.15)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Row(
+                                children: [
+                                  Icon(Icons.payments_rounded,
+                                      color: darkForestGreen, size: 18),
+                                  SizedBox(width: 6),
+                                  Text(
+                                    'تفاصيل وحساب التقسيط 💳:',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: darkForestGreen,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              _buildDropdownField(
+                                label: 'نظام التقسيط (شهري / سنوي):',
+                                value: selectedInstallmentType,
+                                items: realEstateInstallmentTypes,
+                                onChanged: (val) {
+                                  if (val != null) {
+                                    setModalState(
+                                        () => selectedInstallmentType = val);
+                                  }
+                                },
+                              ),
+                              const SizedBox(height: 10),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildModalTextField(
+                                      controller: installmentDurationCtrl,
+                                      label: 'مدة التقسيط (كم سنة/شهر)',
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: _buildModalTextField(
+                                      controller: installmentAmountCtrl,
+                                      label:
+                                          'مبلغ القسط الـ$selectedInstallmentType (ج.م)',
+                                      keyboardType: TextInputType.number,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              _buildModalTextField(
+                                controller: downPaymentCtrl,
+                                label: 'المقدم / الدفعة الأولى (ج.م - اختياري)',
+                                keyboardType: TextInputType.number,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                      ],
+                    ],
+
                     // 3. DISCOUNT TOGGLE SWITCH (تطبيق خصم أم لا)
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -2000,7 +2423,7 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                                 SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    'تفعيل خصم على هذه الوجبة / السلعة؟',
+                                    'تفعيل خصم خاص؟',
                                     style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.bold,
@@ -2050,7 +2473,7 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                     else
                       _buildModalTextField(
                         controller: priceCtrl,
-                        label: 'السعر (ج.م)',
+                        label: isRealEstate ? 'السعر الإجمالي (ج.م)' : 'السعر (ج.م)',
                         keyboardType: TextInputType.number,
                       ),
 
@@ -2072,7 +2495,9 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                         Expanded(
                           child: _buildModalTextField(
                             controller: optionInputCtrl,
-                            label: 'مثلاً: حجم دبل (+15 ج.م) أو بدون بصل',
+                            label: isRealEstate
+                                ? 'مثلاً: تشطيب سوبر لوكس أو شامل الجراج'
+                                : 'مثلاً: حجم دبل (+15 ج.م)',
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -2139,11 +2564,13 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                       controller: extra1Ctrl,
                       label: _storeConfig.extraField1Label,
                     ),
-                    const SizedBox(height: 12),
-                    _buildModalTextField(
-                      controller: extra2Ctrl,
-                      label: _storeConfig.extraField2Label,
-                    ),
+                    if (!isRealEstate && _storeConfig.extraField2Label.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      _buildModalTextField(
+                        controller: extra2Ctrl,
+                        label: _storeConfig.extraField2Label,
+                      ),
+                    ],
 
                     const SizedBox(height: 20),
 
@@ -2166,8 +2593,8 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
 
                           if (t.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('يرجى إدخال اسم الوجبة / المنتج أولاً!'),
+                              SnackBar(
+                                content: Text('يرجى إدخال ${_storeConfig.fieldLabelTitle} أولاً!'),
                                 backgroundColor: Colors.redAccent,
                               ),
                             );
@@ -2177,16 +2604,32 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                           if (p <= 0) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('يرجى إدخال سعر صحيح (مثلاً: 25 أو 50 ج.م)!'),
+                                content: Text('يرجى إدخال سعر صحيح!'),
                                 backgroundColor: Colors.redAccent,
                               ),
                             );
                             return;
                           }
 
-                          final badgeText = extra1Ctrl.text.trim().isNotEmpty
-                              ? extra1Ctrl.text.trim()
-                              : 'متوفر بالفرع';
+                          String badgeText = extra1Ctrl.text.trim();
+                          if (isRealEstate) {
+                            if (selectedContractType == 'تقسيط') {
+                              final dur = installmentDurationCtrl.text.trim();
+                              final amt = installmentAmountCtrl.text.trim();
+                              final downP = downPaymentCtrl.text.trim();
+                              final amtStr = amt.isNotEmpty ? '$amt ج.م' : '';
+                              final durStr = dur.isNotEmpty ? dur : 'فترة ميسرة';
+                              final downPStr = downP.isNotEmpty ? '(مقدم $downP ج.م)' : '';
+                              badgeText =
+                                  '$selectedPropertyType • تقسيط $selectedInstallmentType $amtStr على $durStr $downPStr'.trim();
+                            } else {
+                              final extraStr = badgeText.isNotEmpty ? '• $badgeText' : '';
+                              badgeText =
+                                  '$selectedPropertyType • عقد $selectedContractType $extraStr'.trim();
+                            }
+                          } else if (badgeText.isEmpty) {
+                            badgeText = 'متوفر بالفرع';
+                          }
 
                           setState(() {
                             _myProducts.insert(0, {
@@ -2259,6 +2702,11 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isRealEstate = _storeConfig.categoryId == 'real_estate' ||
+        _storeConfig.categoryId == 'realEstate' ||
+        widget.categoryId == 'real_estate' ||
+        widget.categoryId == 'realEstate';
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
@@ -2516,6 +2964,46 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                     );
                   },
                 ),
+              )
+            else
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: cardWhite,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.local_offer_outlined, color: textSubtle, size: 20),
+                        SizedBox(width: 8),
+                        Text(
+                          'لا يوجد عروض ترويجية نشطة حالياً 🏷️',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: textSubtle,
+                          ),
+                        ),
+                      ],
+                    ),
+                    GestureDetector(
+                      onTap: () => _showAddPromoOfferModal(context),
+                      child: const Text(
+                        '+ إضافة عرض',
+                        style: TextStyle(
+                          color: darkForestGreen,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
 
             const SizedBox(height: 18),
@@ -2570,25 +3058,33 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                 separatorBuilder: (context, index) => const SizedBox(width: 8),
                 itemBuilder: (context, index) {
                   final tag = _storeConfig.quickCategoryTags[index];
-                  final isSelected = index == 0;
-                  return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: isSelected ? darkForestGreen : cardWhite,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isSelected
-                            ? darkForestGreen
-                            : Colors.black.withValues(alpha: 0.08),
+                  final isSelected = _selectedCategoryTag == tag;
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _selectedCategoryTag = tag;
+                      });
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: isSelected ? darkForestGreen : cardWhite,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isSelected
+                              ? darkForestGreen
+                              : Colors.black.withValues(alpha: 0.08),
+                        ),
                       ),
-                    ),
-                    child: Text(
-                      tag,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight:
-                            isSelected ? FontWeight.bold : FontWeight.w600,
-                        color: isSelected ? vibrantLimeGreen : textDark,
+                      child: Text(
+                        tag,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.w600,
+                          color: isSelected ? vibrantLimeGreen : textDark,
+                        ),
                       ),
                     ),
                   );
@@ -2772,63 +3268,67 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                           ),
                         ),
                         Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Row(
                               children: [
-                                Text(
-                                  isAvail ? 'متوفر' : 'غير متوفر',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    color: isAvail
-                                        ? darkForestGreen
-                                        : Colors.redAccent,
+                                if (!isRealEstate) ...[
+                                  Text(
+                                    isAvail ? 'متوفر' : 'غير متوفر',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: isAvail
+                                          ? darkForestGreen
+                                          : Colors.redAccent,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 4),
+                                  const SizedBox(width: 6),
+                                ],
                                 GestureDetector(
                                   onTap: () => _showEditProductModal(prod),
                                   child: Container(
-                                    padding: const EdgeInsets.all(4),
+                                    padding: const EdgeInsets.all(6),
                                     decoration: BoxDecoration(
                                       color: darkForestGreen.withValues(alpha: 0.1),
                                       shape: BoxShape.circle,
                                     ),
                                     child: const Icon(
                                       Icons.edit_rounded,
-                                      size: 14,
+                                      size: 16,
                                       color: darkForestGreen,
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 4),
+                                const SizedBox(width: 6),
                                 GestureDetector(
                                   onTap: () => _confirmDeleteProduct(prod),
                                   child: Container(
-                                    padding: const EdgeInsets.all(4),
+                                    padding: const EdgeInsets.all(6),
                                     decoration: BoxDecoration(
                                       color: Colors.redAccent.withValues(alpha: 0.1),
                                       shape: BoxShape.circle,
                                     ),
                                     child: const Icon(
                                       Icons.delete_outline_rounded,
-                                      size: 14,
+                                      size: 16,
                                       color: Colors.redAccent,
                                     ),
                                   ),
                                 ),
                               ],
                             ),
-                            Switch.adaptive(
-                              value: isAvail,
-                              activeTrackColor: vibrantLimeGreen,
-                              activeThumbColor: darkForestGreen,
-                              onChanged: (val) {
-                                setState(() {
-                                  prod['isAvailable'] = val;
-                                });
-                              },
-                            ),
+                            if (!isRealEstate)
+                              Switch.adaptive(
+                                value: isAvail,
+                                activeTrackColor: vibrantLimeGreen,
+                                activeThumbColor: darkForestGreen,
+                                onChanged: (val) {
+                                  setState(() {
+                                    prod['isAvailable'] = val;
+                                  });
+                                },
+                              ),
                           ],
                         ),
                       ],

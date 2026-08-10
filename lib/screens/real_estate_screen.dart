@@ -26,10 +26,11 @@ class _RealEstateScreenState extends State<RealEstateScreen>
 
   final List<String> _categories = [
     'الكل',
-    'منازل',
-    'مكاتب',
+    'أراضي',
     'شقق',
+    'منازل',
     'محلات',
+    'مكاتب',
   ];
 
   @override
@@ -66,7 +67,9 @@ class _RealEstateScreenState extends State<RealEstateScreen>
   List<PropertyItem> get _filteredProperties {
     return sampleProperties.where((prop) {
       bool matchesCat = true;
-      if (_selectedCategory == 'منازل') {
+      if (_selectedCategory == 'أراضي') {
+        matchesCat = prop.type.contains('أرض') || prop.type.contains('قطعة');
+      } else if (_selectedCategory == 'منازل') {
         matchesCat = prop.type.contains('شقة') || prop.type.contains('فيلا');
       } else if (_selectedCategory == 'مكاتب') {
         matchesCat = prop.type.contains('مكتب');
