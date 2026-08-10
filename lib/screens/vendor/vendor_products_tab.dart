@@ -67,6 +67,8 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
 
   List<String> get sampleImages => _deviceGalleryImages;
 
+  String _selectedCategoryTag = 'الكل';
+
   @override
   void initState() {
     super.initState();
@@ -80,17 +82,7 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
     switch (widget.categoryId) {
       case 'real_estate':
       case 'realEstate':
-        _myOffers.add(
-          const PromoOfferData(
-            badgeText: 'عرض خاص 🏗️',
-            title: 'خصم 25% على رسوم معاينة الأراضي بجرجا',
-            subtitleText: 'خصم يصل إلى',
-            discountNum: '25',
-            footerNote: 'على جميع الأراضي والعقارات | كود: LAND25',
-            buttonText: 'احجز المعاينة',
-            bgImagePath: 'assets/images/cat_realestate.png',
-          ),
-        );
+        // Start with no promo offers for real estate by default ("لا يوجد عروض")
         break;
       case 'pharmacy':
         _myOffers.add(
@@ -639,14 +631,52 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
   }
 
   List<Map<String, dynamic>> get _filteredProducts {
+    List<Map<String, dynamic>> list = List.from(_myProducts);
+
     final q = widget.searchQuery.trim().toLowerCase();
-    if (q.isEmpty) return _myProducts;
-    return _myProducts.where((p) {
-      final title = (p['title'] ?? '').toString().toLowerCase();
-      final cat = (p['category'] ?? '').toString().toLowerCase();
-      final badge = (p['badge'] ?? '').toString().toLowerCase();
-      return title.contains(q) || cat.contains(q) || badge.contains(q);
-    }).toList();
+    if (q.isNotEmpty) {
+      list = list.where((p) {
+        final title = (p['title'] ?? '').toString().toLowerCase();
+        final cat = (p['category'] ?? '').toString().toLowerCase();
+        final badge = (p['badge'] ?? '').toString().toLowerCase();
+        return title.contains(q) || cat.contains(q) || badge.contains(q);
+      }).toList();
+    }
+
+    if (_selectedCategoryTag != 'الكل') {
+      final tag = _selectedCategoryTag;
+      list = list.where((p) {
+        final cat = (p['category'] ?? '').toString();
+        final title = (p['title'] ?? '').toString();
+        final badge = (p['badge'] ?? '').toString();
+        final propType = (p['propertyType'] ?? '').toString();
+
+        if (cat == tag || propType == tag) return true;
+
+        if (tag.contains('أراضي') || tag.contains('أرض')) {
+          return cat.contains('أرض') || title.contains('أرض') || badge.contains('أرض');
+        }
+        if (tag.contains('شقق') || tag.contains('شقة')) {
+          return cat.contains('شقة') || title.contains('شقة') || badge.contains('شقة');
+        }
+        if (tag.contains('محلات') || tag.contains('محل')) {
+          return cat.contains('محل') || title.contains('محل') || badge.contains('محل');
+        }
+        if (tag.contains('فلل') || tag.contains('فيلا')) {
+          return cat.contains('فيلا') || title.contains('فيلا') || badge.contains('فيلا');
+        }
+        if (tag.contains('عمارات') || tag.contains('عمارة')) {
+          return cat.contains('عمارة') || title.contains('عمارة') || badge.contains('عمارة');
+        }
+        if (tag.contains('مشاريع') || tag.contains('مشروع')) {
+          return cat.contains('مشروع') || title.contains('مشروع') || badge.contains('مشروع');
+        }
+
+        return cat.contains(tag) || title.contains(tag) || badge.contains(tag);
+      }).toList();
+    }
+
+    return list;
   }
 
   Widget _buildProductImageWidget(String path, {double size = 64}) {
@@ -2534,11 +2564,13 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                       controller: extra1Ctrl,
                       label: _storeConfig.extraField1Label,
                     ),
-                    const SizedBox(height: 12),
-                    _buildModalTextField(
-                      controller: extra2Ctrl,
-                      label: _storeConfig.extraField2Label,
-                    ),
+                    if (!isRealEstate && _storeConfig.extraField2Label.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      _buildModalTextField(
+                        controller: extra2Ctrl,
+                        label: _storeConfig.extraField2Label,
+                      ),
+                    ],
 
                     const SizedBox(height: 20),
 
@@ -2927,6 +2959,46 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                     );
                   },
                 ),
+              )
+            else
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: cardWhite,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.local_offer_outlined, color: textSubtle, size: 20),
+                        SizedBox(width: 8),
+                        Text(
+                          'لا يوجد عروض ترويجية نشطة حالياً 🏷️',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: textSubtle,
+                          ),
+                        ),
+                      ],
+                    ),
+                    GestureDetector(
+                      onTap: () => _showAddPromoOfferModal(context),
+                      child: const Text(
+                        '+ إضافة عرض',
+                        style: TextStyle(
+                          color: darkForestGreen,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
 
             const SizedBox(height: 18),
@@ -2981,25 +3053,33 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                 separatorBuilder: (context, index) => const SizedBox(width: 8),
                 itemBuilder: (context, index) {
                   final tag = _storeConfig.quickCategoryTags[index];
-                  final isSelected = index == 0;
-                  return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: isSelected ? darkForestGreen : cardWhite,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isSelected
-                            ? darkForestGreen
-                            : Colors.black.withValues(alpha: 0.08),
+                  final isSelected = _selectedCategoryTag == tag;
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _selectedCategoryTag = tag;
+                      });
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: isSelected ? darkForestGreen : cardWhite,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isSelected
+                              ? darkForestGreen
+                              : Colors.black.withValues(alpha: 0.08),
+                        ),
                       ),
-                    ),
-                    child: Text(
-                      tag,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight:
-                            isSelected ? FontWeight.bold : FontWeight.w600,
-                        color: isSelected ? vibrantLimeGreen : textDark,
+                      child: Text(
+                        tag,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.w600,
+                          color: isSelected ? vibrantLimeGreen : textDark,
+                        ),
                       ),
                     ),
                   );
