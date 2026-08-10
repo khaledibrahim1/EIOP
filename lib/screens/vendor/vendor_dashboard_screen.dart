@@ -69,6 +69,12 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final catId = widget.category?.id ?? 'restaurant';
+    final bool isParcelOverview = (catId == 'parcel' ||
+            catId == 'parcelDelivery' ||
+            catId == 'delivery') &&
+        _currentTabIndex == 0;
+
     return Scaffold(
       backgroundColor: lightBgColor,
       body: SafeArea(
@@ -76,11 +82,12 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
           children: [
             Column(
               children: [
-                // 1. TOP OWNER HEADER & SEARCH BAR
-                Container(
-                  color: Colors.white,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                // 1. TOP OWNER HEADER & SEARCH BAR (Hidden for Full Screen Parcel Map View)
+                if (!isParcelOverview)
+                  Container(
+                    color: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 18, vertical: 12),
                   child: Column(
                     children: [
                       Row(

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import '../../models/vendor_store_config.dart';
 
 class VendorOverviewTab extends StatefulWidget {
@@ -27,6 +29,58 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
   bool _isStoreOpen = true;
   late VendorStoreConfig _storeConfig;
   late List<Map<String, dynamic>> _liveOrders;
+
+  // Parcel Google Map & Bargain state
+  double _requestedFare = 30.0;
+  bool _isParcelAccepted = false;
+  int _activeParcelOrderIndex = 0;
+  final TextEditingController _fareController =
+      TextEditingController(text: '30');
+
+  final List<Map<String, dynamic>> _incomingParcelOrders = [
+    {
+      'id': '#PRCL-901',
+      'client': 'أحمد محمود',
+      'phone': '01012345678',
+      'type': 'مستندات وأوراق أمانة قانونية 📜',
+      'pickup': 'شارع المحطة (جرجا)',
+      'dropoff': 'ميدان النهضة',
+      'pickupPoint': const LatLng(26.3385, 31.8912),
+      'dropoffPoint': const LatLng(26.3420, 31.8870),
+      'distToPickup': '1.8 كم (5 دقائق ⏱️)',
+      'totalTripDist': '3.2 كم',
+      'basePrice': 25.0,
+      'status': 'وارد حديثاً ⚡',
+    },
+    {
+      'id': '#PRCL-714',
+      'client': 'عمر خالد (صيدلية النور)',
+      'phone': '01155443322',
+      'type': 'أدوية ومستلزمات طبية معقمة 💊',
+      'pickup': 'شارع المستشفى العام',
+      'dropoff': 'شارع البحر',
+      'pickupPoint': const LatLng(26.3365, 31.8965),
+      'dropoffPoint': const LatLng(26.3390, 31.8850),
+      'distToPickup': '2.4 كم (7 دقائق ⏱️)',
+      'totalTripDist': '4.1 كم',
+      'basePrice': 30.0,
+      'status': 'وارد حديثاً ⚡',
+    },
+    {
+      'id': '#PRCL-550',
+      'client': 'مؤسسة الشروق',
+      'phone': '01288776655',
+      'type': 'شحنة ملابس وأقمشة 📦',
+      'pickup': 'شارع الأهرام التجاري',
+      'dropoff': 'شارع المطار',
+      'pickupPoint': const LatLng(26.3350, 31.8950),
+      'dropoffPoint': const LatLng(26.3310, 31.8820),
+      'distToPickup': '3.1 كم (9 دقائق ⏱️)',
+      'totalTripDist': '5.5 كم',
+      'basePrice': 40.0,
+      'status': 'وارد حديثاً ⚡',
+    },
+  ];
 
   List<Map<String, dynamic>> get _filteredLiveOrders {
     final q = widget.searchQuery.trim().toLowerCase();
@@ -269,6 +323,14 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isParcel = widget.categoryId == 'parcel' ||
+        widget.categoryId == 'parcelDelivery' ||
+        widget.categoryId == 'delivery';
+
+    if (isParcel) {
+      return _buildFullPageParcelGoogleMapHub();
+    }
+
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
@@ -862,6 +924,586 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
         Text(
           label,
           style: const TextStyle(fontSize: 11, color: textSubtle),
+        ),
+      ],
+    );
+  }
+
+  // =========================================================
+  // FULL PAGE PARCEL DISPATCH & BARGAIN HUB WITH GOOGLE MAPS
+  // =========================================================
+  Widget _buildFullPageParcelGoogleMapHub() {
+    final currentOrd = _incomingParcelOrders[_activeParcelOrderIndex];
+    final vendorLoc = const LatLng(26.3385, 31.8912); // Vendor's GPS Location in Girga
+    final pickupLoc = currentOrd['pickupPoint'] as LatLng;
+    final dropoffLoc = currentOrd['dropoffPoint'] as LatLng;
+    final double basePrice = currentOrd['basePrice'] as double;
+
+    return Stack(
+      children: [
+        // 1. FULL SCREEN GOOGLE MAPS CANVAS
+        Positioned.fill(
+          child: FlutterMap(
+            options: MapOptions(
+              initialCenter: vendorLoc,
+              initialZoom: 14.8,
+            ),
+            children: [
+              TileLayer(
+                urlTemplate:
+                    'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=ar&key=AIzaSyBJGpJhzzL5VqwseWSl9AwVbStK83Ztzis',
+                userAgentPackageName: 'com.girga.food',
+              ),
+              // LIVE ROUTE PATH POLYLINE
+              PolylineLayer(
+                polylines: [
+                  Polyline(
+                    points: [
+                      vendorLoc,
+                      pickupLoc,
+                      dropoffLoc,
+                    ],
+                    strokeWidth: 5.5,
+                    color: const Color(0xFFA3E635), // Vibrant Lime
+                  ),
+                ],
+              ),
+              MarkerLayer(
+                markers: [
+                  // VENDOR'S LIVE GPS LOCATION MARKER 📍
+                  Marker(
+                    point: vendorLoc,
+                    width: 140,
+                    height: 60,
+                    alignment: Alignment.topCenter,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF0B1120),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                                color: const Color(0xFF4285F4), width: 1.5),
+                          ),
+                          child: const Text(
+                            'موقعي الحالي (جرجا) 📍',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Container(
+                          width: 16,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4285F4),
+                            shape: BoxShape.circle,
+                            border:
+                                Border.all(color: Colors.white, width: 2.5),
+                            boxShadow: const [
+                              BoxShadow(color: Colors.black45, blurRadius: 6),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // PICKUP MARKER 🟢
+                  Marker(
+                    point: pickupLoc,
+                    width: 110,
+                    height: 50,
+                    alignment: Alignment.topCenter,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFA3E635),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Text(
+                        'الاستلام 🟢',
+                        style: TextStyle(
+                          color: Color(0xFF0B1120),
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // DROPOFF MARKER 🔴
+                  Marker(
+                    point: dropoffLoc,
+                    width: 110,
+                    height: 50,
+                    alignment: Alignment.topCenter,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.redAccent,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Text(
+                        'التسليم 🔴',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        // 2. TOP FLOATING STORE STATUS & RADAR BAR
+        Positioned(
+          top: 12,
+          left: 14,
+          right: 14,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0B1120).withValues(alpha: 0.92),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                  color: const Color(0xFFA3E635).withValues(alpha: 0.4)),
+              boxShadow: const [
+                BoxShadow(color: Colors.black38, blurRadius: 10)
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color:
+                            _isStoreOpen ? const Color(0xFFA3E635) : Colors.redAccent,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: (_isStoreOpen
+                                    ? const Color(0xFFA3E635)
+                                    : Colors.redAccent)
+                                .withValues(alpha: 0.6),
+                            blurRadius: 6,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      _isStoreOpen
+                          ? 'استقبال الطلبات بجرجا مفتوح 🟢'
+                          : 'المتجر مغلق حالياً',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                Switch.adaptive(
+                  value: _isStoreOpen,
+                  activeThumbColor: const Color(0xFF0B1120),
+                  activeTrackColor: const Color(0xFFA3E635),
+                  onChanged: (val) {
+                    setState(() => _isStoreOpen = val);
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        // 3. BOTTOM FLOATING INCOMING REQUEST & BARGAIN SHEET
+        Positioned(
+          bottom: 16,
+          left: 14,
+          right: 14,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0B1120).withValues(alpha: 0.96),
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.08)),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black54,
+                  blurRadius: 20,
+                  offset: Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header & Distance Pill Badge
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF1E293B),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.local_shipping_rounded,
+                              color: Color(0xFFA3E635), size: 16),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'طلب توصيل ${currentOrd['id']} ⚡',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF4285F4).withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: const Color(0xFF4285F4).withValues(alpha: 0.5)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.near_me_rounded,
+                              color: Color(0xFF4285F4), size: 12),
+                          const SizedBox(width: 4),
+                          Text(
+                            'فرق المسافة: ${currentOrd['distToPickup']}',
+                            style: const TextStyle(
+                              color: Color(0xFF4285F4),
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+
+                // Pickup & Dropoff Address Card
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF121A2D),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.person_rounded,
+                              color: Colors.white54, size: 14),
+                          const SizedBox(width: 6),
+                          Text(
+                            'العميل: ${currentOrd['client']} • ${currentOrd['phone']}',
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 11),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          const Icon(Icons.inventory_2_rounded,
+                              color: Color(0xFFA3E635), size: 14),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              'نوع الطرد: ${currentOrd['type']}',
+                              style: const TextStyle(
+                                  color: Colors.white70, fontSize: 11),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Divider(color: Colors.white12, height: 16),
+                      Row(
+                        children: [
+                          const Icon(Icons.my_location_rounded,
+                              color: Color(0xFFA3E635), size: 14),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              'من: ${currentOrd['pickup']}',
+                              style: const TextStyle(
+                                  color: Colors.white, fontSize: 11),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(Icons.location_on_rounded,
+                              color: Colors.redAccent, size: 14),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              'إلى: ${currentOrd['dropoff']} (${currentOrd['totalTripDist']})',
+                              style: const TextStyle(
+                                  color: Colors.white, fontSize: 11),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // PRICE COUNTER-BARGAIN SECTION (اقدر ازود السعر)
+                const Text(
+                  'تحديد السعر وتعديل التكلفة (المساومة) 💰:',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                Row(
+                  children: [
+                    // Base Price Badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF121A2D),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('السعر الأصلي',
+                              style: TextStyle(
+                                  color: Colors.white54, fontSize: 9)),
+                          Text('${basePrice.toStringAsFixed(0)} ج.م',
+                              style: const TextStyle(
+                                  color: Color(0xFFA3E635),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13)),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+
+                    // Quick Increase Buttons
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [5, 10, 15, 20].map((inc) {
+                            final newPrice = basePrice + inc;
+                            return Padding(
+                              padding: const EdgeInsets.only(left: 6),
+                              child: InkWell(
+                                onTap: () {
+                                  setState(() {
+                                    _requestedFare = newPrice;
+                                    _fareController.text =
+                                        newPrice.toStringAsFixed(0);
+                                  });
+                                },
+                                borderRadius: BorderRadius.circular(12),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: _requestedFare == newPrice
+                                        ? const Color(0xFFA3E635)
+                                        : const Color(0xFF121A2D),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: _requestedFare == newPrice
+                                          ? const Color(0xFFA3E635)
+                                          : Colors.white24,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    '+$inc ج.م (${newPrice.toStringAsFixed(0)})',
+                                    style: TextStyle(
+                                      color: _requestedFare == newPrice
+                                          ? const Color(0xFF0B1120)
+                                          : Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+
+                // ACTION BUTTONS (قبول، رفض، أو تقديم عرض سعر أعلى)
+                if (_isParcelAccepted)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFA3E635),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'تم قبول الطلب ورسم مسار Google Maps المباشر 🛵⚡',
+                        style: TextStyle(
+                          color: Color(0xFF0B1120),
+                          fontWeight: FontWeight.w900,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  Row(
+                    children: [
+                      // Accept Original Price Button
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFA3E635),
+                            padding: const EdgeInsets.symmetric(vertical: 11),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isParcelAccepted = true;
+                            });
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                    'تم قبول الطلب بالسعر الأصلي وبدء التوجه للاستلام ⚡'),
+                                backgroundColor: Color(0xFFA3E635),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.check_circle_rounded,
+                              color: Color(0xFF0B1120), size: 16),
+                          label: const Text(
+                            'قبول (25ج)',
+                            style: TextStyle(
+                              color: Color(0xFF0B1120),
+                              fontWeight: FontWeight.w900,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+
+                      // Counter Offer Button (اقدر ازود السعر)
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF4285F4),
+                            padding: const EdgeInsets.symmetric(vertical: 11),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                    'تم إرسال عرض سعر معدل للعميل بقيمة ${_requestedFare.toStringAsFixed(0)} ج.م 💰'),
+                                backgroundColor: const Color(0xFF4285F4),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.price_change_rounded,
+                              color: Colors.white, size: 16),
+                          label: Text(
+                            'طلب ${_requestedFare.toStringAsFixed(0)}ج 💰',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+
+                      // Decline Button
+                      OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Colors.redAccent),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 11),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _activeParcelOrderIndex =
+                                (_activeParcelOrderIndex + 1) %
+                                    _incomingParcelOrders.length;
+                            _isParcelAccepted = false;
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('تم رفض الطلب والانتقال للطلب التالي ❌'),
+                              backgroundColor: Colors.redAccent,
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          'رفض ❌',
+                          style: TextStyle(
+                            color: Colors.redAccent,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ),
         ),
       ],
     );
