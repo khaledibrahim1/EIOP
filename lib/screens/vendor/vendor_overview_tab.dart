@@ -35,32 +35,28 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
 
   // Parcel Google Map & Bargain state
   double _requestedFare = 30.0;
-  bool _isParcelAccepted = false;
   int _activeParcelOrderIndex = 0;
+  int _deliveryStep = 0; // 0 = New/Accept, 1 = Going to Pickup (الاستلام الأول), 2 = Going to Dropoff (التسليم), 3 = Delivered
   final TextEditingController _fareController =
       TextEditingController(text: '30');
 
   List<LatLng> _fetchedStreetPolyline = [];
 
-  List<LatLng> _getRealStreetPolylinePoints(
-      LatLng start, LatLng pickup, LatLng dropoff) {
+  List<LatLng> _getRealStreetPolylinePoints(LatLng start, LatLng dest) {
     if (_fetchedStreetPolyline.isNotEmpty) {
       return _fetchedStreetPolyline;
     }
-    // High-density realistic street waypoints following Girga road network
     return [
-      start, // Station St (26.3385, 31.8912)
-      const LatLng(26.3387, 31.8906),
-      const LatLng(26.3390, 31.8901),
-      const LatLng(26.3393, 31.8897),
-      pickup, // Pickup
-      const LatLng(26.3398, 31.8891),
-      const LatLng(26.3401, 31.8885),
-      const LatLng(26.3405, 31.8878),
-      const LatLng(26.3411, 31.8870),
-      const LatLng(26.3418, 31.8862),
-      const LatLng(26.3422, 31.8858),
-      dropoff, // Dropoff
+      start,
+      LatLng(start.latitude * 0.8 + dest.latitude * 0.2,
+          start.longitude * 0.8 + dest.longitude * 0.2),
+      LatLng(start.latitude * 0.6 + dest.latitude * 0.4,
+          start.longitude * 0.6 + dest.longitude * 0.4),
+      LatLng(start.latitude * 0.4 + dest.latitude * 0.6,
+          start.longitude * 0.4 + dest.longitude * 0.6),
+      LatLng(start.latitude * 0.2 + dest.latitude * 0.8,
+          start.longitude * 0.2 + dest.longitude * 0.8),
+      dest,
     ];
   }
 
@@ -94,14 +90,15 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
     return polyline;
   }
 
-  Future<void> _fetchGoogleMapsDirections(
-      LatLng start, LatLng pickup, LatLng dropoff) async {
+  Future<void> _fetchGoogleMapsDirections(LatLng start, LatLng dest) async {
+    setState(() {
+      _fetchedStreetPolyline = [];
+    });
     const apiKey = 'AIzaSyBJGpJhzzL5VqwseWSl9AwVbStK83Ztzis';
     final url = Uri.parse(
       'https://maps.googleapis.com/maps/api/directions/json'
       '?origin=${start.latitude},${start.longitude}'
-      '&destination=${dropoff.latitude},${dropoff.longitude}'
-      '&waypoints=via:${pickup.latitude},${pickup.longitude}'
+      '&destination=${dest.latitude},${dest.longitude}'
       '&key=$apiKey',
     );
 
@@ -126,17 +123,15 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
       }
     } catch (_) {}
 
-    _fetchStreetDirections(start, pickup, dropoff);
+    _fetchStreetDirections(start, dest);
   }
 
-  Future<void> _fetchStreetDirections(
-      LatLng start, LatLng pickup, LatLng dropoff) async {
+  Future<void> _fetchStreetDirections(LatLng start, LatLng dest) async {
     try {
       final url = Uri.parse(
         'https://router.project-osrm.org/route/v1/driving/'
         '${start.longitude},${start.latitude};'
-        '${pickup.longitude},${pickup.latitude};'
-        '${dropoff.longitude},${dropoff.latitude}'
+        '${dest.longitude},${dest.latitude}'
         '?overview=full&geometries=geojson',
       );
       final res = await http.get(url).timeout(const Duration(seconds: 4));
@@ -442,11 +437,17 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
     _liveOrders = _storeConfig.getInitialSampleOrders();
     final vendorLoc = const LatLng(26.3385, 31.8912);
     final currentOrd = _incomingParcelOrders[_activeParcelOrderIndex];
-    _fetchGoogleMapsDirections(
-      vendorLoc,
-      currentOrd['pickupPoint'] as LatLng,
-      currentOrd['dropoffPoint'] as LatLng,
-    );
+    if (_deliveryStep == 1) {
+      _fetchGoogleMapsDirections(
+        vendorLoc,
+        currentOrd['pickupPoint'] as LatLng,
+      );
+    } else if (_deliveryStep == 2) {
+      _fetchGoogleMapsDirections(
+        currentOrd['pickupPoint'] as LatLng,
+        currentOrd['dropoffPoint'] as LatLng,
+      );
+    }
   }
 
   @override
@@ -1082,15 +1083,26 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                     'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=ar&key=AIzaSyBJGpJhzzL5VqwseWSl9AwVbStK83Ztzis',
                 userAgentPackageName: 'com.girga.food',
               ),
-              // LIVE ROUTE PATH POLYLINE (ONLY WHEN ORDER IS ACCEPTED)
-              if (_isParcelAccepted)
+              // LIVE ROUTE PATH POLYLINE BASED ON DELIVERY STEP
+              if (_deliveryStep == 1)
                 PolylineLayer(
                   polylines: [
                     Polyline(
-                      points: _getRealStreetPolylinePoints(
-                          vendorLoc, pickupLoc, dropoffLoc),
+                      points:
+                          _getRealStreetPolylinePoints(vendorLoc, pickupLoc),
                       strokeWidth: 5.5,
                       color: const Color(0xFFA3E635), // Vibrant Lime
+                    ),
+                  ],
+                )
+              else if (_deliveryStep == 2)
+                PolylineLayer(
+                  polylines: [
+                    Polyline(
+                      points:
+                          _getRealStreetPolylinePoints(pickupLoc, dropoffLoc),
+                      strokeWidth: 5.5,
+                      color: const Color(0xFF3B82F6), // Neon Blue
                     ),
                   ],
                 ),
@@ -1144,56 +1156,82 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                     ),
                   ),
 
-                  // PICKUP & DROPOFF MARKERS (ONLY WHEN ORDER IS ACCEPTED)
-                  if (_isParcelAccepted) ...[
-                    // PICKUP MARKER 🟢
+                  // STEP 1: MINIMAL SEMI-TRANSPARENT PICKUP MARKER 🟢
+                  if (_deliveryStep == 1)
                     Marker(
                       point: pickupLoc,
-                      width: 110,
-                      height: 50,
+                      width: 85,
+                      height: 34,
                       alignment: Alignment.topCenter,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFA3E635),
-                          borderRadius: BorderRadius.circular(10),
+                          color:
+                              const Color(0xFF0B1120).withValues(alpha: 0.65),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color:
+                                const Color(0xFFA3E635).withValues(alpha: 0.7),
+                            width: 1.2,
+                          ),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 4,
+                            ),
+                          ],
                         ),
-                        child: const Text(
-                          'الاستلام 🟢',
-                          style: TextStyle(
-                            color: Color(0xFF0B1120),
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
+                        child: const Center(
+                          child: Text(
+                            'الاستلام 🟢',
+                            style: TextStyle(
+                              color: Color(0xFFA3E635),
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
                     ),
 
-                    // DROPOFF MARKER 🔴
+                  // STEP 2: MINIMAL SEMI-TRANSPARENT DROPOFF MARKER 🔴
+                  if (_deliveryStep == 2)
                     Marker(
                       point: dropoffLoc,
-                      width: 110,
-                      height: 50,
+                      width: 85,
+                      height: 34,
                       alignment: Alignment.topCenter,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.redAccent,
-                          borderRadius: BorderRadius.circular(10),
+                          color:
+                              const Color(0xFF0B1120).withValues(alpha: 0.65),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.redAccent.withValues(alpha: 0.7),
+                            width: 1.2,
+                          ),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 4,
+                            ),
+                          ],
                         ),
-                        child: const Text(
-                          'التسليم 🔴',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
+                        child: const Center(
+                          child: Text(
+                            'التسليم 🔴',
+                            style: TextStyle(
+                              color: Colors.redAccent,
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ],
                 ],
               ),
             ],
@@ -1565,20 +1603,94 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                         ),
                         const SizedBox(height: 14),
 
-                        // ACTION BUTTONS (قبول، رفض، أو تقديم عرض سعر أعلى)
-                        if (_isParcelAccepted)
+                        // ACTION BUTTONS (2-PHASE ROUTING: PICKUP FIRST, THEN DROPOFF)
+                        if (_deliveryStep == 1)
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFA3E635),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _deliveryStep = 2;
+                                });
+                                _fetchGoogleMapsDirections(
+                                    pickupLoc, dropoffLoc);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                        'تم استلام الطرد بنجاح! تم تحديد المسار إلى موقع التسليم 🔴📍'),
+                                    backgroundColor: Color(0xFF0D2B1D),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.inventory_2_rounded,
+                                  color: Color(0xFF0D2B1D), size: 18),
+                              label: const Text(
+                                'استلمت الطرد 📦 (تحديد مسار التسليم)',
+                                style: TextStyle(
+                                  color: Color(0xFF0D2B1D),
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          )
+                        else if (_deliveryStep == 2)
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF2563EB),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _deliveryStep = 3;
+                                });
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                        'تم تسليم الشحنة للعميل بنجاح! أحسنت 🎉'),
+                                    backgroundColor: Color(0xFF10B981),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.task_alt_rounded,
+                                  color: Colors.white, size: 18),
+                              label: const Text(
+                                'تأكيد تسليم الطرد للعميل بنجاح ✅',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          )
+                        else if (_deliveryStep == 3)
                           Container(
                             width: double.infinity,
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF0D2B1D),
+                              color: const Color(0xFF10B981),
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: const Center(
                               child: Text(
-                                'تم قبول الطلب ورسم مسار Google Maps المباشر 🛵⚡',
+                                'تم تسليم الشحنة للعميل بنجاح 🎉 ✅',
                                 style: TextStyle(
-                                  color: Color(0xFFA3E635),
+                                  color: Colors.white,
                                   fontWeight: FontWeight.w900,
                                   fontSize: 13,
                                 ),
@@ -1588,7 +1700,7 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                         else
                           Row(
                             children: [
-                              // Accept Original Price Button
+                              // Accept Button
                               Expanded(
                                 child: ElevatedButton.icon(
                                   style: ElevatedButton.styleFrom(
@@ -1601,12 +1713,14 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                                   ),
                                   onPressed: () {
                                     setState(() {
-                                      _isParcelAccepted = true;
+                                      _deliveryStep = 1;
                                     });
+                                    _fetchGoogleMapsDirections(
+                                        vendorLoc, pickupLoc);
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
                                         content: Text(
-                                            'تم قبول الطلب بالسعر الأصلي وبدء التوجه للاستلام ⚡'),
+                                            'تم قبول الطلب وبدء تحديد المسار إلى موقع الاستلام 🟢📍'),
                                         backgroundColor: Color(0xFF0D2B1D),
                                       ),
                                     );
@@ -1614,7 +1728,7 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                                   icon: const Icon(Icons.check_circle_rounded,
                                       color: Color(0xFF0D2B1D), size: 16),
                                   label: const Text(
-                                    'قبول (25ج)',
+                                    'قبول وتوجه للاستلام ⚡',
                                     style: TextStyle(
                                       color: Color(0xFF0D2B1D),
                                       fontWeight: FontWeight.w900,
@@ -1625,7 +1739,7 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                               ),
                               const SizedBox(width: 8),
 
-                              // Counter Offer Button (اقدر ازود السعر)
+                              // Counter Offer Button
                               Expanded(
                                 child: ElevatedButton.icon(
                                   style: ElevatedButton.styleFrom(
@@ -1676,7 +1790,7 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                                     _activeParcelOrderIndex =
                                         (_activeParcelOrderIndex + 1) %
                                             _incomingParcelOrders.length;
-                                    _isParcelAccepted = false;
+                                    _deliveryStep = 0;
                                   });
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(

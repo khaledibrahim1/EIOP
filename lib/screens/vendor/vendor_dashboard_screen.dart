@@ -266,7 +266,7 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
               ],
             ),
 
-            // 3. FLOATING DARK FOREST GREEN BOTTOM NAVBAR MATCHING IMAGE 1, 2, 3
+            // 3. FLOATING DARK FOREST GREEN BOTTOM NAVBAR (Filtered for Parcel Stores)
             Align(
               alignment: Alignment.bottomCenter,
               child: Container(
@@ -287,11 +287,15 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildFloatingNavItem(0, Icons.home_rounded, Icons.home_outlined),
                     _buildFloatingNavItem(
-                        1, Icons.receipt_long_rounded, Icons.receipt_long_outlined),
-                    _buildFloatingNavItem(
-                        2, Icons.inventory_2_rounded, Icons.inventory_2_outlined),
+                        0, Icons.home_rounded, Icons.home_outlined),
+                    _buildFloatingNavItem(1, Icons.receipt_long_rounded,
+                        Icons.receipt_long_outlined),
+                    if (catId != 'parcel' &&
+                        catId != 'parcelDelivery' &&
+                        catId != 'delivery')
+                      _buildFloatingNavItem(2, Icons.inventory_2_rounded,
+                          Icons.inventory_2_outlined),
                     _buildFloatingNavItem(
                         3, Icons.person_rounded, Icons.person_outline_rounded),
                   ],
