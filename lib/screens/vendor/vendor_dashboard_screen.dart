@@ -43,17 +43,17 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
     if (widget.category != null && widget.category!.isVendor) {
       return 'متجر ${widget.category!.title}';
     }
-    return 'متجر البرنس بجرجا';
+    return 'متجر ${_storeConfig.storeTypeTitle}';
   }
 
   String get _searchHintText {
     switch (_currentTabIndex) {
       case 0:
-        return 'ابحث في إحصائيات ومعاملات $_ownerName...';
+        return 'ابحث في إحصائيات ومعاملات ${_storeConfig.storeTypeTitle}...';
       case 1:
         return 'ابحث في الطلبات برقم الطلب أو الاسم...';
       case 2:
-        return 'ابحث في قائمة الوجبات والمنتجات المعروضة...';
+        return 'ابحث في قائمة ${_storeConfig.productTerm} المعروضة...';
       case 3:
         return 'ابحث في إعدادات الحساب والمتجر...';
       default:

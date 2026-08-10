@@ -58,6 +58,9 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
         return 'تم إصدار 48 شهادة ضمان معتمد 🛡️\nأعلى طلب على الهواتف والسماعات الذكية';
       case 'fashion':
         return 'تصدرت قمصان القطن الكاجوال المبيعات 👔\nالمقاس الأكثر طلباً هذا الأسبوع: L & XL';
+      case 'real_estate':
+      case 'realEstate':
+        return 'ارتفعت طلبات معاينة الأراضي والمشاريع بنسبة 35% 🏗️\nأعلى إقبال على أراضي المباني بكورنيش جرجا';
       case 'restaurant':
       default:
         return 'ارتفعت مبيعات الوجبات العائلية بنسبة 40%\nمتوسط زمن الطهي والتحضير: 18 دقيقة ⏱️';
@@ -66,6 +69,20 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
 
   Widget _buildCategoryOperationalHub() {
     switch (widget.categoryId) {
+      case 'real_estate':
+      case 'realEstate':
+        return _buildOperationalHubCard(
+          title: 'مركز متابعة معاينات العقارات والأراضي 🏠',
+          icon: Icons.landscape_rounded,
+          color: const Color(0xFF8B5CF6),
+          stats: [
+            {'label': 'طلبات المعاينة 🏠', 'val': '24 طلب'},
+            {'label': 'مساحات مباعدة 📐', 'val': '1,050 م²'},
+            {'label': 'معدل الحجز 🤝', 'val': '95%'},
+          ],
+          note: 'تلقي وحجز مواعيد معاينة قطعة الأرض أو العقار بجرجا مع تأكيد المعاينة فورياً',
+        );
+
       case 'pharmacy':
         return _buildOperationalHubCard(
           title: 'مركز إدارة الروشتات الطبية والعلاج 📜',
@@ -652,9 +669,7 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: Icon(
-                        index % 2 == 0
-                            ? Icons.fastfood_rounded
-                            : Icons.shopping_bag_rounded,
+                        _storeConfig.categoryIcon,
                         color: darkForestGreen,
                         size: 22,
                       ),

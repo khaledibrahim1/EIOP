@@ -59,6 +59,57 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
     super.initState();
     _storeConfig = VendorStoreConfig.fromCategoryId(widget.categoryId);
     _myProducts = _storeConfig.getInitialSampleProducts();
+    _initCategoryOffers();
+  }
+
+  void _initCategoryOffers() {
+    switch (widget.categoryId) {
+      case 'real_estate':
+      case 'realEstate':
+        _myOffers.clear();
+        _myOffers.add(
+          const PromoOfferData(
+            badgeText: 'عرض خاص 🏗️',
+            title: 'خصم 25% على رسوم معاينة الأراضي بجرجا',
+            subtitleText: 'خصم يصل إلى',
+            discountNum: '25',
+            footerNote: 'على جميع الأراضي والعقارات | كود: LAND25',
+            buttonText: 'احجز المعاينة',
+            bgImagePath: 'assets/images/cat_realestate.png',
+          ),
+        );
+        break;
+      case 'pharmacy':
+        _myOffers.clear();
+        _myOffers.add(
+          const PromoOfferData(
+            badgeText: 'عرض الصيدلية 💊',
+            title: 'خصم 20% على المستلزمات الطبية والفيتامينات',
+            subtitleText: 'خصم يصل إلى',
+            discountNum: '20',
+            footerNote: 'على المستحضرات والفيتامينات | كود: PHARM20',
+            buttonText: 'اطلب الآن',
+            bgImagePath: 'assets/images/pharmacy_panadol.png',
+          ),
+        );
+        break;
+      case 'supermarket':
+        _myOffers.clear();
+        _myOffers.add(
+          const PromoOfferData(
+            badgeText: 'عروض السوبرماركت 🛒',
+            title: 'خصم 15% على كرتونة جهينة والأرز الفاخر',
+            subtitleText: 'خصم يصل إلى',
+            discountNum: '15',
+            footerNote: 'على جميع السلع الأساسية | كود: MARKET15',
+            buttonText: 'اطلب السلع',
+            bgImagePath: 'assets/images/supermarket_milk.png',
+          ),
+        );
+        break;
+      default:
+        break;
+    }
   }
 
   // Opens Native OS File Dialog Explorer (Windows OpenFileDialog)
