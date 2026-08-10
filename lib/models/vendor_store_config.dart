@@ -115,20 +115,21 @@ class VendorStoreConfig {
         );
 
       case 'real_estate':
+      case 'realEstate':
         return const VendorStoreConfig(
           categoryId: 'real_estate',
           storeTypeTitle: 'عقارات وأراضي',
           primaryColor: Color(0xFF8B5CF6),
-          categoryIcon: Icons.apartment_rounded,
-          storeBadgeText: 'مكتب عقارات 🏠',
-          productTerm: 'العقارات والوحدات',
+          categoryIcon: Icons.landscape_rounded,
+          storeBadgeText: 'مكتب عقارات وأراضي 🏗️',
+          productTerm: 'العقارات والأراضي',
           salesStatLabel: 'معاينة وطلب',
           orderActionLabel: 'تأكيد موعد المعاينة 🏠',
-          addProductTitle: 'إضافة عقار / وحدة جديدة',
-          fieldLabelTitle: 'عنوان وصف العقار بجرجا',
-          extraField1Label: 'المساحة بالمتر المربع (م²)',
-          extraField2Label: 'نوع العقد (إيجار / بيع)',
-          quickCategoryTags: ['الكل', 'شقق تمليك', 'شقق إيجار', 'مشاريع وأراضي', 'محلات تجارية'],
+          addProductTitle: 'إضافة عقار / قطعة أرض جديدة',
+          fieldLabelTitle: 'عنوان وصف العقار/الأرض بجرجا',
+          extraField1Label: 'المساحة (م² / قراريط)',
+          extraField2Label: 'نوع العقد (إيجار / بيع / مباني / زراعي)',
+          quickCategoryTags: ['الكل', 'أراضي مباني', 'أراضي زراعية', 'شقق تمليك', 'شقق إيجار', 'محلات تجارية'],
         );
 
       case 'jobs':
@@ -303,6 +304,51 @@ class VendorStoreConfig {
           },
         ];
 
+      case 'real_estate':
+      case 'realEstate':
+        return [
+          {
+            'id': 're1',
+            'title': 'قطعة أرض مباني متميزة بجرجا (175 م²)',
+            'price': 1450000.0,
+            'oldPrice': 1550000.0,
+            'category': 'أراضي مباني',
+            'badge': 'المساحة: 175 م² 📐 • كاملة المرافق',
+            'isAvailable': true,
+            'imagePath': 'assets/images/cat_realestate.png',
+          },
+          {
+            'id': 're2',
+            'title': 'أرض استثمارية/زراعية بجرجا (5 قراريط)',
+            'price': 650000.0,
+            'oldPrice': null,
+            'category': 'أراضي زراعية',
+            'badge': 'المساحة: 5 قراريط 🌾 • واجهة على طريق رئيسي',
+            'isAvailable': true,
+            'imagePath': 'assets/images/cat_realestate.png',
+          },
+          {
+            'id': 're3',
+            'title': 'شقة تمليك فاخرة سوبر لوكس شارع المحطة',
+            'price': 850000.0,
+            'oldPrice': 920000.0,
+            'category': 'شقق تمليك',
+            'badge': 'المساحة: 140 م² 🏢 • 3 غرف نوم',
+            'isAvailable': true,
+            'imagePath': 'assets/images/realestate_apartment.png',
+          },
+          {
+            'id': 're4',
+            'title': 'محل تجاري حيوي الشارع التجاري الرئيسي',
+            'price': 1200000.0,
+            'oldPrice': null,
+            'category': 'محلات تجارية',
+            'badge': 'المساحة: 65 م² 🏪 • واجهة زجاجية',
+            'isAvailable': true,
+            'imagePath': 'assets/images/cat_realestate.png',
+          },
+        ];
+
       case 'restaurant':
       default:
         return [
@@ -342,6 +388,31 @@ class VendorStoreConfig {
 
   List<Map<String, dynamic>> getInitialSampleOrders() {
     switch (categoryId) {
+      case 'real_estate':
+      case 'realEstate':
+        return [
+          {
+            'id': '#REAL-501',
+            'customerName': 'المهندس أحمد حسني',
+            'phone': '01011223344',
+            'address': 'جرجا - شارع المحطة، بجوار البنك الأهلي',
+            'items': 'طلب معاينة: قطعة أرض مباني متميزة (175 م²)',
+            'total': 1450000.0,
+            'time': 'منذ 10 دقائق',
+            'status': 'الجديدة',
+          },
+          {
+            'id': '#REAL-502',
+            'customerName': 'د. محمود صابر',
+            'phone': '01299887766',
+            'address': 'جرجا - شارع الكورنيش',
+            'items': 'حجز استشارة وشراء: أرض استثمارية (5 قراريط)',
+            'total': 650000.0,
+            'time': 'منذ ساعتين',
+            'status': 'قيد المعالجة',
+          },
+        ];
+
       case 'pharmacy':
         return [
           {
