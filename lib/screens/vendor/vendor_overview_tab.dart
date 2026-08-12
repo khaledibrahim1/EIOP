@@ -5,6 +5,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import '../../models/vendor_store_config.dart';
+import '../../widgets/job_store_stats_hub.dart';
 
 class VendorOverviewTab extends StatefulWidget {
   final String categoryId;
@@ -231,9 +232,11 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
       case 'real_estate':
       case 'realEstate':
         return 'ارتفعت طلبات معاينة الأراضي والمشاريع بنسبة 35% 🏗️\nأعلى إقبال على أراضي المباني بكورنيش جرجا';
+      case 'jobs':
+        return 'تم نشر 48 فرصة عمل جديدة بجرجا 💼\nإجمالي المتقدمين 184 | نسبة التوافق 92.4%';
       case 'restaurant':
       default:
-        return 'ارتفعت مبيعات الوجبات العائلية بنسبة 40%\nمتوسط زمن الطهي والتحضير: 18 دقيقة ⏱️';
+        return 'ارتفع إقبال طلبات المبيعات بجرجا بنسبة 40%\nمتوسط السرعة والجودة: ممتاز ⭐';
     }
   }
 
@@ -305,8 +308,23 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
           note: 'تحليل الألوان والمقاسات الأكثر إقبالاً بالبوتيك وتوفير التشكيلة المناسبة',
         );
 
+      case 'jobs':
+        return const JobStoreStatsHub(
+          offeredJobs: 48,
+          applicantsCount: 184,
+          rejectedCount: 14,
+        );
+
       case 'restaurant':
       default:
+        if (widget.storeName.contains('وظائف') ||
+            widget.categoryTitle.contains('وظائف')) {
+          return const JobStoreStatsHub(
+            offeredJobs: 48,
+            applicantsCount: 184,
+            rejectedCount: 14,
+          );
+        }
         return _buildOperationalHubCard(
           title: 'مؤشر المطبخ والطهي الحي 🍳',
           icon: Icons.soup_kitchen_rounded,
@@ -456,6 +474,10 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
         widget.categoryId == 'parcelDelivery' ||
         widget.categoryId == 'delivery';
 
+    final bool isJobsStore = widget.categoryId == 'jobs' ||
+        widget.storeName.contains('وظائف') ||
+        widget.categoryTitle.contains('وظائف');
+
     if (isParcel) {
       return _buildFullPageParcelGoogleMapHub();
     }
@@ -483,35 +505,43 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 10,
-                      height: 10,
-                      decoration: BoxDecoration(
-                        color: _isStoreOpen ? vibrantLimeGreen : Colors.redAccent,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: (_isStoreOpen ? vibrantLimeGreen : Colors.redAccent)
-                                .withValues(alpha: 0.6),
-                            blurRadius: 6,
+                Expanded(
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: _isStoreOpen ? vibrantLimeGreen : Colors.redAccent,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: (_isStoreOpen ? vibrantLimeGreen : Colors.redAccent)
+                                  .withValues(alpha: 0.6),
+                              blurRadius: 6,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          _isStoreOpen
+                              ? (isJobsStore
+                                  ? 'استقبال طلبات السير الذاتية مفتوح'
+                                  : 'استقبال الطلبات بجرجا مفتوح')
+                              : 'المتجر مغلق حالياً',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: darkForestGreen,
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      _isStoreOpen
-                          ? 'استقبال الطلبات بجرجا مفتوح'
-                          : 'المتجر مغلق حالياً',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: darkForestGreen,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 Switch.adaptive(
                   value: _isStoreOpen,
@@ -522,7 +552,9 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(_isStoreOpen
-                            ? 'تم فتح المتجر لاستقبال طلبات العملاء بجرجا'
+                            ? (isJobsStore
+                                ? 'تم فتح استقبال طلبات التوظيف والسير الذاتية'
+                                : 'تم فتح المتجر لاستقبال طلبات العملاء بجرجا')
                             : 'تم إغلاق المتجر مؤقتاً'),
                         backgroundColor: darkForestGreen,
                         duration: const Duration(seconds: 2),
@@ -625,23 +657,23 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
           _buildCategoryOperationalHub(),
           const SizedBox(height: 16),
 
-          // 4. NET INCOME & TOTAL RETURN CARDS ROW
+          // 4. METRICS / INCOME CARDS ROW
           Row(
             children: [
               Expanded(
                 child: _buildIncomeCard(
-                  title: 'صافي الأرباح',
-                  amount: '193,000 ج.م',
-                  trend: '+35% عن الشهر الماضي',
+                  title: isJobsStore ? 'المقابلات المحددة' : 'صافي الأرباح',
+                  amount: isJobsStore ? '28 مقابلة' : '193,000 ج.م',
+                  trend: isJobsStore ? '+40% هذا الشهر' : '+35% عن الشهر الماضي',
                   isPositive: true,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _buildIncomeCard(
-                  title: 'المرتجعات والطلبات',
-                  amount: '32,000 ج.م',
-                  trend: '-24% عن الشهر الماضي',
+                  title: isJobsStore ? 'طلبات التوظيف المعلقة' : 'المرتجعات والطلبات',
+                  amount: isJobsStore ? '12 طلب' : '32,000 ج.م',
+                  trend: isJobsStore ? 'تحت الفرز والتدقيق 📄' : '-24% عن الشهر الماضي',
                   isPositive: false,
                 ),
               ),
@@ -649,7 +681,7 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
           ),
           const SizedBox(height: 18),
 
-          // 4. SALES REPORT HORIZONTAL BAR CHART CARD (MATCHING IMAGE 2)
+          // 4. REPORT HORIZONTAL BAR CHART CARD
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
@@ -670,10 +702,10 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        'تقرير المبيعات والمنتجات',
-                        style: TextStyle(
+                        isJobsStore ? 'تقرير التوظيف والسير الذاتية' : 'تقرير المبيعات والمنتجات',
+                        style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
                           color: textDark,
@@ -706,22 +738,34 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                 ),
                 const SizedBox(height: 20),
 
-                // Horizontal Bar 1: المنتجات المعروضة (233)
-                _buildBarRow('المنتجات المعروضة (233)', 0.65, vibrantLimeGreen),
+                // Horizontal Bar 1
+                _buildBarRow(
+                  isJobsStore ? 'الوظائف المعروضة (48)' : 'المنتجات المعروضة (233)',
+                  0.65,
+                  vibrantLimeGreen,
+                ),
                 const SizedBox(height: 14),
 
-                // Horizontal Bar 2: طلبات قيد الإعداد (23)
-                _buildBarRow('طلبات قيد الإعداد (23)', 0.35, const Color(0xFFC0ED76)),
+                // Horizontal Bar 2
+                _buildBarRow(
+                  isJobsStore ? 'طلبات قيد الفرز والتدقيق (184)' : 'طلبات قيد الإعداد (23)',
+                  0.85,
+                  const Color(0xFF3B82F6),
+                ),
                 const SizedBox(height: 14),
 
-                // Horizontal Bar 3: المنتجات المباعة (482)
-                _buildBarRow('المنتجات المباعة (482)', 0.88, darkForestGreen),
+                // Horizontal Bar 3
+                _buildBarRow(
+                  isJobsStore ? 'الوظائف المكتملة والمغلقة (112)' : 'المنتجات المباعة (482)',
+                  0.45,
+                  darkForestGreen,
+                ),
               ],
             ),
           ),
           const SizedBox(height: 18),
 
-          // 5. TOTAL VIEW PERFORMANCE DONUT CHART (MATCHING IMAGE 3)
+          // 5. TOTAL VIEW PERFORMANCE DONUT CHART
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
@@ -738,20 +782,20 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
             ),
             child: Column(
               children: [
-                const Row(
+                Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
                       child: Text(
-                        'إحصائيات تصفح متجرك بجرجا',
-                        style: TextStyle(
+                        isJobsStore ? 'إحصائيات تفاعل المتقدمين بجرجا' : 'إحصائيات تصفح متجرك بجرجا',
+                        style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
                           color: textDark,
                         ),
                       ),
                     ),
-                    Icon(Icons.more_horiz_rounded, color: textSubtle),
+                    const Icon(Icons.more_horiz_rounded, color: textSubtle),
                   ],
                 ),
                 const SizedBox(height: 20),
@@ -764,25 +808,25 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                       width: 170,
                       height: 170,
                       child: CircularProgressIndicator(
-                        value: 0.68,
+                        value: 0.78,
                         strokeWidth: 22,
                         backgroundColor: darkForestGreen.withValues(alpha: 0.15),
                         valueColor:
                             const AlwaysStoppedAnimation<Color>(vibrantLimeGreen),
                       ),
                     ),
-                    const Column(
+                    Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'إجمالي الزيارات',
-                          style: TextStyle(fontSize: 11, color: textSubtle),
+                          isJobsStore ? 'إجمالي المتقدمين' : 'إجمالي الزيارات',
+                          style: const TextStyle(fontSize: 11, color: textSubtle),
                         ),
-                        SizedBox(height: 2),
+                        const SizedBox(height: 2),
                         Text(
-                          '565 ألف',
-                          style: TextStyle(
-                            fontSize: 22,
+                          isJobsStore ? '184 متقدم' : '565 ألف',
+                          style: const TextStyle(
+                            fontSize: 20,
                             fontWeight: FontWeight.w900,
                             color: textDark,
                           ),
@@ -794,14 +838,14 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                 const SizedBox(height: 20),
 
                 // Legend Pills Row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 12,
+                  runSpacing: 6,
                   children: [
-                    _buildLegendDot(vibrantLimeGreen, 'عدد الزيارات'),
-                    const SizedBox(width: 16),
-                    _buildLegendDot(darkForestGreen, 'التفاعل'),
-                    const SizedBox(width: 16),
-                    _buildLegendDot(accentOrange, 'المبيعات'),
+                    _buildLegendDot(vibrantLimeGreen, isJobsStore ? 'مشاهدات الوظائف' : 'عدد الزيارات'),
+                    _buildLegendDot(darkForestGreen, isJobsStore ? 'طلبات التقديم' : 'التفاعل'),
+                    _buildLegendDot(accentOrange, isJobsStore ? 'المقابلات' : 'المبيعات'),
                   ],
                 ),
               ],
@@ -809,21 +853,21 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
           ),
           const SizedBox(height: 18),
 
-          // 6. TRANSACTIONS / RECENT ORDERS LIST (MATCHING IMAGE 1)
-          const Row(
+          // 6. TRANSACTIONS / RECENT APPLICATIONS LIST
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
                 child: Text(
-                  'أحدث العمليات والطلبات',
-                  style: TextStyle(
+                  isJobsStore ? 'أحدث طلبات التقديم والسير الذاتية الواردة 💼' : 'أحدث العمليات والطلبات',
+                  style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
                     color: textDark,
                   ),
                 ),
               ),
-              Icon(Icons.more_horiz_rounded, color: textSubtle),
+              const Icon(Icons.more_horiz_rounded, color: textSubtle),
             ],
           ),
           const SizedBox(height: 12),
@@ -879,32 +923,44 @@ class _VendorOverviewTabState extends State<VendorOverviewTab> {
                             ),
                           ),
                           const SizedBox(height: 2),
-                          const Text(
-                            '12 يوليو 2024',
-                            style: TextStyle(
+                          Text(
+                            order['items'] ?? 'تقديم على وظيفة (مرفق CV 📄)',
+                            style: const TextStyle(
                               fontSize: 11,
                               color: textSubtle,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
                     ),
+                    const SizedBox(width: 8),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text(
-                          isCompleted ? 'مكتمل' : 'قيد الإعداد',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: isCompleted
-                                ? darkForestGreen
-                                : accentOrange,
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: isJobsStore
+                                ? const Color(0xFFECFDF5)
+                                : (isCompleted ? lightBgColor : const Color(0xFFFFFBEB)),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            order['status'] ?? (isCompleted ? 'مكتمل' : 'قيد الإعداد'),
+                            style: TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.bold,
+                              color: isJobsStore
+                                  ? const Color(0xFF10B981)
+                                  : (isCompleted ? darkForestGreen : accentOrange),
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: 3),
                         Text(
-                          order['id'] ?? '#ORD-8921',
+                          order['id'] ?? '#JOB-8921',
                           style: const TextStyle(
                             fontSize: 10,
                             color: textSubtle,

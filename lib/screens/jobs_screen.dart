@@ -3,6 +3,7 @@ import '../models/food_item.dart';
 import '../models/job_item.dart';
 import '../theme/app_colors.dart';
 import '../widgets/job_card.dart';
+import '../widgets/job_store_stats_hub.dart';
 import 'food_details_screen.dart';
 import 'main_layout_screen.dart';
 
@@ -753,6 +754,14 @@ class _JobsScreenState extends State<JobsScreen> {
                     );
                   },
                 ),
+              ),
+              const SizedBox(height: 18),
+
+              // Job Store Interactive Animated Statistics Hub (عدد الوظائف المعروضة - عدد المتقدمين - عدد المرفوضين)
+              const JobStoreStatsHub(
+                offeredJobs: 48,
+                applicantsCount: 184,
+                rejectedCount: 14,
               ),
               const SizedBox(height: 22),
 

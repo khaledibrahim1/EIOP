@@ -115,7 +115,7 @@ class VendorSettingsTab extends StatelessWidget {
             subtitle: 'اسم المتجر، ساعات العمل، والفرع بجرجا',
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('صفحة تعديل معلومات المتجر 📝')),
+                const SnackBar(content: Text('صفحة تعديل معلومات المتجر')),
               );
             },
           ),

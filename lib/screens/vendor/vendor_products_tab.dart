@@ -46,6 +46,22 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
     'سنوي',
   ];
 
+  static const List<String> jobCategoryTypes = [
+    'وظائف كاملة',
+    'دوام جزئي',
+    'خدمات مهنية',
+    'عمل حر',
+  ];
+
+  bool get _isJobsStore =>
+      widget.categoryId == 'jobs' || _storeConfig.categoryId == 'jobs';
+
+  bool get _isRealEstate =>
+      widget.categoryId == 'real_estate' ||
+      widget.categoryId == 'realEstate' ||
+      _storeConfig.categoryId == 'real_estate' ||
+      _storeConfig.categoryId == 'realEstate';
+
   static const darkForestGreen = Color(0xFF0D2B1D);
   static const vibrantLimeGreen = Color(0xFFA3E635);
   static const lightBgColor = Color(0xFFF6F8F5);
@@ -87,7 +103,7 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
       case 'pharmacy':
         _myOffers.add(
           const PromoOfferData(
-            badgeText: 'عرض الصيدلية 💊',
+            badgeText: 'عرض الصيدلية',
             title: 'خصم 20% على المستلزمات الطبية والفيتامينات',
             subtitleText: 'خصم يصل إلى',
             discountNum: '20',
@@ -100,7 +116,7 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
       case 'supermarket':
         _myOffers.add(
           const PromoOfferData(
-            badgeText: 'عروض السوبرماركت 🛒',
+            badgeText: 'عروض السوبرماركت',
             title: 'خصم 15% على كرتونة جهينة والأرز الفاخر',
             subtitleText: 'خصم يصل إلى',
             discountNum: '15',
@@ -110,18 +126,25 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
           ),
         );
         break;
+      case 'jobs':
+        // Start with no promo offers for jobs by default ("لا يوجد عروض")
+        break;
       default:
-        _myOffers.add(
-          const PromoOfferData(
-            badgeText: 'عرض خاص 🔥',
-            title: 'خصم 30% على الوجبات العائلية والميكس',
-            subtitleText: 'خصم يصل إلى',
-            discountNum: '30',
-            footerNote: 'على جميع الأطباق | كود: EIOP30',
-            buttonText: 'احصل عليه',
-            bgImagePath: 'assets/images/hadramout_cover.png',
-          ),
-        );
+        if (_isJobsStore) {
+          // Start with no promo offers for jobs by default
+        } else {
+          _myOffers.add(
+            const PromoOfferData(
+              badgeText: 'عرض خاص',
+              title: 'خصم 30% على الوجبات العائلية والميكس',
+              subtitleText: 'خصم يصل إلى',
+              discountNum: '30',
+              footerNote: 'على جميع الأطباق | كود: EIOP30',
+              buttonText: 'احصل عليه',
+              bgImagePath: 'assets/images/hadramout_cover.png',
+            ),
+          );
+        }
         break;
     }
   }
@@ -197,7 +220,7 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
   void _showAddPromoOfferModal(BuildContext context) {
     final titleCtrl = TextEditingController(text: 'خصم خاص على جميع الأطباق');
     final discountCtrl = TextEditingController(text: '25');
-    final badgeCtrl = TextEditingController(text: 'عرض جديد 🔥');
+    final badgeCtrl = TextEditingController(text: 'عرض جديد');
     final footerCtrl = TextEditingController(text: 'كود: MEAL25 | لفترة محدودة');
     String imagePath = 'assets/images/hadramout_cover.png';
 
@@ -484,7 +507,7 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                         Expanded(
                           child: _buildModalTextField(
                             controller: badgeCtrl,
-                            label: 'شارة العرض (مثلاً: عرض خاص 🔥)',
+                            label: 'شارة العرض (مثلاً: عرض خاص)',
                           ),
                         ),
                       ],
@@ -524,7 +547,7 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                           final newOffer = PromoOfferData(
                             badgeText: badgeCtrl.text.trim().isNotEmpty
                                 ? badgeCtrl.text.trim()
-                                : 'عرض جديد 🔥',
+                                : 'عرض جديد',
                             title: title,
                             subtitleText: 'خصم يصل إلى',
                             discountNum: disc.isNotEmpty ? disc : '20',
@@ -544,7 +567,7 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                  'تم نشر العرض الترويجي ($title) وإدراجه بصفحة الوجبات بنجاح! 🎁🚀'),
+                                  'تم نشر العرض الترويجي ($title) وإدراجه بنجاح!'),
                               backgroundColor: darkForestGreen,
                               duration: const Duration(seconds: 3),
                             ),
@@ -553,7 +576,7 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                         icon: const Icon(Icons.rocket_launch_rounded,
                             color: vibrantLimeGreen, size: 20),
                         label: const Text(
-                          'نشر العرض للمستخدمين 🚀',
+                          'نشر العرض للمستخدمين',
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -575,18 +598,23 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
 
   // CONFIRM DELETE PRODUCT DIALOG
   void _confirmDeleteProduct(Map<String, dynamic> prod) {
+    final bool isRealEstate = _isRealEstate;
     showDialog(
       context: context,
       builder: (ctx) {
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 24),
-              SizedBox(width: 8),
+              const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 24),
+              const SizedBox(width: 8),
               Text(
-                'تأكيد حذف الوجبة',
-                style: TextStyle(
+                _isJobsStore
+                    ? 'تأكيد حذف الوظيفة'
+                    : isRealEstate
+                        ? 'تأكيد حذف العقار'
+                        : 'تأكيد حذف الصنف',
+                style: const TextStyle(
                     fontSize: 16, fontWeight: FontWeight.bold, color: textDark),
               ),
             ],
@@ -614,7 +642,13 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('تم حذف وجبة (${prod['title']}) نهائياً! 🗑️'),
+                    content: Text(
+                      _isJobsStore
+                          ? 'تم حذف وظيفة (${prod['title']}) نهائياً!'
+                          : isRealEstate
+                              ? 'تم حذف عقار (${prod['title']}) نهائياً!'
+                              : 'تم حذف صنف (${prod['title']}) نهائياً!',
+                    ),
                     backgroundColor: Colors.redAccent,
                   ),
                 );
@@ -726,6 +760,7 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
 
   // INTERACTIVE PRODUCT DETAILS MODAL SHEET
   void _showProductDetailsModal(Map<String, dynamic> prod) {
+    final bool isRealEstate = _isRealEstate;
     final String title = prod['title'] ?? 'منتج بدون عنوان';
     final double price = (prod['price'] ?? 0.0).toDouble();
     final double? oldPrice =
@@ -757,31 +792,22 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Handle
-                    Center(
-                      child: Container(
-                        width: 44,
-                        height: 5,
-                        decoration: BoxDecoration(
-                          color: Colors.grey.withValues(alpha: 0.3),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-
                     // Header Title
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Row(
+                        Row(
                           children: [
-                            Icon(Icons.info_outline_rounded,
+                            const Icon(Icons.info_outline_rounded,
                                 color: darkForestGreen, size: 24),
-                            SizedBox(width: 8),
+                            const SizedBox(width: 8),
                             Text(
-                              'تفاصيل الوجبة / المنتج',
-                              style: TextStyle(
+                              _isJobsStore
+                                  ? 'تفاصيل فرصة العمل'
+                                  : isRealEstate
+                                      ? 'تفاصيل العقار'
+                                      : 'تفاصيل المنتج',
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 color: textDark,
@@ -877,7 +903,7 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                             color: darkForestGreen,
                           ),
                         ),
-                        if (oldPrice != null && oldPrice > price) ...[
+                        if (!_isJobsStore && oldPrice != null && oldPrice > price) ...[
                           const SizedBox(width: 10),
                           Text(
                             '$oldPrice ج.م',
@@ -939,8 +965,16 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                                 children: [
                                   Text(
                                     isAvail
-                                        ? 'الوجبة متوفرة للطلب'
-                                        : 'الوجبة غير متوفرة حالياً',
+                                        ? (_isJobsStore
+                                            ? 'الفرصة متاحة للتقديم ✅'
+                                            : isRealEstate
+                                                ? 'العقار متاح 🏠'
+                                                : 'الصنف متوفر')
+                                        : (_isJobsStore
+                                            ? 'الفرصة مغلقة مؤقتاً ❌'
+                                            : isRealEstate
+                                                ? 'العقار غير متاح ❌'
+                                                : 'غير متوفر حالياً'),
                                     style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.bold,
@@ -950,7 +984,7 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                                     ),
                                   ),
                                   const Text(
-                                    'يمكنك تغيير التوفر فوراً من هنا',
+                                    'يمكنك تغيير حالة التوفر فوراً من هنا',
                                     style: TextStyle(
                                         fontSize: 10, color: textSubtle),
                                   ),
@@ -975,9 +1009,13 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                     const SizedBox(height: 16),
 
                     // CUSTOMER OPTIONS & ADDONS SECTION
-                    const Text(
-                      'الخيارات والإضافات المتاحة للزبائن:',
-                      style: TextStyle(
+                    Text(
+                      _isJobsStore
+                          ? 'الشروط والمزايا المتاحة:'
+                          : isRealEstate
+                              ? 'المواصفات والمميزات:'
+                              : 'الخيارات والإضافات المتاحة للزبائن:',
+                      style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
                         color: textDark,
@@ -1007,9 +1045,11 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                         }).toList(),
                       )
                     else
-                      const Text(
-                        'لا توجد إضافات خاصة محددة لهذه الوجبة.',
-                        style: TextStyle(fontSize: 11, color: textSubtle),
+                      Text(
+                        _isJobsStore
+                            ? 'لا توجد شروط خاصة محددة لهذه الوظيفة.'
+                            : 'لا توجد إضافات خاصة محددة.',
+                        style: const TextStyle(fontSize: 11, color: textSubtle),
                       ),
 
                     const SizedBox(height: 24),
@@ -1061,9 +1101,13 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                               },
                               icon: const Icon(Icons.delete_forever_rounded,
                                   color: Colors.white, size: 20),
-                              label: const Text(
-                                'حذف الوجبة 🗑️',
-                                style: TextStyle(
+                              label: Text(
+                                _isJobsStore
+                                    ? 'حذف الوظيفة 🗑️'
+                                    : isRealEstate
+                                        ? 'حذف العقار 🗑️'
+                                        : 'حذف الصنف 🗑️',
+                                style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 14,
@@ -1102,6 +1146,10 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
     String selectedPropertyType = prod['propertyType'] ?? 'شقة';
     String selectedContractType = prod['contractType'] ?? 'تمليك';
     String selectedInstallmentType = prod['installmentType'] ?? 'شهري';
+    String selectedJobCategory = prod['category'] ?? 'وظائف كاملة';
+    if (!jobCategoryTypes.contains(selectedJobCategory)) {
+      selectedJobCategory = 'وظائف كاملة';
+    }
     final installmentDurationCtrl = TextEditingController(
         text: prod['installmentDuration'] ?? '3 سنوات');
     final installmentAmountCtrl = TextEditingController(
@@ -1348,9 +1396,24 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                     // 2. PRODUCT NAME INPUT
                     _buildModalTextField(
                       controller: titleCtrl,
-                      label: _storeConfig.fieldLabelTitle,
+                      label: _isJobsStore ? 'المسمى الوظيفي / اسم الخدمة' : _storeConfig.fieldLabelTitle,
                     ),
                     const SizedBox(height: 14),
+
+                    // JOB CATEGORY SELECT DROPDOWN
+                    if (_isJobsStore) ...[
+                      _buildDropdownField(
+                        label: 'نوع الدوام والتصنيف (Category):',
+                        value: selectedJobCategory,
+                        items: jobCategoryTypes,
+                        onChanged: (val) {
+                          if (val != null) {
+                            setModalState(() => selectedJobCategory = val);
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 14),
+                    ],
 
                     // REAL ESTATE TAILORED SELECT DROPDOWNS
                     if (isRealEstate) ...[
@@ -1358,7 +1421,7 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                         children: [
                           Expanded(
                             child: _buildDropdownField(
-                              label: 'نوع العقار 🏠:',
+                              label: 'نوع العقار:',
                               value: selectedPropertyType,
                               items: realEstatePropertyTypes,
                               onChanged: (val) {
@@ -1371,7 +1434,7 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                           const SizedBox(width: 10),
                           Expanded(
                             child: _buildDropdownField(
-                              label: 'نوع العقد 📝:',
+                              label: 'نوع العقد:',
                               value: selectedContractType,
                               items: realEstateContractTypes,
                               onChanged: (val) {
@@ -1404,7 +1467,7 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                                       color: darkForestGreen, size: 18),
                                   SizedBox(width: 6),
                                   Text(
-                                    'تفاصيل وحساب التقسيط 💳:',
+                                    'تفاصيل وحساب التقسيط:',
                                     style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.bold,
@@ -1458,55 +1521,57 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                       ],
                     ],
 
-                    // 3. DISCOUNT TOGGLE SWITCH
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: lightBgColor,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                            color: Colors.black.withValues(alpha: 0.05)),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Expanded(
-                            child: Row(
-                              children: [
-                                Icon(Icons.local_offer_outlined,
-                                    color: darkForestGreen, size: 20),
-                                SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'تفعيل خصم خاص؟',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
-                                      color: textDark,
+                    // 3. DISCOUNT TOGGLE SWITCH (تطبيق خصم أم لا)
+                    if (!_isJobsStore) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: lightBgColor,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                              color: Colors.black.withValues(alpha: 0.05)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Expanded(
+                              child: Row(
+                                children: [
+                                  Icon(Icons.local_offer_outlined,
+                                      color: darkForestGreen, size: 20),
+                                  SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'تفعيل خصم خاص؟',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: textDark,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                          Switch.adaptive(
-                            value: hasDiscount,
-                            activeTrackColor: vibrantLimeGreen,
-                            activeThumbColor: darkForestGreen,
-                            onChanged: (val) {
-                              setModalState(() {
-                                hasDiscount = val;
-                              });
-                            },
-                          ),
-                        ],
+                            Switch.adaptive(
+                              value: hasDiscount,
+                              activeTrackColor: vibrantLimeGreen,
+                              activeThumbColor: darkForestGreen,
+                              onChanged: (val) {
+                                setModalState(() {
+                                  hasDiscount = val;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
+                      const SizedBox(height: 12),
+                    ],
 
-                    // PRICE INPUTS
-                    if (hasDiscount)
+                    // PRICE INPUTS (مع الخصم أو بدون خصم)
+                    if (!_isJobsStore && hasDiscount)
                       Row(
                         children: [
                           Expanded(
@@ -1529,7 +1594,11 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                     else
                       _buildModalTextField(
                         controller: priceCtrl,
-                        label: isRealEstate ? 'السعر الإجمالي (ج.م)' : 'السعر (ج.م)',
+                        label: _isJobsStore
+                            ? 'الراتب المتوقع / الأجر (ج.م) 💵'
+                            : isRealEstate
+                                ? 'السعر الإجمالي (ج.م)'
+                                : 'السعر (ج.م)',
                         keyboardType: TextInputType.number,
                       ),
 
@@ -1551,9 +1620,11 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                         Expanded(
                           child: _buildModalTextField(
                             controller: optionInputCtrl,
-                            label: isRealEstate
-                                ? 'مثلاً: تشطيب سوبر لوكس أو شامل الجراج'
-                                : 'مثلاً: حجم دبل (+15 ج.م)',
+                            label: _isJobsStore
+                                ? 'مثلاً: يشمل تأمين صحي أو سكن مجاني'
+                                : isRealEstate
+                                    ? 'مثلاً: تشطيب سوبر لوكس أو شامل الجراج'
+                                    : 'مثلاً: حجم دبل (+15 ج.م)',
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -1661,7 +1732,11 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                           }
 
                           String badgeText = extra1Ctrl.text.trim();
-                          if (isRealEstate) {
+                          if (_isJobsStore) {
+                            badgeText = badgeText.isNotEmpty
+                                ? '$selectedJobCategory • $badgeText'
+                                : '$selectedJobCategory • راتب $p ج.م 💼';
+                          } else if (isRealEstate) {
                             if (selectedContractType == 'تقسيط') {
                               final dur = installmentDurationCtrl.text.trim();
                               final amt = installmentAmountCtrl.text.trim();
@@ -1684,7 +1759,9 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                             prod['title'] = t;
                             prod['price'] = p;
                             prod['oldPrice'] = (oldP != null && oldP > 0) ? oldP : null;
-                            if (isRealEstate) {
+                            if (_isJobsStore) {
+                              prod['category'] = selectedJobCategory;
+                            } else if (isRealEstate) {
                               prod['category'] = selectedPropertyType;
                               prod['propertyType'] = selectedPropertyType;
                               prod['contractType'] = selectedContractType;
@@ -2043,6 +2120,8 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
     final extra2Ctrl = TextEditingController();
     final optionInputCtrl = TextEditingController();
 
+    String selectedJobCategory = 'وظائف كاملة';
+
     // Real Estate tailored selects & fields
     String selectedPropertyType = 'شقة';
     String selectedContractType = 'تمليك';
@@ -2052,7 +2131,11 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
     final downPaymentCtrl = TextEditingController(text: '100000');
 
     List<String> productPhotos = [
-      isRealEstate ? 'assets/images/cat_realestate.png' : _deviceGalleryImages.first
+      isRealEstate
+          ? 'assets/images/cat_realestate.png'
+          : _isJobsStore
+              ? 'assets/images/job_opportunity.png'
+              : _deviceGalleryImages.first
     ];
     bool hasDiscount = false;
     List<String> optionsList = [];
@@ -2102,7 +2185,7 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                             color: darkForestGreen, size: 24),
                         const SizedBox(width: 8),
                         Text(
-                          _storeConfig.addProductTitle,
+                          _isJobsStore ? 'إضافة فرصة عمل / خدمة جديدة 💼' : _storeConfig.addProductTitle,
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -2292,9 +2375,24 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                     // 2. PRODUCT NAME INPUT
                     _buildModalTextField(
                       controller: titleCtrl,
-                      label: _storeConfig.fieldLabelTitle,
+                      label: _isJobsStore ? 'المسمى الوظيفي / اسم الخدمة' : _storeConfig.fieldLabelTitle,
                     ),
                     const SizedBox(height: 14),
+
+                    // JOB CATEGORY SELECT DROPDOWN
+                    if (_isJobsStore) ...[
+                      _buildDropdownField(
+                        label: 'نوع الدوام والتصنيف (Category):',
+                        value: selectedJobCategory,
+                        items: jobCategoryTypes,
+                        onChanged: (val) {
+                          if (val != null) {
+                            setModalState(() => selectedJobCategory = val);
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 14),
+                    ],
 
                     // REAL ESTATE TAILORED SELECT DROPDOWNS
                     if (isRealEstate) ...[
@@ -2302,7 +2400,7 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                         children: [
                           Expanded(
                             child: _buildDropdownField(
-                              label: 'نوع العقار 🏠:',
+                              label: 'نوع العقار:',
                               value: selectedPropertyType,
                               items: realEstatePropertyTypes,
                               onChanged: (val) {
@@ -2315,7 +2413,7 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                           const SizedBox(width: 10),
                           Expanded(
                             child: _buildDropdownField(
-                              label: 'نوع العقد 📝:',
+                              label: 'نوع العقد:',
                               value: selectedContractType,
                               items: realEstateContractTypes,
                               onChanged: (val) {
@@ -2348,7 +2446,7 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                                       color: darkForestGreen, size: 18),
                                   SizedBox(width: 6),
                                   Text(
-                                    'تفاصيل وحساب التقسيط 💳:',
+                                    'تفاصيل وحساب التقسيط:',
                                     style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.bold,
@@ -2403,54 +2501,56 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                     ],
 
                     // 3. DISCOUNT TOGGLE SWITCH (تطبيق خصم أم لا)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: lightBgColor,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                            color: Colors.black.withValues(alpha: 0.05)),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Expanded(
-                            child: Row(
-                              children: [
-                                Icon(Icons.local_offer_outlined,
-                                    color: darkForestGreen, size: 20),
-                                SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'تفعيل خصم خاص؟',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
-                                      color: textDark,
+                    if (!_isJobsStore) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: lightBgColor,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                              color: Colors.black.withValues(alpha: 0.05)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Expanded(
+                              child: Row(
+                                children: [
+                                  Icon(Icons.local_offer_outlined,
+                                      color: darkForestGreen, size: 20),
+                                  SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'تفعيل خصم خاص؟',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: textDark,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                          Switch.adaptive(
-                            value: hasDiscount,
-                            activeTrackColor: vibrantLimeGreen,
-                            activeThumbColor: darkForestGreen,
-                            onChanged: (val) {
-                              setModalState(() {
-                                hasDiscount = val;
-                              });
-                            },
-                          ),
-                        ],
+                            Switch.adaptive(
+                              value: hasDiscount,
+                              activeTrackColor: vibrantLimeGreen,
+                              activeThumbColor: darkForestGreen,
+                              onChanged: (val) {
+                                setModalState(() {
+                                  hasDiscount = val;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
+                      const SizedBox(height: 12),
+                    ],
 
                     // PRICE INPUTS (مع الخصم أو بدون خصم)
-                    if (hasDiscount)
+                    if (!_isJobsStore && hasDiscount)
                       Row(
                         children: [
                           Expanded(
@@ -2473,7 +2573,11 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                     else
                       _buildModalTextField(
                         controller: priceCtrl,
-                        label: isRealEstate ? 'السعر الإجمالي (ج.م)' : 'السعر (ج.م)',
+                        label: _isJobsStore
+                            ? 'الراتب المتوقع / الأجر (ج.م) 💵'
+                            : isRealEstate
+                                ? 'السعر الإجمالي (ج.م)'
+                                : 'السعر (ج.م)',
                         keyboardType: TextInputType.number,
                       ),
 
@@ -2495,9 +2599,11 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                         Expanded(
                           child: _buildModalTextField(
                             controller: optionInputCtrl,
-                            label: isRealEstate
-                                ? 'مثلاً: تشطيب سوبر لوكس أو شامل الجراج'
-                                : 'مثلاً: حجم دبل (+15 ج.م)',
+                            label: _isJobsStore
+                                ? 'مثلاً: يشمل تأمين صحي أو سكن مجاني'
+                                : isRealEstate
+                                    ? 'مثلاً: تشطيب سوبر لوكس أو شامل الجراج'
+                                    : 'مثلاً: حجم دبل (+15 ج.م)',
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -2612,7 +2718,11 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                           }
 
                           String badgeText = extra1Ctrl.text.trim();
-                          if (isRealEstate) {
+                          if (_isJobsStore) {
+                            badgeText = badgeText.isNotEmpty
+                                ? '$selectedJobCategory • $badgeText'
+                                : '0 متقدم 💼 • $selectedJobCategory • راتب $p ج.م';
+                          } else if (isRealEstate) {
                             if (selectedContractType == 'تقسيط') {
                               final dur = installmentDurationCtrl.text.trim();
                               final amt = installmentAmountCtrl.text.trim();
@@ -2638,7 +2748,7 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                               'title': t,
                               'price': p,
                               'oldPrice': (oldP != null && oldP > 0) ? oldP : null,
-                              'category': 'جديد',
+                              'category': _isJobsStore ? selectedJobCategory : (isRealEstate ? selectedPropertyType : 'جديد'),
                               'badge': badgeText,
                               'options': List<String>.from(optionsList),
                               'isAvailable': true,
@@ -2716,9 +2826,13 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
           onPressed: _showAddProductModal,
           backgroundColor: darkForestGreen,
           icon: const Icon(Icons.add_rounded, color: vibrantLimeGreen),
-          label: const Text(
-            'إضافة صنف جديد',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          label: Text(
+            _isJobsStore
+                ? 'إضافة فرصة عمل جديدة'
+                : isRealEstate
+                    ? 'إضافة عقار/أرض'
+                    : 'إضافة صنف جديد',
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
         ),
       ),
@@ -2728,288 +2842,324 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. ACTIVE STORE OFFERS CAROUSEL SECTION (عروض المتجر النشطة 🔥)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
+            // 1. ACTIVE STORE OFFERS CAROUSEL SECTION (مختفي لمتجر الوظائف)
+            if (!_isJobsStore) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        const Icon(Icons.local_offer_rounded,
+                            color: accentOrange, size: 18),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            'عروض المتجر النشطة (${_myOffers.length}):',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: textDark,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () => _showAddPromoOfferModal(context),
+                    child: Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: darkForestGreen,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.add_rounded,
+                              color: vibrantLimeGreen, size: 16),
+                          SizedBox(width: 4),
+                          Text(
+                            'إضافة عرض جديد',
+                            style: TextStyle(
+                              color: vibrantLimeGreen,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+
+              if (_myOffers.isNotEmpty)
+                SizedBox(
+                  height: 150,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: _myOffers.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(width: 12),
+                    itemBuilder: (context, index) {
+                      final offer = _myOffers[index];
+                      return Stack(
+                        children: [
+                          Container(
+                            width: MediaQuery.of(context).size.width * 0.8,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.1),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(20),
+                              child: Stack(
+                                children: [
+                                  Positioned.fill(
+                                    child: File(offer.bgImagePath).existsSync()
+                                        ? Image.file(File(offer.bgImagePath),
+                                            fit: BoxFit.cover)
+                                        : Image.asset(offer.bgImagePath,
+                                            fit: BoxFit.cover),
+                                  ),
+                                  Positioned.fill(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            Colors.black.withValues(alpha: 0.85),
+                                            Colors.black.withValues(alpha: 0.55),
+                                            Colors.black.withValues(alpha: 0.15),
+                                          ],
+                                          begin: Alignment.centerRight,
+                                          end: Alignment.centerLeft,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(12),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Align(
+                                          alignment: Alignment.topRight,
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 8, vertical: 3),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius:
+                                                  BorderRadius.circular(14),
+                                            ),
+                                            child: Text(
+                                              offer.badgeText,
+                                              style: const TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 9,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              offer.title,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            Row(
+                                              children: [
+                                                Text(
+                                                  '${offer.subtitleText} ',
+                                                  style: const TextStyle(
+                                                    color: Colors.white70,
+                                                    fontSize: 10,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  offer.discountNum,
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 22,
+                                                    fontWeight: FontWeight.w900,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 3),
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.all(2),
+                                                  decoration: const BoxDecoration(
+                                                    color: accentOrange,
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                  child: const Text(
+                                                    '%',
+                                                    style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 8,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                        Text(
+                                          offer.footerNote,
+                                          style: const TextStyle(
+                                            color: Colors.white70,
+                                            fontSize: 9,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            top: 8,
+                            left: 8,
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _myOffers.removeAt(index);
+                                });
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('تم إيقاف وحذف العرض الترويجي!'),
+                                    backgroundColor: Colors.redAccent,
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: const BoxDecoration(
+                                  color: Colors.redAccent,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.delete_outline_rounded,
+                                  color: Colors.white,
+                                  size: 14,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                )
+              else
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: cardWhite,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
+                  ),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Icon(Icons.local_offer_rounded,
-                          color: accentOrange, size: 18),
-                      const SizedBox(width: 6),
-                      Flexible(
-                        child: Text(
-                          'عروض المتجر النشطة (${_myOffers.length}):',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 14,
+                      const Row(
+                        children: [
+                          Icon(Icons.local_offer_outlined, color: textSubtle, size: 20),
+                          SizedBox(width: 8),
+                          Text(
+                            'لا يوجد عروض ترويجية نشطة حالياً 🏷️',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: textSubtle,
+                            ),
+                          ),
+                        ],
+                      ),
+                      GestureDetector(
+                        onTap: () => _showAddPromoOfferModal(context),
+                        child: const Text(
+                          '+ إضافة عرض',
+                          style: TextStyle(
+                            color: darkForestGreen,
+                            fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: textDark,
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: () => _showAddPromoOfferModal(context),
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: darkForestGreen,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.add_rounded,
-                            color: vibrantLimeGreen, size: 16),
-                        SizedBox(width: 4),
-                        Text(
-                          'إضافة عرض جديد',
-                          style: TextStyle(
-                            color: vibrantLimeGreen,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
+              const SizedBox(height: 18),
+            ],
 
-            if (_myOffers.isNotEmpty)
-              SizedBox(
-                height: 150,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: _myOffers.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(width: 12),
-                  itemBuilder: (context, index) {
-                    final offer = _myOffers[index];
-                    return Stack(
-                      children: [
-                        Container(
-                          width: MediaQuery.of(context).size.width * 0.8,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.1),
-                                blurRadius: 8,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(20),
-                            child: Stack(
-                              children: [
-                                Positioned.fill(
-                                  child: File(offer.bgImagePath).existsSync()
-                                      ? Image.file(File(offer.bgImagePath),
-                                          fit: BoxFit.cover)
-                                      : Image.asset(offer.bgImagePath,
-                                          fit: BoxFit.cover),
-                                ),
-                                Positioned.fill(
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          Colors.black.withValues(alpha: 0.85),
-                                          Colors.black.withValues(alpha: 0.55),
-                                          Colors.black.withValues(alpha: 0.15),
-                                        ],
-                                        begin: Alignment.centerRight,
-                                        end: Alignment.centerLeft,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Align(
-                                        alignment: Alignment.topRight,
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 8, vertical: 3),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius:
-                                                BorderRadius.circular(14),
-                                          ),
-                                          child: Text(
-                                            offer.badgeText,
-                                            style: const TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 9,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            offer.title,
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          Row(
-                                            children: [
-                                              Text(
-                                                '${offer.subtitleText} ',
-                                                style: const TextStyle(
-                                                  color: Colors.white70,
-                                                  fontSize: 10,
-                                                ),
-                                              ),
-                                              Text(
-                                                offer.discountNum,
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 22,
-                                                  fontWeight: FontWeight.w900,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 3),
-                                              Container(
-                                                padding:
-                                                    const EdgeInsets.all(2),
-                                                decoration: const BoxDecoration(
-                                                  color: accentOrange,
-                                                  shape: BoxShape.circle,
-                                                ),
-                                                child: const Text(
-                                                  '%',
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 8,
-                                                    fontWeight:
-                                                        FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                      Text(
-                                        offer.footerNote,
-                                        style: const TextStyle(
-                                          color: Colors.white70,
-                                          fontSize: 9,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          top: 8,
-                          left: 8,
-                          child: GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _myOffers.removeAt(index);
-                              });
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('تم إيقاف وحذف العرض الترويجي!'),
-                                  backgroundColor: Colors.redAccent,
-                                ),
-                              );
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: const BoxDecoration(
-                                color: Colors.redAccent,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.delete_outline_rounded,
-                                color: Colors.white,
-                                size: 14,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              )
-            else
+            // 2. STORE CATEGORY TAILORED BANNER & QUICK TAGS
+            if (_isJobsStore) ...[
               Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
-                  color: cardWhite,
+                  color: darkForestGreen.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
+                  border: Border.all(color: darkForestGreen.withValues(alpha: 0.2)),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: const Row(
                   children: [
-                    const Row(
-                      children: [
-                        Icon(Icons.local_offer_outlined, color: textSubtle, size: 20),
-                        SizedBox(width: 8),
-                        Text(
-                          'لا يوجد عروض ترويجية نشطة حالياً 🏷️',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: textSubtle,
+                    Icon(Icons.business_center_rounded, color: darkForestGreen, size: 22),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'إدارة طلبات التوظيف والخدمات',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: darkForestGreen,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    GestureDetector(
-                      onTap: () => _showAddPromoOfferModal(context),
-                      child: const Text(
-                        '+ إضافة عرض',
-                        style: TextStyle(
-                          color: darkForestGreen,
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                        ),
+                          Text(
+                            'تصنيف الفرص حسب دوام كامل، جزئي، خدمات مهنية، أو عمل حر',
+                            style: TextStyle(fontSize: 10, color: textSubtle),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
-
-            const SizedBox(height: 18),
-
-            // 2. STORE CATEGORY TAILORED BANNER & QUICK TAGS
-            if (_storeConfig.hasPrescriptionFeature) ...[
+              const SizedBox(height: 14),
+            ] else if (_storeConfig.hasPrescriptionFeature) ...[
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
@@ -3028,7 +3178,7 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'نظام الصيدلية والروشتات الطبية 📜',
+                            'نظام الصيدلية والروشتات الطبية',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
@@ -3099,7 +3249,9 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
               children: [
                 Expanded(
                   child: Text(
-                    'قائمة ${_storeConfig.productTerm} (${_filteredProducts.length}):',
+                    _isJobsStore
+                        ? 'قائمة الوظائف والخدمات المعروضة (${_filteredProducts.length}):'
+                        : 'قائمة ${_storeConfig.productTerm} (${_filteredProducts.length}):',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -3215,7 +3367,7 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                               if (options != null && options.isNotEmpty) ...[
                                 const SizedBox(height: 4),
                                 Text(
-                                  'الخيارات: ${options.join(" • ")}',
+                                  '${_isJobsStore ? "الشروط/المزايا" : "الخيارات"}: ${options.join(" • ")}',
                                   style: const TextStyle(
                                     fontSize: 10,
                                     color: textSubtle,
@@ -3236,7 +3388,7 @@ class _VendorProductsTabState extends State<VendorProductsTab> {
                                       color: darkForestGreen,
                                     ),
                                   ),
-                                  if (prod['oldPrice'] != null) ...[
+                                  if (!_isJobsStore && prod['oldPrice'] != null) ...[
                                     Text(
                                       '${prod['oldPrice']} ج.م',
                                       style: const TextStyle(
