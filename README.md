@@ -1,4 +1,4 @@
-ش <div align="center">
+ <div align="center">
 
 # 🌐 EIOP - Everything In One Place
 
@@ -27,7 +27,7 @@ Whether users want to order food, shop for groceries, browse electronics, find a
 
 ---
 
-##  The 8 Core Services
+## 🌟 The 8 Core Services
 
 | Service | Icon | Description and Features |
 | :--- | :---: | :--- |
@@ -91,7 +91,7 @@ EIOP/
 
 ---
 
-##  Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 
@@ -163,7 +163,7 @@ flutter build web --release
 
 ---
 
-##  Design System
+## 🎨 Design System
 
 EIOP follows a modern visual identity focused on consistency, clarity, and ease of use.
 
@@ -179,7 +179,7 @@ EIOP follows a modern visual identity focused on consistency, clarity, and ease 
 
 ---
 
-##  Technology Stack
+## 🛠️ Technology Stack
 
 | Technology | Purpose |
 | :--- | :--- |
@@ -191,7 +191,7 @@ EIOP follows a modern visual identity focused on consistency, clarity, and ease 
 
 ---
 
-##  Project Vision
+## 🔮 Project Vision
 
 The long-term vision of EIOP is to simplify everyday life by connecting residents, local businesses, service providers, and delivery couriers through a single digital platform.
 
@@ -199,7 +199,7 @@ By bringing essential services together, EIOP aims to improve convenience, suppo
 
 ---
 
-##  License
+## 📄 License
 
 This project is intended to use the **MIT License**. Ensure that a `LICENSE` file containing the MIT License text is included in the repository before distributing the project under that license.
 
